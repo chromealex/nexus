@@ -1,0 +1,465 @@
+// In-memory fixtures only. This page never invokes the Tauri backend or real accounts.
+const callbacks = new Map(),
+  listeners = new Map();
+let sequence = 0;
+const projects = [
+  {id: 'preview', name: 'Nexus · проверка интерфейса', workspace: '/tmp/nexus-ui-fixture', contexts: []},
+  {id: 'nexus-system', name: 'Nexus', system: true, workspace: '/tmp/nexus-ui-fixture'},
+];
+const chats = [
+  {id: 'preview-empty', projectId: 'preview', title: 'Новый чат', folderId: 'f'},
+  {
+    id: 'long',
+    projectId: 'preview',
+    title: 'Очень длинное название чата для проверки плавного затухания и появления кнопок действий',
+    folderId: 'f',
+  },
+  {
+    id: 'child',
+    projectId: 'preview',
+    title: 'Подчат с сохранённым контекстом',
+    folderId: 'f',
+    parentChatId: 'long',
+  },
+  {
+    id: 'history',
+    projectId: 'preview',
+    title: 'Проверка оформления ответов и технических деталей',
+    folderId: null,
+  },
+  {id: 'gallery', projectId: 'preview', title: 'Графические блоки в ответах', folderId: null},
+];
+const accounts = [
+    {id: 'codex-fixture', provider: 'codex', name: 'Тестовый профиль'},
+    {id: 'gemini-fixture', provider: 'gemini', name: 'Тестовый Google'},
+  ],
+  api = [];
+const fence = '```';
+const galleryAnswer = [
+  'Вот разбор релиза. Кратко — в выноске, детали ниже.',
+  '',
+  '> [!TIP]',
+  '> Самое важное: сборка стабильна, осталось закрыть две задачи по доступности.',
+  '',
+  fence + 'nexus-widget',
+  '{"type":"kpis","title":"Состояние релиза 0.21","items":[{"label":"Тесты","value":"214","delta":"+18"},{"label":"Покрытие","value":"81%","delta":"+3%"},{"label":"Открытые баги","value":"7","delta":"−4"},{"label":"Время сборки","value":"2:41"}]}',
+  fence,
+  '',
+  fence + 'mermaid',
+  'flowchart LR',
+  '  A[Запрос] --> B{Нужны файлы?}',
+  '  B -- да --> C[Codex / Claude]',
+  '  B -- нет --> D[Локальный Qwen]',
+  '  C --> E[Проверки]',
+  '  D --> E',
+  '  E --> F((Ответ))',
+  fence,
+  '',
+  fence + 'nexus-widget',
+  '{"type":"line","title":"Время ответа, секунды","x":["пн","вт","ср","чт","пт"],"series":[{"name":"Codex","values":[14,12,13,9,8]},{"name":"Claude","values":[11,12,null,10,9]}]}',
+  fence,
+  '',
+  fence + 'nexus-widget',
+  '{"type":"pie","title":"Куда ушла квота","items":[{"label":"Выполнение","value":54},{"label":"Обсуждение","value":31},{"label":"Проверки","value":15}]}',
+  fence,
+  '',
+  fence + 'nexus-widget',
+  '{"type":"compare","title":"Варианты хранения истории","columns":[{"title":"JSON-файл","tone":"warning","items":["Просто и уже работает","Читается целиком при каждом запросе"]},{"title":"SQLite","tone":"success","items":["Быстрые выборки и поиск","Нужна миграция данных"]}]}',
+  fence,
+  '',
+  fence + 'nexus-widget',
+  '{"type":"timeline","title":"План","items":[{"date":"11 ноя","title":"Стеклянный интерфейс","done":true},{"date":"14 ноя","title":"Поиск и горячие клавиши","done":true},{"date":"18 ноя","title":"Варианты ответов","text":"Повтор ответа и переключение между версиями"}]}',
+  fence,
+  '',
+  fence + 'nexus-widget',
+  '{"type":"checklist","title":"Перед релизом","items":[{"text":"npm test","done":true},{"text":"cargo test на Mac","done":false},{"text":"Подпись и codesign --verify","done":false}]}',
+  fence,
+  '',
+  fence + 'nexus-widget',
+  '{"type":"bar","title":"Сообщений по чатам","items":[{"label":"Интерфейс","value":120},{"label":"Подключения","value":84},{"label":"Персонаж","value":51}]}',
+  fence,
+  '',
+  '| Модуль | Строк | Тесты | Статус |',
+  '|---|---|---|---|',
+  '| chat-search.js | 92 | 14 | готово |',
+  '| shortcuts.js | 40 | 15 | готово |',
+  '| answer-widgets.jsx | 160 | 22 | в работе |',
+  '',
+  fence + 'rust',
+  '// Проверка контекста до создания проекта',
+  'fn create_project(name: String) -> Result<Project, String> {',
+  '    let contexts = validate_sources(contexts)?; // 200 источников',
+  '    Ok(Project { name, contexts })',
+  '}',
+  fence,
+  '',
+  '> [!WARNING]',
+  '> Rust-часть нужно прогнать `cargo test` на Mac перед сборкой.',
+].join('\n');
+const day = offset => new Date(Date.now() - offset * 86400000).toISOString();
+const longTopics = [
+  'маршрутизацию запросов',
+  'хранение истории',
+  'проверки после выполнения',
+  'интерфейс подключений',
+  'черновики и варианты',
+  'графику в ответах',
+];
+const longMessages = longTopics.flatMap((topic, i) => [
+  {
+    id: 'lu' + i,
+    chatId: 'long',
+    role: 'user',
+    content: `Расскажи про ${topic}. Что важно учесть?`,
+    createdAt: day(i < 3 ? 1 : 0),
+  },
+  {
+    id: 'la' + i,
+    chatId: 'long',
+    role: 'assistant',
+    createdAt: day(i < 3 ? 1 : 0),
+    content: [
+      `## ${topic[0].toUpperCase() + topic.slice(1)}`,
+      '',
+      `Коротко: решение опирается на **реальные данные**, а не на догадки. Подробности — в [документации](https://github.com/chromealex/nexus) и в модуле \`${['agent-catalog.js', 'chat_history.rs', 'verification.rs', 'connections-dialog.jsx', 'chat_variants.rs', 'answer-widgets.jsx'][i]}\`.`,
+      '',
+      '### Что учесть',
+      '',
+      '1. Ручной выбор модели никогда не подменяется.',
+      '2. Квота показывается только из подтверждённых источников.',
+      '   - Codex — `account/rateLimits/read`',
+      '   - Claude — поля statusLine',
+      '3. Ошибки сохраняют уже полученный текст.',
+      '',
+      ...(i % 2 === 0
+        ? [
+            fence + 'js',
+            '// ' + topic,
+            'export function route(task, models) {',
+            '  const ready = models.filter(m => m.ready);',
+            '  return ready.find(m => m.fits(task)) ?? null;',
+            '}',
+            fence,
+            '',
+          ]
+        : ['> Цитата из обсуждения: «сначала измерить, потом обещать».', '']),
+      ...(i === 3
+        ? [fence + 'nexus-widget', '{"type":"progress","label":"Готовность раздела","value":72}', fence, '']
+        : []),
+      '---',
+      '',
+      'Если нужно, разберу любой пункт подробнее.',
+    ].join('\n'),
+  },
+]);
+
+const messages = [
+  {
+    id: 'u0',
+    chatId: 'history',
+    role: 'user',
+    content: 'Вчерашний вопрос для проверки разделителя дней.',
+    createdAt: day(1),
+  },
+  {
+    id: 'u1',
+    chatId: 'history',
+    role: 'user',
+    content: 'Проверь оформление чата и технического сообщения.',
+    createdAt: day(0),
+  },
+  {
+    id: 'a1',
+    chatId: 'history',
+    role: 'assistant',
+    createdAt: day(0),
+    content: 'Обычный ответ агента без обрамляющей карточки.\n\n- Сохранён текст\n- Детали свёрнуты',
+    details: 'Route: codex / fixture\nModel: fixture-model\nEffort: low',
+  },
+  {
+    id: 'gu',
+    chatId: 'gallery',
+    role: 'user',
+    content:
+      'Покажи состояние релиза наглядно.\n' +
+      Array.from(
+        {length: 22},
+        (_, i) =>
+          `Строка лога ${i + 1}: проверка модуля ${['поиска', 'графиков', 'черновиков'][i % 3]} завершена`
+      ).join('\n'),
+    createdAt: day(0),
+  },
+  {
+    id: 'ga',
+    chatId: 'gallery',
+    role: 'assistant',
+    content: galleryAnswer,
+    details: 'Route: codex / fixture\nModel: fixture-model\nEffort: medium',
+    createdAt: day(0),
+    variants: [
+      {content: 'Первый, более короткий вариант ответа.', createdAt: day(0)},
+      {content: galleryAnswer, createdAt: day(0)},
+    ],
+    variant: 1,
+  },
+  ...longMessages,
+  {
+    id: 's1',
+    chatId: 'history',
+    role: 'system',
+    createdAt: day(0),
+    content: 'Тестовый технический журнал. Это данные изолированной проверки, а не реального провайдера.',
+  },
+];
+
+const goals = [{id: 'g', projectId: 'preview', title: 'Проверить подключения и навигацию', done: false}];
+const emit = (event, payload) => {
+  for (const item of listeners.values())
+    if (item.event === event) callbacks.get(item.callback)?.({event, payload, id: 1});
+};
+window.__TAURI_EVENT_PLUGIN_INTERNALS__ = {unregisterListener: () => {}};
+localStorage.setItem('nexus-active-project', 'preview');
+localStorage.setItem(
+  'nexus-active-chat:preview',
+  new URLSearchParams(location.search).has('history')
+    ? 'history'
+    : new URLSearchParams(location.search).has('gallery')
+      ? 'gallery'
+      : new URLSearchParams(location.search).has('long')
+        ? 'long'
+        : 'preview-empty'
+);
+window.__TAURI_INTERNALS__ = {
+  transformCallback(fn) {
+    const id = ++sequence;
+    callbacks.set(id, fn);
+    return id;
+  },
+  async invoke(cmd, args = {}) {
+    if (cmd === 'plugin:event|listen') {
+      const id = ++sequence;
+      listeners.set(id, {event: args.event, callback: args.handler});
+      return id;
+    }
+    if (cmd === 'plugin:event|unlisten') {
+      listeners.delete(args.eventId);
+      return;
+    }
+    if (cmd === 'list_projects') return projects;
+    if (cmd === 'list_project_chats')
+      return chats.filter(c => c.projectId === args.projectId && !c.archived && !c.deletedAt);
+    if (cmd === 'list_project_folders')
+      return args.projectId === 'preview'
+        ? [
+            {
+              id: 'f',
+              projectId: 'preview',
+              name: 'Проверка контекста',
+              contexts: [{kind: 'note', value: 'fixture'}],
+            },
+          ]
+        : [];
+    if (cmd === 'list_chat_messages') return messages.filter(m => m.chatId === args.chatId);
+    if (cmd === 'chat_message_page')
+      return {messages: messages.filter(m => m.chatId === args.chatId), hasMore: false, beforeId: null};
+    if (cmd === 'agents')
+      return ['codex', 'claude', 'gemini', 'qwen', 'goose', 'antigravity', 'opencode', 'aider', 'grok'].map(
+        id => ({id, name: id, installed: ['codex', 'gemini'].includes(id), installable: id !== 'grok'})
+      );
+    if (cmd === 'integrations' || cmd === 'install_status' || cmd === 'list_custom_agents') return [];
+    if (cmd === 'list_provider_connections') return api;
+    if (cmd === 'list_accounts') return [...accounts];
+    if (cmd === 'account_isolation') return [];
+    if (cmd === 'auth_status') throw Error('No login started');
+    if (cmd === 'check_account')
+      return {
+        status: args.id.startsWith('codex') ? 'ready' : 'login_required',
+        detail: 'Изолированная проверка UI',
+      };
+    if (cmd === 'account_quota')
+      return args.id.startsWith('codex')
+        ? {
+            status: 'available',
+            primaryUsedPercent: 27,
+            secondaryUsedPercent: 43,
+            source: 'Fixture · synthetic data',
+            checkedAt: Math.floor(Date.now() / 1000),
+          }
+        : {status: 'unavailable', source: 'UI fixture'};
+    if (cmd === 'list_chat_models')
+      return [
+        {
+          id: 'codex/fixture-model',
+          label: 'Codex · fixture-model',
+          model: 'fixture-model',
+          provider: 'codex',
+        },
+        ...api.flatMap(a =>
+          a.models.map(model => ({
+            id: `${a.id}/${model}`,
+            label: `${a.name} · ${model}`,
+            provider: a.id,
+            model,
+          }))
+        ),
+      ];
+    if (cmd === 'project_board')
+      return {
+        goals: goals.filter(g => g.projectId === args.projectId),
+        tasks: [
+          {
+            id: 'task',
+            projectId: 'preview',
+            chatId: 'history',
+            title: 'Проверить результат работы агента',
+            status: 'review',
+            steps: ['Изучить проект', 'Выполнить изменения', 'Проверить'],
+            verification: 'Тестовые данные: независимая проверка ожидается',
+          },
+          {
+            id: 'team-task',
+            projectId: 'preview',
+            chatId: 'history',
+            title: 'Командная задача из тестовых данных',
+            status: 'running',
+            steps: [],
+            team: [
+              {
+                step: {id: 's1', title: 'Изучить код', modelChoice: 'auto', reason: 'Тест'},
+                status: 'done',
+                elapsedMs: 4200,
+              },
+              {
+                step: {id: 's2', title: 'Внести правки', modelChoice: 'auto', reason: 'Тест'},
+                status: 'running',
+                elapsedMs: 0,
+              },
+              {
+                step: {id: 's3', title: 'Проверить', modelChoice: 'auto', reason: 'Тест'},
+                status: 'pending',
+                elapsedMs: 0,
+              },
+            ],
+            verification: 'Тестовые данные: команда в работе',
+          },
+        ],
+      };
+    if (cmd === 'change_chat_state') {
+      const ids = new Set([args.chatId]);
+      for (let i = 0; i < 17; i++) for (const c of chats) if (ids.has(c.parentChatId)) ids.add(c.id);
+      for (const c of chats)
+        if (ids.has(c.id)) {
+          c.archived = args.action === 'archive';
+          c.deletedAt = args.action === 'trash' ? 'fixture' : null;
+        }
+      return;
+    }
+    if (cmd === 'list_saved_chats')
+      return chats.filter(c => (args.kind === 'archive' ? c.archived && !c.deletedAt : c.deletedAt));
+    if (cmd === 'remove_account') {
+      const i = accounts.findIndex(a => a.id === args.id);
+      if (i >= 0) accounts.splice(i, 1);
+      return;
+    }
+    if (cmd === 'add_account') {
+      const a = {id: 'account-' + ++sequence, provider: args.provider, name: args.name};
+      accounts.push(a);
+      return a;
+    }
+    if (cmd === 'account_login') {
+      emit('auth-event', {id: args.id, phase: 'waiting', message: 'UI fixture: browser confirmation'});
+      return;
+    }
+    if (cmd === 'cancel_auth') {
+      emit('auth-event', {id: args.id, phase: 'cancelled', message: 'UI fixture: cancelled'});
+      return;
+    }
+    if (cmd === 'connect_provider') {
+      const a = {
+        id: 'api-fixture-' + ++sequence,
+        provider: args.provider,
+        name: args.name,
+        models: [args.provider === 'local' ? 'qwen3:4b' : 'fixture-api-model'],
+        ready: true,
+        checkedAt: Math.floor(Date.now() / 1000),
+      };
+      api.push(a);
+      return a;
+    }
+    if (cmd === 'check_provider_connection') return api.find(a => a.id === args.id);
+    if (cmd === 'agent_registry')
+      return [
+        {
+          id: 'registry-fixture',
+          name: 'Пример агента из реестра',
+          description: 'Тестовые данные интерфейса, без установки',
+          distribution: 'npm',
+          npmPackage: null,
+          args: [],
+        },
+      ];
+    if (cmd === 'mark_chat_read' || cmd === 'drag_main_window' || cmd === 'notify_answer_ready') return;
+    if (cmd === 'select_message_variant') {
+      const m = messages.find(x => x.id === args.messageId);
+      m.variants[m.variant] = {...m.variants[m.variant], content: m.content};
+      m.variant = args.index;
+      m.content = m.variants[args.index].content;
+      return {...m};
+    }
+    if (cmd === 'edit_last_user_message') {
+      const m = messages.find(x => x.id === args.messageId);
+      m.content = args.text;
+      m.edited = true;
+      return {...m};
+    }
+    if (cmd === 'save_chat_export') return '/Users/you/Downloads/' + args.fileName + '.md';
+    if (cmd === 'reveal_chat_export') return;
+    if (cmd === 'regenerate_chat_answer') {
+      const m = messages.find(x => x.id === args.messageId);
+      await new Promise(r => setTimeout(r, 900));
+      if (!m.variants?.length) {
+        m.variants = [{content: m.content}];
+        m.variant = 0;
+      }
+      m.variants.push({content: 'Новый вариант ответа из тестовых данных.'});
+      m.variant = m.variants.length - 1;
+      m.content = 'Новый вариант ответа из тестовых данных.';
+      return {message: {...m}, route: 'fixture', tier: 'test'};
+    }
+    if (cmd === 'create_project') {
+      if (!args.workspace?.startsWith('/')) throw Error('Укажите абсолютный путь');
+      const p = {
+        id: 'project-' + ++sequence,
+        name: args.name,
+        workspace: args.workspace,
+        contexts: args.contexts || [],
+      };
+      projects.push(p);
+      return p;
+    }
+    if (cmd === 'save_project_settings') {
+      const p = projects.find(x => x.id === args.projectId);
+      p.name = args.name;
+      p.contexts = args.contexts;
+      return p;
+    }
+    if (cmd === 'upload_attachment')
+      return {
+        id: 'attachment-' + ++sequence,
+        name: args.name,
+        mime: args.mime,
+        size: args.data.length,
+        projectId: args.projectId,
+      };
+    if (cmd === 'save_project_folder')
+      return {
+        id: args.id || 'folder-' + ++sequence,
+        projectId: args.projectId,
+        parentId: args.parentId,
+        name: args.name,
+        contexts: args.contexts,
+      };
+    throw Error(`UI fixture does not implement ${cmd}`);
+  },
+};
+await import('/src/main.jsx');

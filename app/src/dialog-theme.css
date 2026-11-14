@@ -1,0 +1,889 @@
+/* Shared dialog and popover tokens. Keep this after legacy screen styles. */
+:root {
+  --dialog-surface: #252525;
+  --dialog-raised: #303030;
+  --dialog-border: #ffffff1c;
+  --dialog-text: #ededed;
+  --dialog-muted: #a0a0a0;
+  --dialog-radius: 18px;
+  --dialog-padding: 24px;
+  --popover-surface: #2b2b2b;
+}
+:is(.settings-overlay, .tools-overlay, .connections-overlay, .file-preview-overlay) {
+  padding: 24px;
+  background: #0009;
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+}
+:is(.project-settings, .project-tools-dialog, .connections-dialog, .saved-chats-dialog, .file-preview) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: min(90dvh, calc(100dvh - 48px));
+  min-height: 0;
+  background: var(--dialog-surface);
+  color: var(--dialog-text);
+  border: 1px solid var(--dialog-border);
+  border-radius: var(--dialog-radius);
+  box-shadow:
+    0 24px 80px #0007,
+    0 1px 0 #ffffff05 inset;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: left;
+}
+.project-tools-dialog {
+  padding: 0;
+}
+:is(.settings-header, .tools-header, .connections-heading, .file-preview > header) {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  height: auto;
+  min-height: 82px;
+  flex-shrink: 0;
+  gap: 16px;
+  padding: 22px var(--dialog-padding);
+  margin: 0;
+  border-bottom: 1px solid var(--dialog-border);
+  background: transparent;
+}
+:is(.settings-header, .tools-header, .connections-heading, .file-preview > header) > div {
+  flex: 1;
+  min-width: 0;
+}
+:is(.settings-header, .tools-header, .connections-heading) h2,
+.file-preview > header strong {
+  display: block;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.35px;
+  color: var(--dialog-text);
+  overflow-wrap: anywhere;
+}
+:is(.settings-header, .tools-header, .connections-heading) :is(p, small),
+.file-preview > header small {
+  display: block;
+  margin: 5px 0 0;
+  color: var(--dialog-muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+:is(.settings-header, .tools-header) small:empty {
+  display: none;
+}
+:is(.project-settings, .project-tools-dialog, .connections-dialog, .saved-chats-dialog, .file-preview)
+  button {
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.4;
+  border-radius: 9px;
+  border: 1px solid var(--dialog-border);
+  background: var(--dialog-raised);
+  color: #dedede;
+  padding: 8px 12px;
+  min-height: 34px;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+:is(.project-settings, .project-tools-dialog, .connections-dialog, .saved-chats-dialog, .file-preview)
+  button:hover:not(:disabled) {
+  background: #393939;
+  border-color: #ffffff30;
+}
+:is(.settings-header, .tools-header, .connections-heading) > button,
+.file-preview > header :is(button, a) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 6px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: #aaa;
+}
+:is(.settings-header, .tools-header, .connections-heading) > button svg,
+.file-preview > header :is(button, a) svg {
+  width: 18px;
+  height: 18px;
+}
+:is(.settings-body, .connections-content, .project-tool-body) {
+  min-height: 0;
+  overflow: auto;
+  padding: 22px var(--dialog-padding);
+  overscroll-behavior: contain;
+  direction: ltr;
+}
+.project-settings form {
+  min-height: 0;
+  overflow: hidden;
+}
+.saved-chat-list {
+  padding: 8px var(--dialog-padding) 20px;
+}
+.project-tool-body > div > p:first-child {
+  margin-top: 0;
+}
+:is(.connections-nav, .project-tool-tabs) {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 22px;
+  flex-wrap: wrap;
+  padding: 0 var(--dialog-padding);
+  margin: 0;
+  border-bottom: 1px solid var(--dialog-border);
+}
+:is(.connections-nav, .project-tool-tabs) > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 13px 0;
+  min-height: 44px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--dialog-muted);
+  font-size: 12px;
+}
+:is(.connections-nav, .project-tool-tabs) > button:hover:not(:disabled) {
+  background: transparent;
+  border-color: transparent;
+  color: #eee;
+}
+:is(.connections-nav, .project-tool-tabs) > button.active,
+:is(.connections-nav, .project-tool-tabs) > button.active:hover {
+  background: transparent;
+  border-bottom-color: #dedede;
+  color: #eee;
+}
+:is(.settings-body, .connection-form, .project-tool-body) :is(input:not([type='checkbox']), textarea),
+:is(.project-settings, .connections-dialog, .project-tools-dialog) button.nexus-select-trigger {
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #ededed;
+  background: var(--dialog-raised);
+  border: 1px solid var(--dialog-border);
+  border-radius: 9px;
+  padding: 9px 12px;
+  outline: none;
+  min-height: 38px;
+}
+.settings-body label > .nexus-select {
+  margin-top: 0;
+}
+.project-tool-field textarea {
+  height: 150px;
+  resize: vertical;
+}
+.settings-body .context-source-head input {
+  background: transparent;
+  border: 0;
+  min-height: 28px;
+  padding: 4px;
+}
+.settings-body .context-source-head button {
+  min-height: 28px;
+  padding: 5px;
+  background: transparent;
+  border-color: transparent;
+}
+.context-source,
+.catalog-agent {
+  background: #ffffff03;
+  border-color: var(--dialog-border);
+  border-radius: 12px;
+}
+:is(.settings-actions, .connections-dialog footer) {
+  flex-shrink: 0;
+  padding: 16px var(--dialog-padding);
+  margin: 0;
+  border-top: 1px solid var(--dialog-border);
+  background: transparent;
+}
+.settings-actions button.primary,
+.connections-dialog button.connection-primary {
+  background: #e9e9e9;
+  color: #242424;
+  border-color: #e9e9e9;
+  font-weight: 500;
+}
+.settings-actions button.primary:hover:not(:disabled),
+.connections-dialog button.connection-primary:hover:not(:disabled) {
+  background: #fff;
+  border-color: #fff;
+}
+:is(.nexus-select-popup, .nav-menu, .composer-suggestions) {
+  background: var(--popover-surface);
+  border: 1px solid var(--dialog-border);
+  border-radius: 12px;
+  padding: 5px;
+  box-shadow: 0 12px 36px #0006;
+  color: #dedede;
+}
+.nexus-select-option {
+  border-radius: 7px;
+  padding: 9px 10px;
+}
+.nexus-select-option[data-active='true'] {
+  background: #ffffff0d;
+}
+@media (max-width: 600px) {
+  :root {
+    --dialog-padding: 18px;
+  }
+  :is(.settings-overlay, .tools-overlay, .connections-overlay, .file-preview-overlay) {
+    padding: 12px;
+  }
+  :is(.project-settings, .project-tools-dialog, .connections-dialog, .saved-chats-dialog, .file-preview) {
+    max-height: calc(100dvh - 24px);
+    border-radius: 16px;
+  }
+  :is(.connections-nav, .project-tool-tabs) {
+    gap: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.project-settings, .project-tools-dialog, .connections-dialog, .saved-chats-dialog, .file-preview)
+    button {
+    transition: none;
+  }
+}
+
+/* Searchable model tree, shared dialog palette. */
+.model-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: #0009;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+.model-picker {
+  width: min(880px, 100%);
+  max-height: 85dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--dialog-surface);
+  color: var(--dialog-text);
+  border: 1px solid var(--dialog-border);
+  border-radius: var(--dialog-radius);
+  font-size: 12px;
+  text-align: left;
+  box-shadow: 0 24px 80px #0007;
+}
+.model-picker button {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--dialog-border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  min-height: 34px;
+}
+.model-picker button:focus-visible,
+.model-picker summary:focus-visible {
+  outline: 2px solid #8bbad1;
+  outline-offset: -2px;
+}
+.model-picker-header,
+.model-picker-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 16px var(--dialog-padding);
+  flex-shrink: 0;
+}
+.model-picker-header strong {
+  font-size: 16px;
+}
+.model-picker small {
+  display: block;
+  color: var(--dialog-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.model-picker > input {
+  margin: 0 var(--dialog-padding) 12px;
+  padding: 10px;
+  background: var(--dialog-raised);
+  border: 1px solid var(--dialog-border);
+  border-radius: 8px;
+  color: var(--dialog-text);
+  outline: none;
+  font: inherit;
+  min-width: 0;
+}
+.model-picker-body {
+  overflow: auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(230px, 1fr);
+  align-items: start;
+  padding: 0 var(--dialog-padding) 12px;
+  gap: 20px;
+}
+.model-tree button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin: 3px 0;
+  overflow-wrap: anywhere;
+  border-color: transparent;
+}
+.model-tree button:hover,
+.model-tree button[aria-selected='true'] {
+  background: var(--dialog-raised);
+}
+.model-tree button[aria-disabled='true'] {
+  color: var(--dialog-muted);
+  cursor: help;
+}
+.model-tree [role='group'] {
+  margin-left: 14px;
+  padding-left: 8px;
+  border-left: 1px solid var(--dialog-border);
+}
+.model-facts {
+  font-size: 11px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.model-facts dt {
+  color: var(--dialog-muted);
+  margin-top: 10px;
+}
+.model-facts dd {
+  margin: 0;
+}
+.model-facts table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.model-facts td,
+.model-facts th {
+  padding: 6px 3px;
+  border-bottom: 1px solid var(--dialog-border);
+  text-align: left;
+  font-weight: normal;
+}
+.model-facts th {
+  color: var(--dialog-muted);
+}
+.model-catalog {
+  margin-top: 12px;
+}
+.model-catalog summary {
+  cursor: pointer;
+  padding: 8px;
+}
+.model-catalog > div {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--dialog-border);
+}
+.model-catalog p {
+  margin: 4px 0;
+}
+.model-picker-footer {
+  border-top: 1px solid var(--dialog-border);
+  color: var(--dialog-muted);
+  font-size: 11px;
+}
+.model-route-preview {
+  display: block;
+  color: var(--dialog-muted);
+  font-size: 10px;
+  margin-top: 8px;
+  line-height: 1.5;
+}
+@media (max-width: 640px) {
+  .model-picker-body {
+    grid-template-columns: 1fr;
+  }
+  .model-picker-backdrop {
+    padding: 8px;
+  }
+}
+
+/* Inline routing evidence shares the app's neutral surfaces and never nests scroll. */
+.routing-comparison {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin: 8px 0;
+}
+.routing-comparison section {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.routing-comparison p,
+.model-route-preview p {
+  margin: 6px 0;
+}
+.model-route-preview summary {
+  cursor: pointer;
+}
+
+/* Match workspace glass while keeping labels and fields sharp. */
+:root {
+  --dialog-surface: rgba(30, 34, 37, 0.82);
+  --popover-surface: rgba(35, 39, 42, 0.88);
+  --dialog-raised: rgba(57, 62, 66, 0.7);
+}
+:is(.settings-overlay, .tools-overlay, .connections-overlay, .file-preview-overlay) {
+  background: #05090c66;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+:is(
+  .project-settings,
+  .project-tools-dialog,
+  .connections-dialog,
+  .saved-chats-dialog,
+  .file-preview,
+  .nexus-select-popup,
+  .nav-menu,
+  .composer-suggestions
+) {
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+}
+
+/* A quiet, separate notice above the composer; details never expand the input. */
+.app .chat-notice {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 4;
+  width: min(800px, 100%);
+  box-sizing: border-box;
+  margin: 10px auto 0;
+  padding: 11px 13px;
+  background: var(--dialog-surface);
+  border: 1px solid var(--dialog-border);
+  border-radius: 14px;
+  color: var(--dialog-text);
+  text-align: left;
+}
+.app.cinematic-home .chat-notice {
+  width: min(1000px, 100%);
+  pointer-events: auto;
+}
+.chat-notice-icon {
+  flex-shrink: 0;
+  color: var(--dialog-muted);
+  align-self: flex-start;
+  margin-top: 3px;
+}
+.chat-notice-body {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.chat-notice-title {
+  font-size: 13px;
+  font-weight: 500;
+}
+.chat-notice details {
+  margin-top: 2px;
+}
+.chat-notice summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  color: var(--dialog-muted);
+  font-size: 11px;
+  list-style: none;
+}
+.chat-notice summary::-webkit-details-marker {
+  display: none;
+}
+.chat-notice details[open] summary svg {
+  transform: rotate(90deg);
+}
+.chat-notice details p {
+  margin: 8px 0 0;
+  color: var(--dialog-muted);
+  overflow-wrap: anywhere;
+  max-width: 62ch;
+}
+.app .chat-notice button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  color: var(--dialog-muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 7px 8px;
+  border-radius: 8px;
+}
+.app .chat-notice button:hover {
+  color: var(--dialog-text);
+  background: var(--dialog-raised);
+}
+.app .chat-notice .chat-notice-close {
+  padding: 7px;
+}
+@media (max-width: 500px) {
+  .app .chat-notice {
+    gap: 6px;
+    padding: 10px;
+    flex-wrap: wrap;
+  }
+  .chat-notice-body {
+    flex-basis: calc(100% - 65px);
+  }
+  .chat-notice-action {
+    margin-left: 23px;
+  }
+  .chat-notice-close {
+    position: absolute;
+    right: 7px;
+    top: 7px;
+  }
+}
+
+/* Shared glass material: translucent body, specular rim, soft internal reflection. */
+:root {
+  --glass-body:
+    linear-gradient(145deg, rgba(221, 241, 249, 0.1), rgba(126, 157, 174, 0.035) 42%, rgba(10, 20, 28, 0.1)),
+    rgba(10, 20, 27, 0.84);
+  --glass-user-body:
+    linear-gradient(
+      145deg,
+      rgba(230, 246, 255, 0.14),
+      rgba(153, 184, 202, 0.055) 45%,
+      rgba(17, 29, 38, 0.12)
+    ),
+    rgba(18, 31, 40, 0.86);
+  --glass-filter: blur(30px) saturate(145%);
+  --glass-edge: rgba(222, 243, 255, 0.19);
+  --glass-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.19), inset 1px 0 0 rgba(235, 249, 255, 0.07),
+    inset 0 -1px 0 rgba(134, 179, 206, 0.09), 0 8px 28px rgba(0, 0, 0, 0.16);
+  --dialog-surface: rgba(27, 37, 45, 0.68);
+  --popover-surface: rgba(32, 43, 51, 0.78);
+  --dialog-raised: rgba(151, 177, 194, 0.09);
+}
+:is(
+  .project-settings,
+  .project-tools-dialog,
+  .connections-dialog,
+  .saved-chats-dialog,
+  .file-preview,
+  .nexus-select-popup,
+  .nav-menu,
+  .composer-suggestions
+) {
+  background: var(--glass-body);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+  border: 1px solid var(--glass-edge);
+  border-top-color: rgba(239, 250, 255, 0.3);
+  border-bottom-color: rgba(183, 216, 236, 0.12);
+  box-shadow: var(--glass-shadow);
+}
+:is(.project-settings, .project-tools-dialog, .connections-dialog, .saved-chats-dialog, .file-preview) {
+  background-color: rgba(17, 25, 31, 0.52);
+}
+:is(.nexus-select-popup, .nav-menu, .composer-suggestions) {
+  background-color: rgba(20, 28, 35, 0.64);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :is(
+    .project-settings,
+    .project-tools-dialog,
+    .connections-dialog,
+    .saved-chats-dialog,
+    .file-preview,
+    .nexus-select-popup,
+    .nav-menu,
+    .composer-suggestions
+  ) {
+    background: #263139;
+  }
+}
+@media (prefers-contrast: more) {
+  :root {
+    --glass-body: #202c34;
+    --glass-user-body: #34434f;
+    --glass-edge: #a8bbc8;
+    --glass-filter: none;
+  }
+}
+
+.team-plan-preview li,
+.project-task li {
+  margin-block: 8px;
+}
+.team-step-result {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+  max-width: 100%;
+}
+
+/* Small surfaces inherit the cool glass palette instead of opaque grey tiles. */
+:root {
+  --surface-quiet: rgba(173, 211, 225, 0.045);
+  --surface-hover: rgba(173, 211, 225, 0.09);
+  --surface-selected: rgba(147, 207, 226, 0.11);
+}
+.catalog-toolbar label {
+  background: var(--surface-quiet);
+  border: 1px solid var(--dialog-border);
+  color: #9cb0b9;
+}
+.catalog-tags span {
+  background: transparent;
+  border: 1px solid rgba(173, 211, 225, 0.13);
+  border-radius: 6px;
+  color: #a8bbc4;
+}
+.catalog-agent-top .agent-logo {
+  background: transparent;
+}
+.agent-logo-claude img {
+  filter: invert(86%) sepia(8%) saturate(360%) hue-rotate(150deg);
+}
+:is(.project-settings, .project-tools-dialog, .connections-dialog, .saved-chats-dialog, .file-preview)
+  button:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+.connections-dialog button.connection-primary:hover:not(:disabled),
+.settings-actions button.primary:hover:not(:disabled) {
+  background: #fff;
+}
+@media (prefers-contrast: more) {
+  .catalog-tags span {
+    color: #e2edf2;
+    border-color: #78949f;
+  }
+  .catalog-toolbar label {
+    background: #202c34;
+  }
+}
+
+/* Agent choices use the same translucent material as navigation and catalog. */
+.compact-question .question-option {
+  color: #dce9ee;
+  background: transparent;
+}
+.compact-question fieldset:not(:disabled) .question-option:hover {
+  background: var(--surface-hover);
+}
+.compact-question .question-option.selected {
+  background: var(--surface-selected);
+  border-color: rgba(174, 222, 237, 0.25);
+  box-shadow: inset 2px 0 0 rgba(174, 222, 237, 0.48);
+}
+.compact-question .question-option small,
+.compact-question .multiple-hint {
+  color: #a8bbc4;
+}
+.compact-question .question-option input[type='checkbox'],
+.compact-question .question-option input[type='radio'] {
+  background: transparent;
+  border-color: #839ea9;
+}
+.compact-question .question-option input:checked {
+  background: #bddfe9;
+  border-color: #bddfe9;
+}
+.compact-question .question-option input[type='checkbox']:checked:after {
+  border-color: #18333e;
+}
+.compact-question .question-option input[type='radio']:checked:after {
+  background: #18333e;
+}
+.compact-question .question-option:has(input:focus-visible) {
+  outline: 2px solid #b6dce9;
+  outline-offset: 2px;
+}
+.compact-question fieldset:disabled .question-option {
+  opacity: 1;
+  color: #9eb2bc;
+}
+.compact-question fieldset:disabled .question-option.selected {
+  color: #dce9ee;
+}
+.compact-question .question-options .own-choice {
+  color: #a8bbc4;
+}
+.compact-question fieldset > input {
+  background: var(--surface-quiet);
+  border: 1px solid var(--dialog-border);
+  color: var(--dialog-text);
+}
+@media (prefers-contrast: more) {
+  .compact-question .question-option.selected {
+    background: #304955;
+    border-color: #b6dce9;
+  }
+  .compact-question fieldset:disabled .question-option {
+    color: #dce9ee;
+  }
+}
+
+.permission-card {
+  background: var(--glass-body);
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+  border-radius: 20px;
+  color: var(--dialog-text);
+}
+.permission-card pre {
+  background: rgba(8, 20, 27, 0.3);
+  border: 1px solid var(--dialog-border);
+}
+.permission-card details,
+.permission-card small,
+.permission-note {
+  color: #a8bbc4;
+}
+.permission-actions {
+  flex-wrap: wrap;
+}
+.permission-actions button {
+  background: var(--surface-hover);
+  border: 1px solid var(--dialog-border);
+  color: var(--dialog-text);
+}
+.permission-actions button:last-child {
+  background: #dcecf2;
+  color: #18303b;
+}
+.permission-actions button:hover:not(:disabled) {
+  border-color: #accdd9;
+}
+
+.permission-remember {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 12px 0;
+  color: #dce9ee;
+}
+.permission-remember input {
+  margin-top: 4px;
+  accent-color: #bddfe9;
+}
+.permission-remember small {
+  display: block;
+  margin-top: 4px;
+  max-width: 65ch;
+}
+
+/* v0.20.3 — UI review fixes */
+/* Assistant actions sit under the glass bubble instead of reserving an empty band inside it. */
+@media (min-width: 601px) {
+  .chat-thread-content .chat-bubble.assistant {
+    position: relative;
+  }
+  .chat-thread-content .chat-bubble.assistant > .message-footer {
+    position: absolute;
+    left: 8px;
+    top: 100%;
+    margin: 0;
+    min-height: 29px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+  }
+  .chat-thread-content {
+    padding-bottom: 30px;
+  }
+}
+/* Dialogs keep one size while switching tabs. */
+.connections-dialog {
+  height: min(820px, calc(100dvh - 48px));
+}
+.connections-dialog > .connections-content {
+  flex: 1;
+}
+.project-tools-dialog {
+  width: min(800px, 100%);
+  display: flex;
+  flex-direction: column;
+}
+.project-tools-dialog .project-tool-body {
+  min-height: min(440px, calc(100dvh - 220px));
+  overflow: auto;
+}
+/* Catalog actions stay on one line on regular widths. */
+@media (min-width: 601px) {
+  .connections-dialog .catalog-agent-top > button {
+    white-space: nowrap;
+  }
+}
+/* Two-step destructive actions. */
+.connections-dialog button.connection-remove.confirm {
+  background: rgba(190, 70, 60, 0.18);
+  border-color: rgba(230, 110, 95, 0.55);
+  color: #ffc9c0;
+}
+.project-checks-explanation .project-revoke {
+  margin-top: 6px;
+}
+.project-revoke-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 12px;
+  border: 1px solid rgba(230, 110, 95, 0.35);
+  border-radius: 10px;
+  background: rgba(190, 70, 60, 0.08);
+}
+.project-revoke-confirm span {
+  flex: 1 1 100%;
+  color: #e6c3bd;
+  line-height: 1.6;
+}
+.project-tools-dialog .project-revoke-confirm button.danger {
+  background: rgba(190, 70, 60, 0.25);
+  border-color: rgba(230, 110, 95, 0.6);
+  color: #ffd6cf;
+}
+
+/* One composer chip style on the start screen and in chats. */
+.composer-tools .nexus-select-trigger {
+  border: 1px solid #ffffff1c;
+  background: #ffffff05;
+  border-radius: 9px;
+  padding: 6px 9px;
+}
+.composer-tools .nexus-select-trigger:hover {
+  background: var(--surface-hover, #ffffff10);
+  border-color: #ffffff30;
+}
+.composer-tools .attach-button {
+  border: 1px solid #ffffff25;
+  border-radius: 10px;
+}

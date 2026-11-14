@@ -1,0 +1,135 @@
+import React from 'react';
+import {quotaView, apiLimitsView} from './quota-format.js';
+const number = new Intl.NumberFormat('ru-RU', {maximumFractionDigits: 1});
+export function Quota({quota, statusline, expanded = false, unsupported}) {
+  const view = quotaView(quota, statusline);
+  return (
+    <div className={'connection-quota quota-overview' + (view.stale || view.error ? ' is-stale' : '')}>
+      <div className="quota-overview-heading">
+        <strong>Лимиты</strong>
+        {view.checking && <small>Обновляем…</small>}
+        {view.error && view.windows.length > 0 && <small>Не удалось обновить · последние данные</small>}
+        {view.stale && !view.error && <small>Последние данные · требуют обновления</small>}
+      </div>
+      {view.windows.length > 0 ? (
+        <div className="quota-windows">
+          {view.windows.map(window => (
+            <div className="quota-window" key={window.id}>
+              <div className="quota-window-label">
+                <span>{window.label}</span>
+                <strong>{number.format(window.used)}% использовано</strong>
+              </div>
+              <progress
+                className={
+                  'quota-progress' +
+                  (window.used >= 100 ? ' is-exhausted' : window.used >= 90 ? ' is-low' : '')
+                }
+                max="100"
+                value={window.used}
+                aria-label={window.label + ' · использовано'}
+                aria-valuetext={`${number.format(window.used)}% использовано, ${number.format(window.left)}% осталось`}
+              />
+              <div className="quota-window-note">
+                <span>Осталось {number.format(window.left)}%</span>
+                {window.resetAt && (
+                  <time dateTime={window.resetAt.toISOString()}>
+                    Восстановление:{' '}
+                    {window.resetAt.toLocaleString('ru-RU', {
+                      day: 'numeric',
+                      month: 'short',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </time>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="quota-unknown">
+          {view.checking
+            ? 'Получаем данные от провайдера…'
+            : unsupported || 'Нет данных · провайдер не передал подтверждённые лимиты'}
+        </p>
+      )}
+      {expanded && (
+        <div className="quota-source">
+          <small>
+            Источник: {view.source || 'Не предоставлен'}
+            {view.checkedAt ? ' · ' + view.checkedAt.toLocaleString('ru-RU') : ''}
+          </small>
+          {quota?.detail && <small>{quota.detail}</small>}
+        </div>
+      )}
+    </div>
+  );
+}
+const money = new Intl.NumberFormat('ru-RU', {style: 'currency', currency: 'USD', maximumFractionDigits: 2});
+export function ApiLimits({limits, expanded = false}) {
+  const view = apiLimitsView(limits);
+  return (
+    <div className={'connection-quota quota-overview' + (view.stale || view.error ? ' is-stale' : '')}>
+      <div className="quota-overview-heading">
+        <strong>Лимиты API-ключа</strong>
+        {view.checking && <small>Обновляем…</small>}
+        {view.error && <small>Не удалось обновить</small>}
+        {view.limited && <small>Провайдер ограничил запросы</small>}
+        {view.blocked && <small>Ключ или команда заблокированы</small>}
+      </div>
+      {view.windows.length > 0 && (
+        <div className="quota-windows">
+          {view.windows.map(w => (
+            <div className="quota-window" key={w.id}>
+              <div className="quota-window-label">
+                <span>{w.label}</span>
+                <strong>{number.format(w.used)}% использовано</strong>
+              </div>
+              <progress
+                className={
+                  'quota-progress' + (w.used >= 100 ? ' is-exhausted' : w.used >= 90 ? ' is-low' : '')
+                }
+                max="100"
+                value={w.used}
+                aria-label={w.label + ' · использовано'}
+                aria-valuetext={`${number.format(w.used)}% использовано, осталось ${number.format(w.remaining)} из ${number.format(w.limit)}`}
+              />
+              <div className="quota-window-note">
+                <span>
+                  Осталось {number.format(w.remaining)} из {number.format(w.limit)}
+                </span>
+                {w.reset && <span>Сброс: {w.reset}</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {view.credits && (
+        <p className="quota-unknown">
+          Баланс API: {money.format(view.credits.remaining)}
+          {view.credits.total !== null ? ` из ${money.format(view.credits.total)}` : ''}
+        </p>
+      )}
+      {!view.windows.length && !view.credits && (
+        <p className="quota-unknown">
+          {view.checking
+            ? 'Получаем данные от xAI…'
+            : view.error
+              ? view.detail
+              : 'Нет данных · xAI не передал лимиты в ответе'}
+        </p>
+      )}
+      {expanded && (
+        <div className="quota-source">
+          <small>
+            Источник: {view.source || 'xAI API'}
+            {view.checkedAt ? ' · ' + view.checkedAt.toLocaleString('ru-RU') : ''}
+          </small>
+          <small>
+            Лимиты подписки SuperGrok/X Premium через API недоступны: подписка и API оплачиваются отдельно.
+          </small>
+        </div>
+      )}
+    </div>
+  );
+}

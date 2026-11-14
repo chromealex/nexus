@@ -22,3 +22,7 @@
 # Generated Tauri schemas and local agent backups
 **/src-tauri/gen/schemas/
 **/.nexus-backup-*/
+# Local backups and parked assets (agents put file backups here)
+/.backups/
+# Compatibility link to app/ for tools that still use the old path
+/v0.20.2

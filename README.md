@@ -2,7 +2,7 @@
 
 NEXUS is a macOS desktop app (Tauri 2 + React) that puts several AI coding agents behind one chat window. You connect the agents and accounts you already use (OpenAI Codex, Claude Code, Google Antigravity / Gemini API, Grok API, a local Qwen model through Ollama, Goose or your own ACP agent), organise work into projects, folders and chats, and NEXUS routes each request to a suitable model, shows the answer as it streams, and keeps the history locally.
 
-The current source lives in [`v0.20.2/`](v0.20.2). Working rules for contributors and coding agents are in [`AGENTS.md`](AGENTS.md) (in Russian).
+The source lives in [`app/`](app). Working rules for contributors and coding agents are in [`AGENTS.md`](AGENTS.md) (in Russian); version history is in [`CHANGELOG.md`](CHANGELOG.md).
 
 ## What it does
 
@@ -42,20 +42,25 @@ The current source lives in [`v0.20.2/`](v0.20.2). Working rules for contributor
 ## Repository layout
 
 ```
-AGENTS.md                         Working rules and the detailed behaviour log (Russian)
+AGENTS.md                         Current working rules (Russian)
+CHANGELOG.md                      Version history
+docs/                             Model notes, agent rules history, old release notes
 Hi3D_Untitled_allparts_*.glb      Source 3D scan for the particle portrait
 generated_images/                 Concept images
-v0.20.2/
-  src/                            React UI (main.jsx, dialogs, navigation, persona, styles)
-  src-tauri/src/                  Rust backend: chat runs and streaming, history, accounts,
-                                  provider connections, ACP, installers, permissions,
-                                  verification, window state; Objective-C helpers for
-                                  Keychain and Accessibility
+.github/workflows/ci.yml          CI: UI tests, UI build, Rust tests on Linux
+app/
+  src/                            React UI (main.jsx = App, chat-message-view.jsx, dialogs, navigation, persona, styles)
+  src-tauri/src/                  Rust backend: lib.rs (shared types, run, command registration) and modules
+                                  for accounts, installer, adaptive routing, Claude usage, project store,
+                                  chat send/stream/history, channels and the local API, permissions,
+                                  verification, window state; Objective-C helpers for Keychain,
+                                  Accessibility and background mode
   public/agents/                  Local brand icons for agents (sources in SOURCES.md)
   public/persona/                 Particle assets for the portrait (sources in SOURCES.md)
-  scripts/                        Asset build scripts for the portrait
-  tests/                          Node tests for UI logic + an isolated UI preview
-  UNIFIED_CHAT_V020.md            Detailed description of chat behaviour and checks
+  scripts/                        Asset build scripts and macOS build/signing helpers
+  tests/                          Node tests for UI logic (run-all.mjs) and an isolated UI preview
+  UNIFIED_CHAT_V020.md            Detailed description of chat behaviour and checks (Russian)
+  CHANNELS_V021.md                Task channels, local API and notifications (Russian)
 ```
 
 User data (profiles, chats, projects, granted permissions) is stored in `~/Library/Application Support/NEXUS`.
@@ -70,14 +75,16 @@ User data (profiles, chats, projects, granted permissions) is stored in `~/Libra
 ## Build and run
 
 ```bash
-cd v0.20.2
+cd app
 npm install
 
-# UI logic tests
+# UI logic tests and formatting
 npm test
+npm run format:check
 
-# Rust tests
-cargo test --offline --manifest-path src-tauri/Cargo.toml --lib
+# Rust tests (needs dist/ from `npm run build`)
+npm run build
+cargo test --manifest-path src-tauri/Cargo.toml --lib
 
 # Development
 npm run tauri:dev
@@ -90,14 +97,14 @@ npm run build:mac
 codesign --verify --deep --strict src-tauri/target/release/bundle/macos/NEXUS.app
 ```
 
-The result is `v0.20.2/src-tauri/target/release/bundle/macos/NEXUS.app`. A stable local signature lets macOS remember "Always Allow" for NEXUS Keychain items across rebuilds; without it the bundle is signed ad hoc and Keychain prompts come back after each build. Neither is Developer ID signing or notarization.
+The result is `app/src-tauri/target/release/bundle/macos/NEXUS.app`. A stable local signature lets macOS remember "Always Allow" for NEXUS Keychain items across rebuilds; without it the bundle is signed ad hoc and Keychain prompts come back after each build. Neither is Developer ID signing or notarization.
 
 ### Isolated UI preview
 
 The UI can be opened in a regular browser with in-memory fixtures and no real backend or accounts:
 
 ```bash
-cd v0.20.2
+cd app
 npx vite
 # open http://127.0.0.1:1420/tests/ui-preview.html          (start screen)
 # open http://127.0.0.1:1420/tests/ui-preview.html?history  (chat with sample messages)
@@ -115,4 +122,4 @@ npx vite
 
 ## Third-party assets
 
-Agent logos and persona assets keep their original licences; see `v0.20.2/public/agents/SOURCES.md` and `v0.20.2/public/persona/SOURCES.md`.
+Agent logos and persona assets keep their original licences; see `app/public/agents/SOURCES.md` and `app/public/persona/SOURCES.md`.

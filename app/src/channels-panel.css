@@ -1,0 +1,269 @@
+/* «Каналы» tab: uses the shared dialog tokens from dialog-theme.css. */
+.channels-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.channel-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  border-radius: 9px;
+  background: var(--dialog-raised);
+  color: var(--dialog-muted);
+}
+.channel-telegram {
+  color: #7cc4ef;
+}
+.channel-discord {
+  color: #a3a9f5;
+}
+.channel-slack {
+  color: #e7b4d9;
+}
+.channel-email {
+  color: #d9c38c;
+}
+.channel-imessage {
+  color: #8fd99c;
+}
+.channel-error {
+  color: #ef9a9a;
+}
+.channel-form > label,
+.channel-grid > label {
+  display: flex !important;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+.channel-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 72px;
+}
+.channel-form .nexus-select,
+.channel-form .nexus-select-trigger {
+  width: 100%;
+}
+.channel-form label small {
+  display: block;
+  margin-top: 4px;
+  color: var(--dialog-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.channel-steps {
+  margin: 0 0 6px;
+  padding-left: 18px;
+  color: var(--dialog-muted);
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+.channel-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 90px;
+  gap: 8px 10px;
+}
+.channel-grid.wide {
+  grid-template-columns: 1fr 1fr;
+}
+.channel-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 4px 0;
+}
+.channel-toggle {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+.channel-form .channel-toggle input[type='checkbox'] {
+  appearance: none;
+  padding: 0;
+  box-sizing: border-box;
+  height: 15px;
+  -webkit-appearance: none;
+  position: relative;
+  width: 15px;
+  height: 15px;
+  min-width: 15px;
+  margin: 2px 0 0;
+  border: 1.5px solid #858585;
+  border-radius: 4px;
+  background: #292929;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
+}
+.channel-toggle input[type='checkbox']:checked {
+  background: #dedede;
+  border-color: #dedede;
+}
+.channel-toggle input[type='checkbox']:checked:after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid #242424;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.channel-toggle input[type='checkbox']:focus-visible {
+  outline: 2px solid #ffffff80;
+  outline-offset: 2px;
+}
+.channel-toggle strong {
+  display: block;
+  font-weight: 500;
+  color: var(--dialog-text);
+}
+.channel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.channel-commands,
+.channel-log {
+  border: 1px solid var(--dialog-border);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.channel-commands summary,
+.channel-log summary {
+  cursor: pointer;
+  color: var(--dialog-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.channel-commands ul,
+.channel-log ul {
+  margin: 8px 0 0;
+  padding-left: 16px;
+  color: var(--dialog-muted);
+}
+.channel-commands code {
+  color: var(--dialog-text);
+  font-size: 11.5px;
+}
+.channel-log ul {
+  list-style: none;
+  padding: 0;
+  font-variant-numeric: tabular-nums;
+}
+.channel-log li {
+  padding: 2px 0;
+  overflow-wrap: anywhere;
+}
+.channel-event-error {
+  color: #ef9a9a;
+}
+.channel-event-blocked {
+  color: #e0b36b;
+}
+.channel-github {
+  color: #c9d1d9;
+}
+.channel-linear {
+  color: #a5a8ff;
+}
+.channel-api {
+  color: #f0a3a3;
+}
+.channel-push {
+  color: #f2c46d;
+}
+.channel-group {
+  margin: 8px 0 -2px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+  color: var(--dialog-muted);
+}
+.channel-background {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid var(--dialog-border);
+  border-radius: 12px;
+  padding: 12px;
+}
+.channel-background .channel-toggle input[type='checkbox'],
+.channel-background input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  width: 15px;
+  height: 15px;
+  min-width: 15px;
+  margin: 2px 0 0;
+  padding: 0;
+  border: 1.5px solid #858585;
+  border-radius: 4px;
+  background: #292929;
+}
+.channel-background input[type='checkbox']:checked {
+  background: #dedede;
+  border-color: #dedede;
+}
+.channel-background input[type='checkbox']:checked:after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid #242424;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.channel-toggle small {
+  display: block;
+  margin-top: 3px;
+  color: var(--dialog-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.channel-secret {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.channel-secret > span {
+  color: var(--dialog-muted);
+  min-width: 42px;
+}
+.channel-secret code {
+  flex: 1;
+  min-width: 140px;
+  padding: 8px 10px;
+  border: 1px solid var(--dialog-border);
+  border-radius: 9px;
+  background: #1d1d1d;
+  color: var(--dialog-text);
+  font-size: 11.5px;
+  overflow-wrap: anywhere;
+}
+.channel-secret button,
+.channel-commands button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.channel-commands p {
+  margin: 8px 0 0;
+  color: var(--dialog-muted);
+}
