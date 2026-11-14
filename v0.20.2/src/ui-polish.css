@@ -523,3 +523,109 @@
 .app:not(.cinematic-home) .chat-heading .chat-heading-actions { flex-direction: row; gap: 2px; align-self: center; }
 /* User messages keep their line breaks (pasted logs, lists without Markdown). */
 .chat-bubble.user .chat-markdown p { white-space: pre-line; }
+
+/* ---------- Corner fixes ----------
+ * Callouts: a thick left border bends into the rounded corner and looks lopsided.
+ * Use a uniform 1px border and draw the accent as a separate inset bar instead. */
+.answer-callout { position: relative; border-width: 1px !important; padding-left: 18px; }
+.answer-callout::before { content: ""; position: absolute; left: 7px; top: 10px; bottom: 10px; width: 3px; border-radius: 2px; background: currentColor; opacity: .9; }
+.answer-callout.tone-note::before { color: #5cb8d7; }
+.answer-callout.tone-tip::before, .answer-callout.tone-success::before { color: #a5c9b4; }
+.answer-callout.tone-important::before { color: #b9a6e0; }
+.answer-callout.tone-warning::before { color: #e3b37c; }
+.answer-callout.tone-caution::before { color: #e39a9a; }
+/* Tables: old cell borders reached the rounded frame and showed square corners. Rows only, no outer cell edges. */
+.chat-markdown .table-scroll table, .chat-markdown .table-scroll :is(th, td) { border: 0 !important; }
+.chat-markdown .table-scroll tr:not(:last-child)>:is(th, td) { border-bottom: 1px solid #ffffff12 !important; }
+.chat-markdown .table-scroll :is(th, td)+:is(th, td) { box-shadow: inset 1px 0 0 #ffffff0a; }
+.chat-markdown .table-scroll { background: rgba(10, 18, 24, .45); }
+/* Nested surfaces keep concentric corners: inner radius = outer radius − padding (min 6px). */
+.chat-markdown .nexus-widget { border-radius: 16px; }
+.kpi, .flow-steps li, .compare-grid section { border-radius: 10px; }
+.chat-markdown .code-block, .chat-markdown .table-scroll, .answer-callout { border-radius: 12px; }
+
+/* =====================================================================
+ * Chat appearance: type scale, rhythm, text size, minimap (14 Nov 2026)
+ * Everything inside a message is sized in em from --chat-font-size,
+ * so the "Aa" control and ⌘= / ⌘− / ⌘0 scale text, code and tables together.
+ * Graphic widgets keep their own pixel sizes.
+ * ===================================================================== */
+:root { --chat-font-size: 15px; }
+
+/* Rhythm: a little air before each new request, tighter inside one exchange. */
+.app:not(.cinematic-home) .chat-thread-content { gap: 14px; }
+.chat-thread-content>.chat-bubble.user:not(:first-child) { margin-top: 18px; }
+.chat-thread-content>.chat-day-separator+.chat-bubble.user { margin-top: 0; }
+.app .chat-bubble.assistant { padding: 16px 22px; }
+.app .chat-bubble.user { padding: 11px 18px; }
+.chat-bubble .message-footer { margin-top: 8px; }
+
+/* Type */
+.chat-bubble .chat-markdown { font-size: var(--chat-font-size); line-height: 1.68; color: #e3e8ea; overflow-wrap: anywhere; }
+.chat-bubble .chat-markdown :is(p, ul, ol, blockquote, .table-block, .code-block) { margin-block: 0 .75em; }
+.chat-bubble .chat-markdown :is(h1, h2, h3, h4) { color: #f2f6f8; font-weight: 600; line-height: 1.3; margin: 1.15em 0 .5em; letter-spacing: -.005em; }
+.chat-bubble .chat-markdown> :is(h1, h2, h3, h4):first-child { margin-top: .1em; }
+.chat-bubble .chat-markdown h1 { font-size: 1.36em; }
+.chat-bubble .chat-markdown h2 { font-size: 1.2em; }
+.chat-bubble .chat-markdown h3 { font-size: 1.07em; }
+.chat-bubble .chat-markdown h4 { font-size: 1em; color: var(--text-body); }
+.chat-bubble .chat-markdown strong { color: #f4f8fa; font-weight: 600; }
+.chat-bubble .chat-markdown :is(ul, ol) { padding-left: 1.35em; }
+.chat-bubble .chat-markdown li+li { margin-top: .28em; }
+.chat-bubble .chat-markdown li>:is(ul, ol) { margin: .28em 0 0; }
+.chat-bubble .chat-markdown li::marker { color: #7f9aa8; }
+.chat-bubble .chat-markdown a { color: #8fd0ea; text-decoration: underline; text-decoration-color: rgba(143, 208, 234, .35); text-underline-offset: .18em; }
+.chat-bubble .chat-markdown a:hover { color: #b8e4f4; text-decoration-color: currentColor; }
+.chat-bubble .chat-markdown :not(pre)>code { font-family: "SF Mono", ui-monospace, Menlo, monospace; font-size: .86em; padding: .12em .4em; border-radius: 5px; background: rgba(255, 255, 255, .08); color: #e9dcc0; }
+.chat-bubble .chat-markdown hr { border: 0; height: 1px; background: linear-gradient(90deg, transparent, #ffffff22, transparent); margin: 1.2em 0; }
+.chat-bubble .chat-markdown blockquote { margin-left: 0; padding: .1em 0 .1em .9em; border-left: 2px solid #ffffff26; color: var(--text-muted); }
+.chat-markdown .code-block pre { font-size: .84em !important; }
+.chat-markdown .table-scroll table { font-size: .87em !important; }
+.answer-callout { font-size: calc(var(--chat-font-size) * .93); }
+.chat-bubble.user .chat-markdown { color: #eef3f5; }
+
+/* Text size menu */
+.text-size-menu { width: 280px; padding: 10px; gap: 8px; }
+.text-size-row { display: flex; align-items: center; gap: 6px; }
+.text-size-row>button { flex: 0 0 auto; display: inline-grid; place-items: center; width: 30px; height: 30px; padding: 0 !important; border-radius: 8px; border: 1px solid #ffffff1c !important; }
+.text-size-row>button:disabled { opacity: .35; }
+.text-size-scale { flex: 1; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 4px; }
+.text-size-scale button { width: auto !important; padding: 2px 4px !important; color: var(--text-faint) !important; line-height: 1; font-weight: 600; }
+.text-size-scale button[aria-pressed="true"] { color: #fff !important; background: rgba(92, 184, 215, .22) !important; }
+.text-size-foot { display: flex; align-items: center; justify-content: space-between; padding: 2px 4px 0; font-size: 11px; color: var(--text-faint); font-variant-numeric: tabular-nums; }
+.text-size-foot button { width: auto !important; padding: 3px 8px !important; font-size: 11px !important; }
+.text-size-foot button:disabled { opacity: .35; }
+
+/* Minimap: left of the message column */
+.chat-scroll-area { position: relative; }
+.chat-minimap {
+  position: absolute; z-index: 2; top: 18px; bottom: 30px; width: 34px;
+  left: max(12px, calc(50% - 400px - 60px));
+  opacity: .78; transition: opacity .2s;
+}
+.chat-minimap:hover { opacity: 1; }
+.chat-minimap.is-idle { display: none; }
+.chat-minimap-track {
+  position: relative; height: 100%; overflow: hidden; cursor: pointer; touch-action: none; user-select: none;
+  border-radius: 9px; border: 1px solid #ffffff10; background: rgba(10, 18, 24, .4);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.minimap-bar { position: absolute; left: 5px; right: 5px; border-radius: 2px; background: rgba(170, 190, 200, .26); }
+.minimap-bar.role-user { left: 13px; background: rgba(158, 200, 220, .6); }
+.minimap-bar.role-system { opacity: .45; }
+.minimap-block { position: absolute; left: 0; right: 0; border-radius: 1px; }
+.minimap-block.kind-code { background: rgba(197, 163, 240, .55); }
+.minimap-block.kind-graphic { background: rgba(92, 184, 215, .75); }
+.minimap-bar.is-bookmarked::before { content: ""; position: absolute; left: -4px; top: 0; width: 2px; height: max(5px, 100%); border-radius: 1px; background: #e3b37c; }
+.minimap-window { position: absolute; left: 1px; right: 1px; pointer-events: none; border-radius: 7px; border: 1px solid rgba(158, 200, 220, .5); background: rgba(255, 255, 255, .07); box-shadow: 0 0 12px rgba(92, 184, 215, .15); }
+@media (max-width: 1180px) { .chat-minimap, .chat-heading-actions .minimap-toggle { display: none; } }
+@media (prefers-reduced-motion: reduce) { .chat-minimap { transition: none; } }
+/* Text size menu lives inside .chat-heading, whose legacy rule stacks every div: restore rows. */
+.app .chat-heading .text-size-menu { display: flex; flex-direction: column; }
+.app .chat-heading .text-size-row, .app .chat-heading .text-size-foot { display: flex; flex-direction: row; align-items: center; }
+.app .chat-heading .text-size-scale { display: flex; flex-direction: row; align-items: flex-end; }
+/* User message actions sit beside the bubble (shown on hover/focus): no empty band inside the bubble. */
+.chat-bubble.user { position: relative; }
+.chat-bubble.user .user-footer { position: absolute; right: calc(100% + 6px); bottom: 2px; margin: 0; }
+.chat-bubble.user .user-footer .message-actions { flex-wrap: nowrap; white-space: nowrap; }
+@media (max-width: 760px) { .chat-bubble.user .user-footer { position: static; margin-top: 6px; } }

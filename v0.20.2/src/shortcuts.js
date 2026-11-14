@@ -11,6 +11,9 @@ export const SHORTCUTS = {
   next: { key: ']', label: 'Следующий чат' },
   sidebar: { key: '\\', label: 'Показать или скрыть проекты' },
   find: { key: 'f', label: 'Найти в чате' },
+  textBigger: { key: '=', label: 'Крупнее текст' },
+  textSmaller: { key: '-', label: 'Мельче текст' },
+  textReset: { key: '0', label: 'Обычный размер текста' },
 };
 
 export const shortcutText = name => {
@@ -30,7 +33,7 @@ export function shortcutFor(event, mac = IS_MAC) {
   const key = String(event.key || '').toLowerCase();
   // Layout-independent fallback for Cyrillic keyboards: use the physical key code.
   const code = String(event.code || '');
-  const byCode = { KeyN: 'n', KeyK: 'k', Comma: ',', Slash: '/', BracketLeft: '[', BracketRight: ']', Backslash: '\\', KeyF: 'f' }[code];
+  const byCode = { KeyN: 'n', KeyK: 'k', Comma: ',', Slash: '/', BracketLeft: '[', BracketRight: ']', Backslash: '\\', KeyF: 'f', Equal: '=', Minus: '-', Digit0: '0' }[code];
   for (const [name, item] of Object.entries(SHORTCUTS)) if (item.key === key || item.key === byCode) return name;
   return null;
 }

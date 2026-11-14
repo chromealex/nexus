@@ -33,12 +33,36 @@ fence+'rust','// Проверка контекста до создания пр�
 '> [!WARNING]','> Rust-часть нужно прогнать `cargo test` на Mac перед сборкой.'
 ].join('\n');
 const day=offset=>new Date(Date.now()-offset*86400000).toISOString();
-const messages=[{id:'u0',chatId:'history',role:'user',content:'Вчерашний вопрос для проверки разделителя дней.',createdAt:day(1)},{id:'u1',chatId:'history',role:'user',content:'Проверь оформление чата и технического сообщения.',createdAt:day(0)},{id:'a1',chatId:'history',role:'assistant',createdAt:day(0),content:'Обычный ответ агента без обрамляющей карточки.\n\n- Сохранён текст\n- Детали свёрнуты',details:'Route: codex / fixture\nModel: fixture-model\nEffort: low'},{id:'gu',chatId:'gallery',role:'user',content:'Покажи состояние релиза наглядно.\n'+Array.from({length:22},(_,i)=>`Строка лога ${i+1}: проверка модуля ${['поиска','графиков','черновиков'][i%3]} завершена`).join('\n'),createdAt:day(0)},{id:'ga',chatId:'gallery',role:'assistant',content:galleryAnswer,details:'Route: codex / fixture\nModel: fixture-model\nEffort: medium',createdAt:day(0),variants:[{content:'Первый, более короткий вариант ответа.',createdAt:day(0)},{content:galleryAnswer,createdAt:day(0)}],variant:1},{id:'s1',chatId:'history',role:'system',createdAt:day(0),content:'Тестовый технический журнал. Это данные изолированной проверки, а не реального провайдера.'}];
+const longTopics=['маршрутизацию запросов','хранение истории','проверки после выполнения','интерфейс подключений','черновики и варианты','графику в ответах'];
+const longMessages=longTopics.flatMap((topic,i)=>[
+ {id:'lu'+i,chatId:'long',role:'user',content:`Расскажи про ${topic}. Что важно учесть?`,createdAt:day(i<3?1:0)},
+ {id:'la'+i,chatId:'long',role:'assistant',createdAt:day(i<3?1:0),content:[
+  `## ${topic[0].toUpperCase()+topic.slice(1)}`,
+  '',
+  `Коротко: решение опирается на **реальные данные**, а не на догадки. Подробности — в [документации](https://github.com/chromealex/nexus) и в модуле \`${['agent-catalog.js','chat_history.rs','verification.rs','connections-dialog.jsx','chat_variants.rs','answer-widgets.jsx'][i]}\`.`,
+  '',
+  '### Что учесть',
+  '',
+  '1. Ручной выбор модели никогда не подменяется.',
+  '2. Квота показывается только из подтверждённых источников.',
+  '   - Codex — `account/rateLimits/read`',
+  '   - Claude — поля statusLine',
+  '3. Ошибки сохраняют уже полученный текст.',
+  '',
+  ...(i%2===0?[fence+'js','// '+topic,'export function route(task, models) {','  const ready = models.filter(m => m.ready);','  return ready.find(m => m.fits(task)) ?? null;','}',fence,'']:['> Цитата из обсуждения: «сначала измерить, потом обещать».','']),
+  ...(i===3?[fence+'nexus-widget','{"type":"progress","label":"Готовность раздела","value":72}',fence,'']:[]),
+  '---',
+  '',
+  'Если нужно, разберу любой пункт подробнее.'
+ ].join('\n')}
+]);
+
+const messages=[{id:'u0',chatId:'history',role:'user',content:'Вчерашний вопрос для проверки разделителя дней.',createdAt:day(1)},{id:'u1',chatId:'history',role:'user',content:'Проверь оформление чата и технического сообщения.',createdAt:day(0)},{id:'a1',chatId:'history',role:'assistant',createdAt:day(0),content:'Обычный ответ агента без обрамляющей карточки.\n\n- Сохранён текст\n- Детали свёрнуты',details:'Route: codex / fixture\nModel: fixture-model\nEffort: low'},{id:'gu',chatId:'gallery',role:'user',content:'Покажи состояние релиза наглядно.\n'+Array.from({length:22},(_,i)=>`Строка лога ${i+1}: проверка модуля ${['поиска','графиков','черновиков'][i%3]} завершена`).join('\n'),createdAt:day(0)},{id:'ga',chatId:'gallery',role:'assistant',content:galleryAnswer,details:'Route: codex / fixture\nModel: fixture-model\nEffort: medium',createdAt:day(0),variants:[{content:'Первый, более короткий вариант ответа.',createdAt:day(0)},{content:galleryAnswer,createdAt:day(0)}],variant:1},...longMessages,{id:'s1',chatId:'history',role:'system',createdAt:day(0),content:'Тестовый технический журнал. Это данные изолированной проверки, а не реального провайдера.'}];
 
 const goals=[{id:'g',projectId:'preview',title:'Проверить подключения и навигацию',done:false}];
 const emit=(event,payload)=>{for(const item of listeners.values())if(item.event===event)callbacks.get(item.callback)?.({event,payload,id:1})};
 window.__TAURI_EVENT_PLUGIN_INTERNALS__={unregisterListener:()=>{}};
-localStorage.setItem('nexus-active-project','preview');localStorage.setItem('nexus-active-chat:preview',new URLSearchParams(location.search).has('history')?'history':new URLSearchParams(location.search).has('gallery')?'gallery':'preview-empty');
+localStorage.setItem('nexus-active-project','preview');localStorage.setItem('nexus-active-chat:preview',new URLSearchParams(location.search).has('history')?'history':new URLSearchParams(location.search).has('gallery')?'gallery':new URLSearchParams(location.search).has('long')?'long':'preview-empty');
 window.__TAURI_INTERNALS__={transformCallback(fn){const id=++sequence;callbacks.set(id,fn);return id},async invoke(cmd,args={}){
  if(cmd==='plugin:event|listen'){const id=++sequence;listeners.set(id,{event:args.event,callback:args.handler});return id}
  if(cmd==='plugin:event|unlisten'){listeners.delete(args.eventId);return}
