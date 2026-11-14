@@ -4,6 +4,7 @@ mod agent_registry;
 mod api_server;
 mod attachments;
 mod background;
+mod browser_host;
 mod browser_policy;
 mod browser_tools;
 mod channel_adapters;
@@ -227,6 +228,10 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             browser_tools::browser_tools_status,
+            browser_host::browser_pane_open,
+            browser_host::browser_pane_view,
+            browser_host::browser_pane_input,
+            browser_host::browser_pane_state,
             browser_tools::save_chat_browser,
             browser_tools::install_browser_tools,
             browser_tools::cancel_browser_install,

@@ -1,6 +1,6 @@
 // In-memory fixtures only. This page never invokes the Tauri backend or real accounts.
 const browserTools = {
-    installed: new URLSearchParams(location.search).has('browser'),
+    installed: !new URLSearchParams(location.search).has('nobrowser'),
     installedVersion: null,
     version: '0.0.85',
     node: true,
@@ -9,6 +9,48 @@ const browserTools = {
     extensionUrl: '',
   },
   browserModes = {};
+const fakeTabs = {
+  tabs: [
+    {id: 1, url: 'https://docs.example.com/guide', title: 'Руководство — Example Docs'},
+    {id: 2, url: 'https://shop.example.com/pricing', title: 'Тарифы и цены'},
+  ],
+  active: 2,
+};
+// A drawn stand-in for a web page; the real pane shows Chrome's screencast.
+function fakePage() {
+  const c = document.createElement('canvas');
+  c.width = 1280;
+  c.height = 860;
+  const g = c.getContext('2d');
+  g.fillStyle = '#f6f7f9';
+  g.fillRect(0, 0, 1280, 860);
+  g.fillStyle = '#1d2a3a';
+  g.fillRect(0, 0, 1280, 64);
+  g.fillStyle = '#fff';
+  g.font = '600 24px sans-serif';
+  g.fillText('Example Shop', 32, 41);
+  g.fillStyle = '#1d2a3a';
+  g.font = '700 44px sans-serif';
+  g.fillText('Тарифы', 64, 150);
+  ['Старт', 'Команда', 'Бизнес'].forEach((name, i) => {
+    const x = 64 + i * 390;
+    g.fillStyle = '#fff';
+    g.fillRect(x, 200, 360, 420);
+    g.strokeStyle = '#d9dee5';
+    g.strokeRect(x, 200, 360, 420);
+    g.fillStyle = '#1d2a3a';
+    g.font = '600 28px sans-serif';
+    g.fillText(name, x + 28, 260);
+    g.font = '700 40px sans-serif';
+    g.fillText(['0 ₽', '990 ₽', '2 990 ₽'][i], x + 28, 330);
+    g.fillStyle = '#3d6fe0';
+    g.fillRect(x + 28, 540, 304, 52);
+    g.fillStyle = '#fff';
+    g.font = '600 20px sans-serif';
+    g.fillText('Выбрать', x + 138, 573);
+  });
+  return {data: c.toDataURL('image/jpeg', 0.8).split(',')[1], width: 1280, height: 860};
+}
 const callbacks = new Map(),
   listeners = new Map();
 let sequence = 0;
@@ -255,7 +297,8 @@ window.__TAURI_INTERNALS__ = {
       listeners.delete(args.eventId);
       return;
     }
-    if (cmd === 'browser_tools_status') return {...browserTools, mode: browserModes[args.chatId] || 'off'};
+    if (cmd === 'browser_tools_status')
+      return {...browserTools, mode: browserModes[args.chatId] || 'builtin'};
     if (cmd === 'save_chat_browser') {
       browserModes[args.chatId] = args.mode;
       return {...browserTools, mode: args.mode};
@@ -267,6 +310,28 @@ window.__TAURI_INTERNALS__ = {
       return {...browserTools};
     }
     if (cmd === 'cancel_browser_install' || cmd === 'open_browser_extension_page') return;
+    if (cmd === 'browser_pane_state' || cmd === 'browser_pane_open') {
+      const state = {chatId: args.chatId, running: true, ...fakeTabs};
+      if (cmd === 'browser_pane_open')
+        setTimeout(() => {
+          emit('browser-tabs', state);
+          emit('browser-frame', {chatId: args.chatId, tab: 2, ...fakePage()});
+          if (new URLSearchParams(location.search).has('agent'))
+            emit('browser-activity', {
+              chatId: args.chatId,
+              tool: 'browser_click',
+              text: 'Нажать «Сравнить тарифы»',
+              asks: true,
+            });
+        }, 300);
+      return state;
+    }
+    if (cmd === 'browser_pane_view') {
+      if (args.view === 'thumb')
+        setTimeout(() => emit('browser-frame', {chatId: args.chatId, tab: 2, ...fakePage()}), 200);
+      return;
+    }
+    if (cmd === 'browser_pane_input') return;
     if (cmd === 'list_projects') return projects;
     if (cmd === 'list_project_chats')
       return chats.filter(c => c.projectId === args.projectId && !c.archived && !c.deletedAt);

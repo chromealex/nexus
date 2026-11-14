@@ -57,7 +57,7 @@ fn scope(kind: &str, params: &Value) -> Option<(Value, String)> {
         // Browser rules can be remembered only for the separate Nexus profile, per tool (and per site
         // for navigation). Actions in the user's own Chrome are always confirmed one by one.
         "browser" => {
-            if params["mode"] != "isolated" {
+            if params["mode"] != "builtin" {
                 return None;
             }
             let tool = params["tool"].as_str()?;
@@ -266,13 +266,13 @@ mod persistent_scope_tests {
         assert_ne!(
             scope(
                 "browser",
-                &json!({"mode":"isolated","tool":"browser_navigate","host":"a.com"})
+                &json!({"mode":"builtin","tool":"browser_navigate","host":"a.com"})
             )
             .unwrap()
             .0,
             scope(
                 "browser",
-                &json!({"mode":"isolated","tool":"browser_navigate","host":"b.com"})
+                &json!({"mode":"builtin","tool":"browser_navigate","host":"b.com"})
             )
             .unwrap()
             .0

@@ -18,6 +18,7 @@ import {ProjectNavigation} from './project-navigation.jsx';
 import {useChatScroll} from './use-chat-scroll.js';
 import {ComposerParams, ParamRow, composerParamsSummary} from './composer-params.jsx';
 import {BrowserParam} from './browser-param.jsx';
+import {BrowserPane, BrowserPreview, useChatBrowser} from './browser-pane.jsx';
 import {browserSummary} from './browser-mode.js';
 import {shortcutFor, withShortcut} from './shortcuts.js';
 import {ChatSkeleton} from './nav-extras.jsx';
@@ -31,6 +32,7 @@ import {
   ArrowLeft,
   ArrowRight,
   PanelLeft,
+  PanelRight,
   Square,
   Bookmark,
   FileDown,
@@ -246,7 +248,35 @@ function App() {
       live = false;
     };
   }, [activeChat]);
-  const browserMode = browserState?.chatId === activeChat ? browserState.mode : 'off';
+  const browserMode = browserState?.chatId === activeChat ? browserState.mode : 'builtin';
+  // The chat browser pane is open by default; the choice and width are remembered for the window.
+  const [browserPaneOpen, setBrowserPaneOpen] = useState(() => {
+      try {
+        return localStorage.getItem('nexus-browser-pane') !== '0';
+      } catch {
+        return true;
+      }
+    }),
+    [browserPaneWidth, setBrowserPaneWidth] = useState(() => {
+      try {
+        return Math.min(900, Math.max(360, Number(localStorage.getItem('nexus-browser-width')) || 480));
+      } catch {
+        return 480;
+      }
+    });
+  function toggleBrowserPane(value) {
+    setBrowserPaneOpen(value);
+    try {
+      localStorage.setItem('nexus-browser-pane', value ? '1' : '0');
+    } catch {}
+  }
+  function resizeBrowserPane(value) {
+    const next = Math.round(Math.min(Math.max(360, value), Math.max(360, window.innerWidth * 0.6)));
+    setBrowserPaneWidth(next);
+    try {
+      localStorage.setItem('nexus-browser-width', String(next));
+    } catch {}
+  }
   async function saveBrowserMode(mode) {
     if (!activeChat) return;
     const chatId = activeChat;
@@ -700,6 +730,13 @@ function App() {
     }
   }, [chatMessages]);
   const currentChatSending = chatSending && activeRunRef.current?.chatId === activeChat;
+  const browserPaneShown = browserPaneOpen && !!activeChat;
+  const chatBrowser = useChatBrowser({
+    chatId: activeChat,
+    paneOpen: browserPaneShown,
+    status: browserState?.chatId === activeChat ? browserState : null,
+    agentBusy: currentChatSending,
+  });
   const visibleTurns = chatMessages.filter(m => m.role !== 'system'),
     lastAnswerId = visibleTurns.at(-1)?.role === 'assistant' ? visibleTurns.at(-1).id : null,
     lastUserId =
@@ -1611,8 +1648,10 @@ function App() {
       className={
         'app' +
         (chatMessages.length === 0 && !currentChatSending && !historyLoading ? ' cinematic-home' : '') +
-        (navCollapsed ? ' nav-collapsed' : '')
+        (navCollapsed ? ' nav-collapsed' : '') +
+        (browserPaneShown ? ' browser-pane-open' : '')
       }
+      style={browserPaneShown ? {'--browser-pane-width': browserPaneWidth + 'px'} : undefined}
     >
       <div className="workspace-persona">
         <ParticlePersona interactive={chatMessages.length === 0 && !currentChatSending && !historyLoading} />
@@ -1682,6 +1721,11 @@ function App() {
         </div>
         <div className="topright">
           <span className="status">● LOCAL SYSTEM</span>
+          {activeChat && !browserPaneShown && (
+            <button title="Показать браузер чата" onClick={() => toggleBrowserPane(true)}>
+              <PanelRight size={14} aria-hidden="true" /> Браузер
+            </button>
+          )}
           <button title={withShortcut('Агенты и подключения', 'connections')} onClick={() => setOpen(!open)}>
             Агенты <span className="count">{agents.filter(a => a.installed).length}</span>
           </button>
@@ -2497,6 +2541,29 @@ function App() {
           />
         )}
       </section>
+      {browserPaneShown && (
+        <BrowserPane
+          browser={chatBrowser}
+          chatId={activeChat}
+          width={browserPaneWidth}
+          onResize={resizeBrowserPane}
+          onClose={() => toggleBrowserPane(false)}
+          settings={
+            <BrowserParam
+              compact
+              status={browserState?.chatId === activeChat ? browserState : null}
+              disabled={!activeChat}
+              busy={browserBusy}
+              error={browserError}
+              onMode={saveBrowserMode}
+              onInstall={installBrowser}
+              onCancel={() => invoke('cancel_browser_install').catch(() => {})}
+              onExtension={openBrowserExtension}
+            />
+          }
+        />
+      )}
+      {chatBrowser.preview && <BrowserPreview browser={chatBrowser} onOpen={() => toggleBrowserPane(true)} />}
       <ConnectionsDialog
         open={open}
         onClose={() => setOpen(false)}

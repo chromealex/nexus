@@ -1,21 +1,31 @@
 import React from 'react';
 import {Globe, Download, ExternalLink} from 'lucide-react';
 import {CustomSelect} from './custom-select.jsx';
-import {BROWSER_MODES, browserHint} from './browser-mode.js';
+import {BROWSER_MODES, browserHint, normalizeMode} from './browser-mode.js';
 
 // «Параметры → Браузер»: choose the browser for this chat and finish its one-time setup.
-export function BrowserParam({status, disabled, busy, error, onMode, onInstall, onCancel, onExtension}) {
-  const mode = status?.mode || 'off',
+export function BrowserParam({
+  status,
+  disabled,
+  busy,
+  error,
+  onMode,
+  onInstall,
+  onCancel,
+  onExtension,
+  compact,
+}) {
+  const mode = normalizeMode(status?.mode),
     hint = browserHint(mode, status || {});
   return (
-    <div className="composer-param-row browser-param">
+    <div className={'composer-param-row browser-param' + (compact ? ' is-compact' : '')}>
       <span className="composer-param-label">
         <Globe size={12} aria-hidden="true" />
-        Браузер для агента
+        Браузер агентов
       </span>
       <CustomSelect
         className="reasoning-mode"
-        aria-label="Браузер для агента"
+        aria-label="Браузер агентов"
         value={mode}
         disabled={disabled || busy || !status}
         onChange={e => onMode(e.target.value)}

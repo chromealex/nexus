@@ -16,14 +16,15 @@ static MODES_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
 static INSTALL_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
 static INSTALL_CANCEL: AtomicBool = AtomicBool::new(false);
 static INSTALLING: AtomicBool = AtomicBool::new(false);
-// The separate profile can be opened by one Chrome at a time; parallel chats get an in-memory one.
-static PROFILE_USERS: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
 
 fn data() -> PathBuf {
     home().join("Library/Application Support/NEXUS")
 }
 fn root() -> PathBuf {
     data().join("tools/browser")
+}
+pub(crate) fn tools_root() -> PathBuf {
+    root()
 }
 fn cli() -> PathBuf {
     root().join("node_modules/@playwright/mcp/cli.js")
@@ -42,12 +43,29 @@ fn load_modes() -> HashMap<String, String> {
         .and_then(|b| serde_json::from_slice(&b).ok())
         .unwrap_or_default()
 }
+/// The built-in browser is on by default; a chat can switch it off or to the user's own Chrome.
 pub fn chat_mode(chat: &str) -> String {
     load_modes()
         .get(chat)
         .and_then(|m| normalize_mode(m))
-        .unwrap_or("off")
+        .unwrap_or("builtin")
         .to_string()
+}
+fn explicit_mode(chat: &str) -> bool {
+    load_modes().contains_key(chat)
+}
+/// Everything the chat browser host needs, with a message the pane can show as is.
+pub(crate) fn ready_for_host() -> Result<(), String> {
+    if node_bin().is_none() {
+        return Err("NEXUS_BROWSER_SETUP: Для браузера нужен Node.js 22+ (nvm или Homebrew).".into());
+    }
+    if !chrome_installed() {
+        return Err("NEXUS_BROWSER_SETUP: Не найден Google Chrome в «Программах».".into());
+    }
+    if !installed() {
+        return Err("NEXUS_BROWSER_SETUP: Нужно один раз установить Playwright.".into());
+    }
+    Ok(())
 }
 
 pub fn installed_version() -> Option<String> {
@@ -63,7 +81,7 @@ fn installed() -> bool {
 
 #[tauri::command]
 pub fn browser_tools_status(chat_id: Option<String>) -> Value {
-    json!({"mode":chat_id.as_deref().map(chat_mode).unwrap_or_else(||"off".into()),"installed":installed(),"version":VERSION,"installedVersion":installed_version(),
+    json!({"mode":chat_id.as_deref().map(chat_mode).unwrap_or_else(||"builtin".into()),"installed":installed(),"version":VERSION,"installedVersion":installed_version(),
   "node":node_bin().is_some(),"chrome":chrome_installed(),"installing":INSTALLING.load(Ordering::SeqCst),"extensionUrl":EXTENSION_URL})
 }
 
@@ -75,10 +93,13 @@ pub fn save_chat_browser(chat_id: String, mode: String) -> Result<Value, String>
     }
     let _guard = MODES_LOCK.lock().map_err(|_| "Настройки браузера недоступны")?;
     let mut modes = load_modes();
-    if mode == "off" {
-        modes.remove(&chat_id);
-    } else {
-        modes.insert(chat_id.clone(), mode.into());
+    // "off" is stored too: without an entry a chat gets the built-in browser by default.
+    modes.insert(chat_id.clone(), mode.into());
+    if mode != "builtin" && browser_host::running(&chat_id) {
+        let chat = chat_id.clone();
+        tauri::async_runtime::spawn(async move {
+            let _ = browser_host::send(&chat, json!({"type":"shutdown"})).await;
+        });
     }
     let path = modes_path();
     std::fs::create_dir_all(data()).map_err(|e| e.to_string())?;
@@ -200,6 +221,11 @@ pub fn prepare(chat: &str) -> Result<Option<Prepared>, String> {
     if mode == "off" {
         return Ok(None);
     }
+    // On by default: until the browser is set up, chats simply run without it. A browser the user
+    // chose explicitly for this chat fails early with an explanation instead.
+    if ready_for_host().is_err() && !explicit_mode(chat) {
+        return Ok(None);
+    }
     if node_bin().is_none() {
         return Err(
             "Для браузера агента нужен Node.js 22+. Установите его или выключите браузер в «Параметрах»."
@@ -219,14 +245,16 @@ pub struct Session {
     pub spec: Spec,
     task: tokio::task::JoinHandle<()>,
     dir: PathBuf,
-    shared: bool,
+    chat: Option<String>,
 }
 impl Drop for Session {
     fn drop(&mut self) {
         self.task.abort();
         let _ = std::fs::remove_dir_all(&self.dir);
-        if self.shared {
-            PROFILE_USERS.fetch_sub(1, Ordering::SeqCst);
+        if let Some(chat) = self.chat.take() {
+            tauri::async_runtime::spawn(async move {
+                let _ = browser_host::send(&chat, json!({"type":"agent","active":false})).await;
+            });
         }
     }
 }
@@ -273,10 +301,14 @@ impl Prepared {
             .map_err(|e| format!("Не удалось открыть канал браузера: {e}"))?;
         std::fs::set_permissions(&socket, std::fs::Permissions::from_mode(0o600))
             .map_err(|e| e.to_string())?;
-        let shared = self.mode == "isolated" && PROFILE_USERS.fetch_add(1, Ordering::SeqCst) == 0;
-        if self.mode == "isolated" && !shared {
-            PROFILE_USERS.fetch_sub(1, Ordering::SeqCst);
-        }
+        // The built-in browser belongs to the chat and outlives the answer; the agent only connects to it.
+        let port = if self.mode == "builtin" {
+            let port = browser_host::ensure(app, chat).await?;
+            let _ = browser_host::send(chat, json!({"type":"agent","active":true})).await;
+            Some(port)
+        } else {
+            None
+        };
         let output = data().join("browser-output").join(
             chat.chars()
                 .filter(|c| c.is_ascii_alphanumeric() || *c == '-')
@@ -284,7 +316,7 @@ impl Prepared {
                 .collect::<String>(),
         );
         let _ = std::fs::create_dir_all(&output);
-        let args = playwright_args(&self.mode, &data().join("browser-profile"), &output, shared);
+        let args = playwright_args(&self.mode, port, &output);
         let secret = token();
         let env = vec![
             (
@@ -311,6 +343,7 @@ impl Prepared {
         std::fs::set_permissions(&config, std::fs::Permissions::from_mode(0o600))
             .map_err(|e| e.to_string())?;
         spec.claude_config = config.to_string_lossy().into();
+        let chat_name = chat.to_string();
         let (app, chat, mode) = (app.clone(), chat.to_string(), self.mode.clone());
         let task = tokio::spawn(async move {
             let mut running = tokio::task::JoinSet::new();
@@ -335,7 +368,7 @@ impl Prepared {
             spec,
             task,
             dir,
-            shared,
+            chat: port.map(|_| chat_name),
         })
     }
 }
@@ -360,7 +393,13 @@ async fn serve(
     } else {
         let tool = request["tool"].as_str().unwrap_or("");
         let args = &request["arguments"];
-        match decide(tool, args) {
+        let decision = decide(tool, args);
+        // The pane and its preview show what the agent is doing in the browser right now.
+        let _ = app.emit(
+            "browser-activity",
+            json!({"chatId":chat,"tool":tool,"text":activity(tool,&decision),"asks":matches!(decision,Decision::Ask(_))}),
+        );
+        match decision {
             Decision::Allow => json!({"allow":true}),
             Decision::Deny(message) => json!({"allow":false,"message":message}),
             Decision::Ask(summary) => {
