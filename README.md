@@ -6,7 +6,7 @@
 
 NEXUS is a macOS desktop app (Tauri 2 + React) that puts several AI coding agents behind one chat window. You connect the agents and accounts you already use (OpenAI Codex, Claude Code, Google Antigravity / Gemini API, Grok API, a local Qwen model through Ollama, Goose or your own ACP agent), organise work into projects, folders and chats, and NEXUS routes each request to a suitable model, shows the answer as it streams, and keeps the history locally.
 
-The source lives in [`app/`](app). Working rules for contributors and coding agents are in [`AGENTS.md`](AGENTS.md) (in Russian); version history is in [`CHANGELOG.md`](CHANGELOG.md).
+The source lives in [`app/`](app). Working rules for contributors and coding agents are in [`AGENTS.md`](AGENTS.md); version history is in [`CHANGELOG.md`](CHANGELOG.md).
 
 <p align="center">
   <img src="docs/assets/nexus-screenshot.png" width="100%" alt="NEXUS start screen: projects and chats on the left, connected accounts with remaining limits on the right, and the message composer with model, parameters and execution mode">

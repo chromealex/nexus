@@ -1,15 +1,20 @@
 # Changelog
 
-Short history of NEXUS Desktop. The original per-version notes are in [docs/history](docs/history).
+Short history of NEXUS Desktop. The original per-version notes (in Russian) are in [docs/history](docs/history).
+
+## Unreleased
+- Interface languages: English, Russian, Spanish, German, French, Portuguese, Simplified Chinese and Japanese. The macOS language is used by default (English if it is not supported); a language picker sits at the bottom of the sidebar.
+- New app icon; README banner and screenshot.
+- AGENTS.md, CHANGELOG and release notes are now written in English.
 
 ## 0.21.0 (14 November 2026)
 - First public builds: macOS (Apple Silicon and Intel, signed with Developer ID and notarized) and a Windows preview.
 - Windows preview: chat with Codex / Claude Code / ACP agents, projects, files and history. Not available on Windows yet: the chat browser for agents, iMessage, macOS notifications and the native file picker; API keys need the macOS Keychain, so API connections are macOS-only for now.
 - Chat browser: each chat has its own invisible Chrome with tabs and sign-ins; the side panel opens when an agent uses it, with a live view, clicks and typing; a preview while the panel is hidden. All agents (Claude, Codex, ACP, API) use it through one confirmation gateway.
 - Side panel with files: paths in answers and attachments open on the right (code with lines, Markdown, sandboxed HTML, CSV, JSON, images, PDF, media).
-- Execution modes: «Выполнение · с разрешениями» by default and «Выполнение · без разрешений».
+- Execution modes: “Execution · with permissions” by default and “Execution · without permissions”.
 - Notifications at the top of the window, one card surface with background blur, minimap instead of the scrollbar, scroll fades, project icons, draft new chats, import of projects from Claude Code and Codex, native file/folder pickers, iMessage setup buttons.
-- «Инструменты» folded into the chat (task plan next to the paperclip) and project settings (remembered permissions).
+- The “Tools” window folded into the chat (task plan next to the paperclip) and project settings (remembered permissions).
 
 ## 0.21 (November 2026, earlier work)
 - Task channels: Telegram, Discord, Slack, email (IMAP/SMTP), iMessage, GitHub Issues, Linear, a local HTTP API for Siri / Shortcuts, ntfy push and macOS notifications, background mode. See `app/CHANNELS_V021.md`.
@@ -18,7 +23,7 @@ Short history of NEXUS Desktop. The original per-version notes are in [docs/hist
 - Projects: context sources (folders, files, links, notes, images) can be set when a project is created; up to 200 sources.
 - UI review fixes: crash when opening connections from a chat, composer selectors hidden on narrow windows, fixed-size dialogs, two-step confirmation for destructive actions, consistent composer chips.
 - Model selection: Claude Code aliases resolve to exact versions (unless settings override them), coding tasks use the AA Coding Agent Index of the same agent, the model card fills data extraction (GDP.pdf), tool reliability (AutomationBench-AA) and speed; Anthropic default fallback no longer excludes results; short plain questions skip ratings. See `docs/MODEL_BENCHMARKS.md`.
-- Auto executors: in Auto, composite requests are split into parts and each part goes to the model rated best for its kind of work, at its own reasoning depth; new per-chat «Авто / Один агент / Команда». Claude Fable 5.2 added to Claude Code by exact ID (CLI 2.1.321+, Auto only with the Quality priority). See `app/UNIFIED_CHAT_V020.md`.
+- Auto executors: in Auto, composite requests are split into parts and each part goes to the model rated best for its kind of work, at its own reasoning depth; new per-chat “Auto / Single agent / Team”. Claude Fable 5.2 added to Claude Code by exact ID (CLI 2.1.321+, Auto only with the Quality priority). See `app/UNIFIED_CHAT_V020.md`.
 - Repository: English README, CI, single test runner, unused persona assets removed.
 
 ## 0.20 (November 2026)

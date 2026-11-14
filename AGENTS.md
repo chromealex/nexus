@@ -1,102 +1,102 @@
-# Nexus — правила работы
+# Nexus — working rules
 
-Короткий список действующих правил. Полная история решений и прежние формулировки — в [docs/AGENTS_HISTORY.md](docs/AGENTS_HISTORY.md); если правило ниже ей противоречит, действует правило ниже. Отложенные задачи — [docs/TODO.md](docs/TODO.md). Подробности по чату — [app/UNIFIED_CHAT_V020.md](app/UNIFIED_CHAT_V020.md), по каналам — [app/CHANNELS_V021.md](app/CHANNELS_V021.md).
+A short list of the rules in force. The full history of decisions and earlier wording is in [docs/AGENTS_HISTORY.md](docs/AGENTS_HISTORY.md); if a rule below contradicts it, the rule below wins. Postponed tasks are in [docs/TODO.md](docs/TODO.md). Chat details: [app/UNIFIED_CHAT_V020.md](app/UNIFIED_CHAT_V020.md); channels: [app/CHANNELS_V021.md](app/CHANNELS_V021.md).
 
-## Проект
+## Project
 
-- Это **Nexus**, не Petya. Исходники: `/Users/aleksandrfeer/Projects/nexus-core/app` (старый путь `v0.20.2` — ссылка на `app`). Соседние проекты не трогать.
-- Frontend: React/Vite (`app/src`): `main.jsx` — компонент App, `chat-message-view.jsx` — отображение сообщений, остальное по файлам компонентов. Backend: Tauri 2/Rust (`app/src-tauri/src`): `lib.rs` — общие типы, `run()` и регистрация команд; команды по модулям (`accounts`, `installer`, `adaptive`, `claude_usage`, `project_store`, `chat_send` и др.). Новый модуль подключать в `lib.rs` как `mod x; use x::*;`, общие элементы — `pub(crate)`. Objective-C только для macOS (`*.m`, в `build.rs` под `cfg(target_os="macos")`).
-- Репозиторий: https://github.com/chromealex/nexus, ветка `main`. Без force push. Сборки, кэши, `node_modules`, секреты — вне git (`.gitignore`).
-- Резервные копии файлов класть в `nexus-core/.backups/<дата>-<тема>/`, не в исходники.
+- This is **Nexus**, not Petya. Sources: `/Users/aleksandrfeer/Projects/nexus-core/app` (the old path `v0.20.2` is a link to `app`). Do not touch neighbouring projects.
+- Frontend: React/Vite (`app/src`): `main.jsx` is the App component, `chat-message-view.jsx` renders messages, everything else lives in its own component files. Backend: Tauri 2/Rust (`app/src-tauri/src`): `lib.rs` holds shared types, `run()` and command registration; commands are split into modules (`accounts`, `installer`, `adaptive`, `claude_usage`, `project_store`, `chat_send` and others). Register a new module in `lib.rs` as `mod x; use x::*;`, shared items are `pub(crate)`. Objective-C is macOS-only (`*.m`, under `cfg(target_os="macos")` in `build.rs`).
+- Repository: https://github.com/chromealex/nexus, branch `main`. No force push. Builds, caches, `node_modules` and secrets stay out of git (`.gitignore`).
+- Put file backups in `nexus-core/.backups/<date>-<topic>/`, not next to the sources.
 
-## Проверки и сборка
+## Checks and builds
 
-- `npm test` — запускает все `app/tests/*.mjs` (`tests/run-all.mjs`); новые тесты подхватываются сами, в `package.json` их не добавлять.
-- Rust: `cargo test --manifest-path app/src-tauri/Cargo.toml --lib`. Код собирается и на Linux (CI), поэтому платформенный код держать под `cfg`.
-- Перед сборкой Rust нужен `app/dist` (`npm run build`).
-- macOS: `npm run build:mac` → `app/src-tauri/target/release/bundle/macos/NEXUS.app`. Подпись выбирается сама: `NEXUS_SIGNING_IDENTITY` → сертификат «Developer ID Application» из связки ключей → «Apple Development» → «NEXUS Local Signing» (`npm run setup:signing`) → ad-hoc. С Developer ID — hardened runtime, `Entitlements.plist` (apple-events) и нотаризация через профиль notarytool «nexus-notary» (один раз `bash scripts/setup-notary.sh`; пароль только в связке ключей), затем staple и проверка Gatekeeper. Сборки последовательно.
-- После изменения зависимостей — `npm install` на Mac.
-- Форматирование: `npm run format` (Prettier, `app/.prettierrc.json`) и `cargo fmt` (`app/src-tauri/rustfmt.toml`). Перед сдачей — `npm run format:check`.
-- Тесты, которые читают исходники (`chat-send`, `model-selection`, `persona-asset`), ищут фрагменты через `tests/helpers/source-slice.mjs` без учёта пробелов. Новые такие тесты писать так же, а не через точный `indexOf`.
-- CI: `.github/workflows/ci.yml` (тесты, сборка интерфейса, `cargo test` на Linux).
-- В отчёте разделять: автоматические проверки, осмотр интерфейса, проверка с реальным аккаунтом. Не заявлять об отправке, входе или доставке без фактической проверки.
+- `npm test` runs every `app/tests/*.mjs` (`tests/run-all.mjs`); new tests are picked up automatically, do not add them to `package.json`.
+- Rust: `cargo test --manifest-path app/src-tauri/Cargo.toml --lib`. The code also builds on Linux (CI), so keep platform code under `cfg`.
+- Building Rust needs `app/dist` first (`npm run build`).
+- macOS: `npm run build:mac` → `app/src-tauri/target/release/bundle/macos/NEXUS.app`. The signing identity is chosen automatically: `NEXUS_SIGNING_IDENTITY` → a “Developer ID Application” certificate from the keychain → “Apple Development” → “NEXUS Local Signing” (`npm run setup:signing`) → ad-hoc. With Developer ID: hardened runtime, `Entitlements.plist` (apple-events) and notarization through the notarytool profile “nexus-notary” (once: `bash scripts/setup-notary.sh`; the password lives only in the keychain), then staple and a Gatekeeper check. Run builds one at a time.
+- After changing dependencies, run `npm install` on the Mac.
+- Formatting: `npm run format` (Prettier, `app/.prettierrc.json`) and `cargo fmt` (`app/src-tauri/rustfmt.toml`). Run `npm run format:check` before handing work over.
+- Tests that read sources (`chat-send`, `model-selection`, `persona-asset`) find fragments with `tests/helpers/source-slice.mjs`, ignoring whitespace. Write new tests of this kind the same way, not with an exact `indexOf`.
+- CI: `.github/workflows/ci.yml` (tests, UI build, `cargo test` on Linux).
+- In reports keep apart: automated checks, looking at the interface, and checks with a real account. Never claim something was sent, signed in or delivered without actually checking.
 
-## Общение
+## Communication and language
 
-- С пользователем — по-русски, простыми словами. Обычные обратимые правки делать без повторных вопросов.
+- Talk to the user in Russian, in plain words. Make ordinary reversible changes without asking again.
+- Everything written into the repository is in English: README, AGENTS.md, CHANGELOG, release notes, commit messages and new docs. Interface strings are written in Russian as `loc()` keys and translated in `src/locales` (see “Interface”).
 
-## Интерфейс
+## Interface
 
-- Спокойный тёмный стиль. Общие токены окон и popup — `src/dialog-theme.css`; читаемость и размеры текста — `src/ui-polish.css` (подключается последним). Новые окна используют общие токены, без своей темы.
-- Минимальный текст 11px, основной 12px; текст сообщений по умолчанию 16px (`--chat-font-size`, 13–20). Цвета текста — `--text-strong/body/muted/faint`.
-- Сообщения пользователя справа, ответ агента слева; у обоих одна спокойная подложка (рамка 1px, фон ~.9). Действия у сообщений — при наведении и фокусе, на сенсорных экранах всегда; они не занимают места внутри пузыря.
-- Одна кнопка отправки, во время генерации — «Стоп». Полученный текст не теряется; «Продолжить» дописывает в то же сообщение. Ответ показывается по мере генерации; детали свёрнуты.
-- Прокрутка: если пользователь ушёл вверх, генерация не тянет вниз; кнопка «К последнему сообщению».
-- Все выпадающие списки — `CustomSelect`. Скроллбары тонкие, справа, прозрачная дорожка. Без рамки фокуса при вводе текста, но с клавиатурным фокусом у кнопок.
-- В дереве навигации без `text-overflow: ellipsis` — `FadeLabel`. Число у проекта/папки — активные чаты (`navigation-counts.js`).
-- Склонения — только через `src/locale-format.js`.
-- Языки интерфейса: `src/i18n.js` (ru — исходные строки, en, es, de, fr, pt, zh, ja в `src/locales/*.js`, ключ — русская строка). Новый текст интерфейса писать как `loc('Текст {0}', value)` и добавлять перевод во все словари — `tests/i18n.mjs` проверяет полноту и `{n}`. Строки, которые сравниваются с ответами backend или используются как идентификаторы, через `loc` не пропускать. По умолчанию язык системы (иначе английский), выбор — внизу боковой панели (`language-select.jsx`, `localStorage nexus-lang`). Rust-backend пока отдаёт сообщения по-русски.
-- Разрушительные действия (удаление аккаунта, отзыв разрешений, удаление чата) — с подтверждением или «Отменить».
+- Calm dark style. Shared tokens for dialogs and popups are in `src/dialog-theme.css`; readability and text sizes in `src/ui-polish.css` (loaded last). New dialogs use the shared tokens, no theme of their own.
+- Minimum text size 11px, regular 12px; message text 16px by default (`--chat-font-size`, 13–20). Text colours: `--text-strong/body/muted/faint`.
+- User messages on the right, agent answers on the left; both share one quiet surface (1px border, background ~.9). Message actions appear on hover and focus (always on touch screens) and take no space inside the bubble.
+- One send button, which turns into “Stop” while generating. Received text is never lost; “Continue” appends to the same message. The answer is shown as it streams; details are collapsed.
+- Scrolling: if the user scrolled up, generation does not pull the view down; a “Jump to latest” button appears.
+- Every dropdown is a `CustomSelect`. Scrollbars are thin, on the right, with a transparent track. No focus ring while typing text, but buttons keep a keyboard focus ring.
+- The navigation tree uses `FadeLabel` instead of `text-overflow: ellipsis`. The number next to a project/folder is its active chats (`navigation-counts.js`).
+- Plural forms only through `src/locale-format.js`.
+- Interface languages: `src/i18n.js` (ru — the source strings; en, es, de, fr, pt, zh, ja in `src/locales/*.js`, keyed by the Russian string). Write new interface text as `loc('Текст {0}', value)` and add the translation to every dictionary — `tests/i18n.mjs` checks completeness and `{n}` placeholders. Strings compared with backend output or used as identifiers must not go through `loc`. The system language is the default (English if unsupported); the picker is at the bottom of the sidebar (`language-select.jsx`, `localStorage nexus-lang`). The Rust backend still returns messages in Russian.
+- Destructive actions (removing an account, revoking permissions, deleting a chat) need a confirmation or an “Undo”.
 
-## Чат
+## Chat
 
-- Модель и глубина рассуждений независимы, у обоих есть «Авто». Ручной выбор не подменяется; для ACP/API неподдерживаемую глубину явно отклонять.
-- Исполнители: «Авто» (по умолчанию) делит только составные запросы при автоматической модели и отдаёт каждую часть лучшей для её типа модели со своей глубиной; «Один агент» не делит; «Команда» делит всегда. Модели, расходующие кредиты сверх подписки (Fable в Claude Code), автоматически выбираются только при приоритете «Качество».
-- Режимы чата: «Обсуждение» (агент только читает), «Выполнение · с разрешениями» (по умолчанию: нативный цикл инструментов, каждое действие подтверждается карточкой; Codex остаётся в read-only sandbox и просит расширение) и «Выполнение · без разрешений» (`execution_mode = "auto"`: запросы этой генерации одобряются без карточки — `chat_runs::auto_approved`, в ходе ответа видно «Разрешено без вопроса: …»; действия в собственном Chrome пользователя со входами всё равно подтверждаются). Переключатель в поле ввода подсвечен тёплым цветом, пока включён режим без разрешений.
-- Разрешения агента — карточка в чате с действием и причиной. Запомненное правило проекта возможно только по явному выбору и видно и отзывается (по одному или все) в «Настройки проекта → Разрешения» (`project-permissions.jsx`, `list_project_permissions` / `revoke_project_permission`). Разрешения macOS — отдельно.
-- Окна «Инструменты» больше нет. План задачи — кнопка со списком рядом со скрепкой в поле ввода (`composer-plan.jsx`): по тексту черновика, «По правилам · без ИИ» или «Уточнить с ИИ · расходует квоту», затем «Вставить план в сообщение»; ничего не отправляется само. Как работает «Авто» — в окне выбора модели. Что делает «Выполнение» и проверки — подсказка у переключателя режима.
-- Проверки после выполнения (`verification.rs`): показывать команду, cwd и причину, однократное подтверждение, 180 секунд. «Проверки пройдены» — только после реальных успешных проверок.
-- `src-tauri/capabilities/chat-events.json` должен содержать `core:event:allow-listen/allow-unlisten`, иначе поток ответа не доходит до интерфейса.
-- `unified_chat_send` вызывают и интерфейс, и каналы — сигнатуру не менять, для новых сценариев делать отдельные команды.
+- Model and reasoning depth are independent, both have “Auto”. A manual choice is never substituted; for ACP/API an unsupported depth is rejected explicitly.
+- Executors: “Auto” (default) splits only composite requests when the model is automatic and gives each part to the model best for its kind of work, with its own depth; “Single agent” never splits; “Team” always splits. Models that spend credits beyond the subscription (Fable in Claude Code) are chosen automatically only with the “Quality” priority.
+- Chat modes: “Discussion” (the agent only reads), “Execution · with permissions” (default: the native tool loop, every action is confirmed with a card; Codex stays in a read-only sandbox and asks to widen it) and “Execution · without permissions” (`execution_mode = "auto"`: requests of this generation are approved without a card — `chat_runs::auto_approved`, the answer progress shows “Allowed without asking: …”; actions in the user's own signed-in Chrome are still confirmed). The mode switch in the composer is highlighted in a warm colour while the no-permissions mode is on.
+- Agent permissions are a card in the chat with the action and the reason. A remembered project rule exists only by explicit choice, and it is visible and revocable (one by one or all at once) in “Project settings → Permissions” (`project-permissions.jsx`, `list_project_permissions` / `revoke_project_permission`). macOS permissions are separate.
+- There is no “Tools” window any more. The task plan is the list button next to the paperclip in the composer (`composer-plan.jsx`): built from the draft text, “By rules · no AI” or “Refine with AI · uses quota”, then “Insert plan into message”; nothing is sent on its own. How “Auto” works is explained in the model picker. What “Execution” and checks do is explained in the hint on the mode switch.
+- Post-run checks (`verification.rs`): show the command, cwd and reason, one-time confirmation, 180 seconds. “Checks passed” only after real successful checks.
+- `src-tauri/capabilities/chat-events.json` must contain `core:event:allow-listen/allow-unlisten`, otherwise the answer stream never reaches the interface.
+- `unified_chat_send` is called by both the interface and the channels — do not change its signature; add separate commands for new scenarios.
 
-## Подключения и данные
+## Connections and data
 
-- Вход — только официальной авторизацией провайдера, без внешнего терминала. OAuth-данные хранит официальный CLI; не читать и не печатать токены, секреты и ссылки авторизации.
-- Gemini CLI: личный вход закрыт Google — предлагать Antigravity ACP или Gemini API.
-- API-ключи и секреты каналов — только в Keychain, в curl — через stdin. Никогда в JSON, argv, контекст модели или диагностику.
-- Пользовательские данные: `~/Library/Application Support/NEXUS`. Не удалять и не перезаписывать ради теста; новые поля — с serde defaults.
-- Квоты — только реальные данные с источником и временем. Вход ≠ доступная квота ≠ поддержка в маршрутизации.
-- Установщики проверяют подпись или SHA-256 официального выпуска. Не скачивать исполняемый код по ссылке из ответа модели.
+- Sign-in only through the provider's official authorization, without an external terminal. OAuth data is kept by the official CLI; never read or print tokens, secrets or authorization links.
+- Gemini CLI: Google closed personal sign-in — offer Antigravity ACP or the Gemini API.
+- API keys and channel secrets only in the Keychain, passed to curl through stdin. Never in JSON, argv, model context or diagnostics.
+- User data: `~/Library/Application Support/NEXUS`. Do not delete or overwrite it for a test; new fields get serde defaults.
+- Quotas show only real data with a source and a time. Signed in ≠ available quota ≠ supported by routing.
+- Installers verify the signature or the SHA-256 of the official release. Never download executable code from a link in a model's answer.
 
-## Браузер чата
+## Chat browser
 
-- У каждого чата свой встроенный браузер (по умолчанию доступен агентам): невидимый Google Chrome, который запускает `browser_host.mjs` через закреплённый Playwright, с профилем `NEXUS/browsers/<chatId>/profile`. Входы на сайты и вкладки (`tabs.json`, до 20) сохраняются и восстанавливаются. Браузеры разных чатов работают параллельно; браузер, который никто не смотрит и которым не пользуется агент, закрывается через 15 минут (вкладки остаются).
-- Панель справа (`browser-pane.jsx`) скрыта, пока браузер не нужен: она открывается сама, когда агент начинает работать в браузере чата (событие `browser-activity` во время ответа). Если пользователь закрыл её во время ответа, до конца ответа она не открывается снова — вместо неё миниатюра. При смене чата панель скрывается. Кнопка «Браузер» в шапке есть только у чатов, где браузер уже использовался. В панели: вкладки, «+», адрес/поиск, назад/вперёд/обновить, живая трансляция (CDP screencast), клики, прокрутка, ввод и ⌘V передаются странице. Страница раскладывается по размеру панели (до 2× плотности). Ширина запоминается (`nexus-browser-width`). Пока агент работает, внизу панели — «Агент: …». Если панель скрыта, а агент работает в браузере, справа сверху видна миниатюра с текущим действием; клик открывает панель.
-- Режимы чата (`browser-chats.json`): «Встроенный браузер» (по умолчанию), «Мой Chrome (со входами)» — только явным выбором, через расширение Playwright MCP Bridge, без трансляции в панель; «Выключен». Пока Playwright не установлен, встроенный браузер по умолчанию просто не подключается к агентам; явно выбранный — даёт понятную ошибку.
-- Движок — закреплённый `@playwright/mcp@0.0.85`, ставится кнопкой «Установить» в `NEXUS/tools/browser` с `--ignore-scripts --save-exact`. Используется установленный Google Chrome, браузеры не скачиваются. Нужен Node.js 22+.
-- Агенты подключаются к браузеру своего чата через шлюз `nexus_browser` (`browser_gateway.mjs`, Playwright MCP с `--cdp-endpoint` на loopback-порт браузера): Claude — `--mcp-config` (файл 0600), Codex — `config["mcp_servers.nexus_browser"]`, ACP — `session/new mcpServers`, API-модели — цикл function calling в Nexus. Специалисты команды браузер не получают; Gemini CLI в чате не используется.
-- Перед каждым `tools/call` шлюз спрашивает Nexus через Unix-сокет с токеном сеанса. Правила — `browser_policy.rs`: чтение страницы без вопросов; переходы, клики, ввод, формы, файлы, JS на странице — карточка в чате; `*run_code*`/`*install*` и `browser_close` запрещены; только http(s). Двойных вопросов нет. «Разрешать всегда» — только во встроенном браузере; в своём Chrome — каждое действие отдельно. Команды панели проходят белый список `browser_host::pane_message`.
+- Each chat has its own built-in browser (available to agents by default): an invisible Google Chrome started by `browser_host.mjs` through a pinned Playwright, with the profile `NEXUS/browsers/<chatId>/profile`. Site sign-ins and tabs (`tabs.json`, up to 20) are kept and restored. Browsers of different chats run in parallel; a browser nobody is watching and no agent is using closes after 15 minutes (the tabs stay).
+- The right-hand panel (`browser-pane.jsx`) stays hidden until the browser is needed: it opens by itself when an agent starts working in the chat browser (the `browser-activity` event during an answer). If the user closes it during an answer, it does not reopen until the answer ends — a thumbnail is shown instead. Switching chats hides the panel. The “Browser” button in the header exists only in chats where the browser has been used. The panel has tabs, “+”, address/search, back/forward/reload and a live view (CDP screencast); clicks, scrolling, typing and ⌘V are passed to the page. The page is laid out to the panel size (up to 2× density). The width is remembered (`nexus-browser-width`). While an agent is working, the bottom of the panel shows “Agent: …”. If the panel is hidden and an agent is working in the browser, a thumbnail with the current action appears at the top right; clicking it opens the panel.
+- Chat modes (`browser-chats.json`): “Built-in browser” (default), “My Chrome (with sign-ins)” — only by explicit choice, through the Playwright MCP Bridge extension, with no live view in the panel; “Off”. While Playwright is not installed, the default built-in browser is simply not connected to agents; an explicitly chosen one gives a clear error.
+- The engine is the pinned `@playwright/mcp@0.0.85`, installed with the “Install” button into `NEXUS/tools/browser` with `--ignore-scripts --save-exact`. The installed Google Chrome is used, no browsers are downloaded. Node.js 22+ is required.
+- Agents reach their chat's browser through the `nexus_browser` gateway (`browser_gateway.mjs`, Playwright MCP with `--cdp-endpoint` on the browser's loopback port): Claude — `--mcp-config` (file mode 0600), Codex — `config["mcp_servers.nexus_browser"]`, ACP — `session/new mcpServers`, API models — a function-calling loop inside Nexus. Team specialists do not get the browser; Gemini CLI is not used in the chat.
+- Before every `tools/call` the gateway asks Nexus over a Unix socket with a session token. Rules live in `browser_policy.rs`: reading a page needs no question; navigation, clicks, typing, forms, files and JS on the page get a card in the chat; `*run_code*`/`*install*` and `browser_close` are forbidden; http(s) only. No double questions. “Always allow” exists only in the built-in browser; in the user's own Chrome every action is confirmed separately. Panel commands go through the `browser_host::pane_message` allow-list.
 
-## Боковая панель, файлы, уведомления
+## Side panel, files, notifications
 
-- Справа — общая боковая панель (`side-panel.jsx`) с вкладками «Браузер» и открытыми файлами (до 8). Появляется, когда агенту нужен браузер или открыт файл; при смене чата файлы закрываются.
-- Файлы открываются кликом по вложению или по пути в ответе (`src/a.rs:12`, `./README.md`, ссылки на локальные файлы; распознавание — `filePathRef` в `chat-files.js`, только известные расширения). Backend `file_preview.rs`: `read_project_file` читает только из рабочей папки проекта, папок/файлов контекста проекта и папок, и вывода браузера чата; путь канонизируется, выход через `..` и симлинки запрещён, до 20 МБ. `reveal_project_file` — «Показать в Finder»; «Открыть в приложении» только для документов и медиа (не скрипты и не приложения).
-- Просмотр (`file-view.jsx`): код с подсветкой, номерами строк и переходом к строке; Markdown (как ответ: mermaid, выноски, таблицы) с «Просмотр/Код»; HTML — в iframe `sandbox=""` без скриптов; SVG как картинка; CSV/TSV таблицей (до 500 строк); JSON отформатированным; картинки, PDF, аудио, видео. Остальное — «Показать в Finder»/«Открыть в приложении».
-- Ошибки и уведомления всего приложения — всплывающие сообщения сверху (`toasts.js`, `toaster.jsx`), закрываются сами (дольше для ошибок и длинного текста, наведение ставит на паузу), одинаковые объединяются, не больше 4. Компоненты передают сообщения через `useToastOn(value, clear, tone)`, а не рисуют красные полосы в разметке. Ошибки загрузки внутри просмотра файла остаются на месте.
-- Карточки в переписке (сообщения, файлы, системные детали, разрешения, вопросы, план, миникартинка браузера) — одна поверхность: `--card-fill`, рамка 1px `--card-edge`, радиус 12px, размытие фона `--card-blur`. При prefers-contrast/reduced-transparency — без размытия.
-- Миникарта заменяет полосу прокрутки истории: справа, на месте скроллбара; скроллбар скрыт, пока миникарта включена (меню «…» → «Миникарта вместо полосы прокрутки»). Выключенная миникарта возвращает тонкий скроллбар.
-- Ряды кнопок при переносе всегда с отступом между строками (row-gap 8px). Счётчики во вкладках — по базовой линии текста.
-- `CustomSelect` внутри окна с transform/filter/backdrop-filter учитывает смещение окна — список открывается прямо под полем.
+- On the right there is one shared side panel (`side-panel.jsx`) with a “Browser” tab and open files (up to 8). It appears when an agent needs the browser or a file is opened; switching chats closes the files.
+- Files open by clicking an attachment or a path in an answer (`src/a.rs:12`, `./README.md`, links to local files; detection is `filePathRef` in `chat-files.js`, known extensions only). Backend `file_preview.rs`: `read_project_file` reads only from the project working folder, the project's and folders' context folders/files, and the chat browser output; the path is canonicalized, escaping through `..` and symlinks is forbidden, up to 20 MB. `reveal_project_file` is “Show in Finder”; “Open in app” only for documents and media (not scripts or applications).
+- Viewer (`file-view.jsx`): code with highlighting, line numbers and jump to line; Markdown (rendered like an answer: mermaid, callouts, tables) with “Preview/Code”; HTML in an `sandbox=""` iframe without scripts; SVG as an image; CSV/TSV as a table (up to 500 rows); formatted JSON; images, PDF, audio, video. Everything else gets “Show in Finder”/“Open in app”.
+- App-wide errors and notifications are toasts at the top (`toasts.js`, `toaster.jsx`); they close by themselves (later for errors and long text, hover pauses them), identical ones merge, at most 4. Components pass messages through `useToastOn(value, clear, tone)` instead of drawing red bars in their markup. Load errors inside the file viewer stay in place.
+- Cards in the conversation (messages, files, system details, permissions, questions, plan, browser thumbnail) share one surface: `--card-fill`, 1px `--card-edge` border, 12px radius, `--card-blur` background blur. With prefers-contrast/reduced-transparency — no blur.
+- The minimap replaces the history scrollbar: on the right, in the scrollbar's place; the scrollbar is hidden while the minimap is on (“…” menu → “Minimap instead of scrollbar”). Turning the minimap off brings back the thin scrollbar.
+- Wrapped button rows always have a gap between lines (row-gap 8px). Counters in tabs sit on the text baseline.
+- A `CustomSelect` inside a dialog with transform/filter/backdrop-filter accounts for the dialog offset — the list opens right under the field.
+- Path fields (agent executable, project working folder, context folder/file) have a “Choose…” button — the native macOS dialog through `pick_path` (`path_picker.rs`, osascript `choose file/folder`, the prompt is passed as an argument). Cancelling changes nothing.
+- Scrollable panes (dialogs, lists, menus, the sidebar) get soft fades at the top/bottom like the chat history (`scroll-fades.js`, `data-fade-top/bottom` attributes).
+- `CustomSelect` lists are opaque and stay within the bounds of their dialog.
+- The blur under messages works only if no ancestor of the bubble has mask-image/filter/opacity: the top fade of the history is an overlaid gradient `.chat-scroll-area::before`, not a mask on `.chat-thread`.
+- The model picker is wider (up to 1180px), agents show their icons (`AgentIcon`), the first column of the criteria table has a fixed width. The arrow on the model chip is the same `ChevronDown` as on the other chips.
+- A new chat is a draft: the project's “+” (on hover), “New chat” and ⌘N open an empty chat without creating a record in the project; the chat is created with the first message. Sub-chats and chats in a folder are still created immediately.
+- Project icons (`project_icons.rs`, `project-icons.jsx`): by default they are looked up in the project folder (icon/logo/favicon in the root, assets, public, docs/assets, Tauri icons, Xcode AppIcon), up to 2 MB. In “Project settings → Icon”: “Search the project folder”, “Choose image…” (copied to `NEXUS/project-icons`), “No icon”. Settings live in `project-icons.json`.
+- Importing projects from Claude Code and Codex — the button next to “+” at “Projects” (`project-import.jsx`, `project_import.rs`): folders from `~/.claude.json` (`projects`) and `~/.claude/projects`, from Codex `config.toml` (`[projects."…"]`) and `sessions/**/rollout-*.jsonl` (`cwd` of the first line), and from Nexus account profiles. Only paths and times are read; conversations, keys and agent settings are not transferred. The home folder and system and temporary directories are not offered; already added ones are marked. The project name is the folder name.
 
-- Поля путей (исполняемый файл агента, рабочая папка проекта, папка/файл контекста) имеют кнопку «Выбрать…» — нативное окно macOS через `pick_path` (`path_picker.rs`, osascript `choose file/folder`, подсказка передаётся аргументом). Отмена ничего не меняет.
-- Прокручиваемые панели (окна, списки, меню, боковая панель) получают мягкие фейды сверху/снизу, как история чата (`scroll-fades.js`, атрибуты `data-fade-top/bottom`).
-- Списки `CustomSelect` непрозрачные и внутри окна размещаются в его границах.
-- Размытие под сообщениями работает, только если у предков пузыря нет mask-image/filter/opacity: верхний фейд истории — наложенный градиент `.chat-scroll-area::before`, а не маска на `.chat-thread`.
-- Окно выбора модели шире (до 1180px), у агентов — их иконки (`AgentIcon`), первая колонка таблицы критериев фиксированной ширины. Стрелка у чипа модели — та же `ChevronDown`, что у остальных чипов.
-- Новый чат — черновик: «+» у проекта (при наведении), «Новый чат» и ⌘N открывают пустой чат без записи в проекте; чат создаётся при первом сообщении. Подчат и чат в папке по-прежнему создаются сразу.
-- Иконки проектов (`project_icons.rs`, `project-icons.jsx`): по умолчанию ищутся в папке проекта (icon/logo/favicon в корне, assets, public, docs/assets, иконки Tauri, Xcode AppIcon), до 2 МБ. В «Настройках проекта → Иконка»: «Искать в папке проекта», «Выбрать картинку…» (копия в `NEXUS/project-icons`), «Без иконки». Настройки — `project-icons.json`.
-- Импорт проектов из Claude Code и Codex — кнопка рядом с «+» у «Проекты» (`project-import.jsx`, `project_import.rs`): папки из `~/.claude.json` (`projects`) и `~/.claude/projects`, из Codex `config.toml` (`[projects."…"]`) и `sessions/**/rollout-*.jsonl` (`cwd` первой строки), а также из профилей аккаунтов Nexus. Читаются только пути и время; переписка, ключи и настройки агентов не переносятся. Домашняя папка, системные и временные каталоги не предлагаются; уже добавленные отмечены. Название проекта — имя папки.
+## Task channels
 
-## Каналы задач
+- Channel instruction steps can be buttons (`stepParts` in `channels-format.js`): open an app or a System Settings pane (`open_system_target`, only names from the allow-list in `system_open.rs`: messages, full-disk, automation, accessibility, notifications), jump to a field or turn on a switch. iMessage has “Open Messages”, “Full Disk Access”, “Automation”, “Add number”, “Turn on ‘Chat with yourself’”.
+- A channel cannot be turned on without a list of allowed senders. When it is turned on, old messages are skipped.
+- A remote `/allow` is always one-time. Codes are random (`random_code`). An answer without a code is accepted only where the sender cannot be forged (`bare_answer_allowed`).
+- Email: `dmarc=pass`, or `dkim=pass` with a signing domain matching the sender's domain (`mail_authenticated`).
+- Local API: off by default, 127.0.0.1; from the network only “Discussion”. No unauthenticated routes except `/health`.
 
-- Шаги инструкций канала могут быть кнопками (`stepParts` в `channels-format.js`): открыть приложение или раздел «Системных настроек» (`open_system_target`, только имена из белого списка в `system_open.rs`: messages, full-disk, automation, accessibility, notifications), перейти к полю или включить переключатель. У iMessage — «Открыть «Сообщения»», «Полный доступ к диску», «Автоматизация», «Добавить номер», «Включить «Чат с собой»».
-- Без списка разрешённых отправителей канал не включается. При включении старые сообщения пропускаются.
-- Удалённое `/allow` всегда однократное. Коды — случайные (`random_code`). Ответ без кода только там, где отправителя нельзя подделать (`bare_answer_allowed`).
-- Почта: `dmarc=pass` или `dkim=pass` с доменом подписи, совпадающим с доменом отправителя (`mail_authenticated`).
-- Локальный API: выключен по умолчанию, 127.0.0.1; из сети — только «Обсуждение». Без неаутентифицированных маршрутов, кроме `/health`.
+## Persona
 
-## Персонаж
-
-- Портрет — неподвижная WebGL-модель из частиц по скану Hi3D (`public/persona/hi3d-head.points`, нити `hi3d-filaments.bin`), без вращения. Клик по лицу — молния и возбуждение частиц на 8 секунд. Ассеты пересобираются скриптами `scripts/build-hi3d-persona.mjs` и `build-persona-filaments.mjs`.
-- Не подменять персонажа картинкой. Останавливать рендер при скрытии, учитывать reduced-motion, освобождать GPU-ресурсы; без WebGL чат работает.
-- Лицевой анимации пока нет — не обещать моргание и улыбку.
+- The portrait is a still WebGL particle model from the Hi3D scan (`public/persona/hi3d-head.points`, filaments `hi3d-filaments.bin`), with no rotation. Clicking the face fires lightning and excites the particles for 8 seconds. The assets are rebuilt with `scripts/build-hi3d-persona.mjs` and `build-persona-filaments.mjs`.
+- Do not replace the persona with a picture. Stop rendering when hidden, respect reduced-motion, free GPU resources; the chat works without WebGL.
+- There is no facial animation yet — do not promise blinking or smiling.
