@@ -4,7 +4,7 @@ Short history of NEXUS Desktop. The original per-version notes (in Russian) are 
 
 ## Unreleased
 - Interface languages: English, Russian, Spanish, German, French, Portuguese, Simplified Chinese and Japanese. The macOS language is used by default (English if it is not supported); a language picker sits at the bottom of the sidebar.
-- New app icon; README banner and screenshot.
+- New app icon, drawn in the macOS 26 squircle shape so Tahoe shows it without the grey plate; README banner and screenshot.
 - AGENTS.md, CHANGELOG and release notes are now written in English.
 - Import from Claude Code and Codex brings the conversations too: each session becomes a chat of the project (your messages and the agent's text answers; tool calls, injected context and keys are left out). Importing again adds only new sessions; already added projects can be picked to import their chats.
 - Folders in the sidebar can be deleted; their chats and subfolders move one level up.
