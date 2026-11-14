@@ -14,7 +14,7 @@
 - `npm test` — запускает все `app/tests/*.mjs` (`tests/run-all.mjs`); новые тесты подхватываются сами, в `package.json` их не добавлять.
 - Rust: `cargo test --manifest-path app/src-tauri/Cargo.toml --lib`. Код собирается и на Linux (CI), поэтому платформенный код держать под `cfg`.
 - Перед сборкой Rust нужен `app/dist` (`npm run build`).
-- macOS: `npm run setup:signing` (один раз), затем `npm run build:mac` → `app/src-tauri/target/release/bundle/macos/NEXUS.app`. Сборки последовательно.
+- macOS: `npm run build:mac` → `app/src-tauri/target/release/bundle/macos/NEXUS.app`. Подпись выбирается сама: `NEXUS_SIGNING_IDENTITY` → сертификат «Developer ID Application» из связки ключей → «Apple Development» → «NEXUS Local Signing» (`npm run setup:signing`) → ad-hoc. С Developer ID — hardened runtime, `Entitlements.plist` (apple-events) и нотаризация через профиль notarytool «nexus-notary» (один раз `bash scripts/setup-notary.sh`; пароль только в связке ключей), затем staple и проверка Gatekeeper. Сборки последовательно.
 - После изменения зависимостей — `npm install` на Mac.
 - Форматирование: `npm run format` (Prettier, `app/.prettierrc.json`) и `cargo fmt` (`app/src-tauri/rustfmt.toml`). Перед сдачей — `npm run format:check`.
 - Тесты, которые читают исходники (`chat-send`, `model-selection`, `persona-asset`), ищут фрагменты через `tests/helpers/source-slice.mjs` без учёта пробелов. Новые такие тесты писать так же, а не через точный `indexOf`.
