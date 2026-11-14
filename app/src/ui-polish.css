@@ -4302,3 +4302,73 @@ a.file-link {
   backdrop-filter: none !important;
   background: rgba(6, 10, 13, 0.72) !important;
 }
+
+/* ---------- Gradients that stay smooth in 8 bits ----------
+   A slow dark gradient where R, G and B change together steps every few dozen pixels. Scene gradients
+   therefore shift hue (teal → deep blue → navy) so the channels step at different places, and keep enough
+   range for steps of a few pixels. Faint glows (≤ 5% alpha over large areas) only add wide steps and are
+   removed; translucent surfaces over the scene are dense enough not to stretch its steps. Measured with a
+   staircase meter: no runs of ≥ 12 px stepping by 1–2 levels. */
+.app,
+.cinematic-home {
+  /* Channels alternate: green leads near the centre, blue in the middle, red/blue at the edge. */
+  background: radial-gradient(
+    ellipse 70% 80% at 54% 38%,
+    #1d4048 0%,
+    #17363f 12%,
+    #122c3c 26%,
+    #0f2236 40%,
+    #0c1a2e 54%,
+    #0a1424 68%,
+    #080f1c 82%,
+    #060a14 100%
+  );
+}
+.persona-light-drift:before {
+  background: linear-gradient(117deg, transparent 24%, #afdae524 32%, transparent 40%);
+}
+.particle-persona {
+  background: none;
+}
+.workspace-persona .persona-orbit,
+.persona-orbit {
+  background: none;
+}
+.persona-light-drift:after {
+  background: radial-gradient(ellipse at 53% 74%, #b6dfea30, transparent 30%);
+}
+.app .chat-composer,
+.cinematic-home .chat-composer {
+  background: rgba(16, 26, 34, 0.95) !important;
+}
+:root {
+  /* Light glass: a low tint keeps the blurred scene's steps narrow (they widen by 1 / (1 − α)). */
+  --card-fill: rgba(8, 16, 26, 0.22);
+  --card-fill-user: rgba(60, 96, 120, 0.2);
+}
+.app > header,
+.app > .project-nav {
+  background: #0b141c !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+.settings-overlay,
+.connections-overlay,
+.file-preview-overlay,
+.model-picker-backdrop {
+  background: rgba(5, 9, 14, 0.96) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+/* Large soft shadows are dark gradients too; over the dimmed backdrop they only add steps. */
+:is(
+  .model-picker,
+  .project-settings,
+  .project-tools-dialog,
+  .connections-dialog,
+  .saved-chats-dialog,
+  .file-preview,
+  .project-import
+) {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
