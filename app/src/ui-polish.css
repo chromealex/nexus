@@ -3812,3 +3812,81 @@ a.file-link {
   overflow: visible;
   mask-image: none;
 }
+
+/* ---------- Model picker: wider, agent icons, readable comparison table ---------- */
+.model-picker {
+  width: min(1180px, calc(100vw - 48px)) !important;
+  max-height: 88dvh;
+}
+.model-picker-body {
+  grid-template-columns: minmax(300px, 0.85fr) minmax(420px, 1.15fr) !important;
+  gap: 28px;
+}
+.model-picker .agent-logo {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  margin-right: 6px;
+  vertical-align: -4px;
+  flex: none;
+}
+.model-picker .agent-logo img,
+.model-picker .agent-logo svg {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+.model-group-caret {
+  display: inline-block;
+  width: 12px;
+  color: var(--text-faint, #6f7b82);
+}
+.model-facts table {
+  table-layout: fixed;
+  width: 100%;
+}
+.model-facts th:first-child,
+.model-facts td:first-child {
+  width: 140px;
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: auto;
+}
+/* Model chip uses the same chevron as the other composer chips. */
+.composer-tools .nexus-select-trigger.model-choice svg {
+  flex: none;
+  color: var(--text-muted, #9aa6ad);
+}
+@media (max-width: 900px) {
+  .model-picker-body {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ---------- Real background blur under messages ----------
+   A mask on the history makes it a backdrop root: bubbles inside could not blur the scene behind it.
+   The top fade is therefore drawn as an overlay on the scroll area instead of a mask on the thread. */
+.app .chat-thread {
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+}
+.app:not(.cinematic-home) .chat-scroll-area {
+  position: relative;
+}
+.app:not(.cinematic-home) .chat-scroll-area::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 28px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, #171b1e, rgba(23, 27, 30, 0));
+}
+.app:not(.cinematic-home) .chat-bubble.assistant,
+.app:not(.cinematic-home) .chat-bubble.user {
+  backdrop-filter: blur(26px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(140%) !important;
+}

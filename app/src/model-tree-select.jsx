@@ -1,7 +1,8 @@
 import React, {useEffect, useId, useRef, useState} from 'react';
 import {useToastOn} from './toaster.jsx';
 import {createPortal} from 'react-dom';
-import {X} from 'lucide-react';
+import {X, ChevronDown} from 'lucide-react';
+import {AgentIcon} from './agent-icon.jsx';
 import {withShortcut} from './shortcuts.js';
 import {CATALOG, modelCapabilities, incompatibleReason, preferredModel} from './agent-catalog.js';
 import {modelProfile, CRITERIA, criterionAssessment} from './model-profiles.js';
@@ -137,7 +138,7 @@ export function ModelTreeSelect({
         }}
       >
         {busy ? 'Обновление моделей…' : title}
-        <span aria-hidden="true">⌄</span>
+        <ChevronDown size={12} aria-hidden="true" />
       </button>
       {open &&
         createPortal(
@@ -211,7 +212,11 @@ export function ModelTreeSelect({
                             }
                           }}
                         >
-                          {expanded ? '▾' : '▸'} {g.name}
+                          <span className="model-group-caret" aria-hidden="true">
+                            {expanded ? '▾' : '▸'}
+                          </span>
+                          <AgentIcon provider={g.provider} />
+                          {g.name}
                           <small>
                             {g.kind} · {g.rows.length}
                           </small>
