@@ -690,3 +690,6 @@
   .app:not(.cinematic-home) .chat-bubble.assistant, .app:not(.cinematic-home) .chat-bubble.user { background: #0d1418 !important; border-color: rgba(255, 255, 255, .25) !important; }
   .app:not(.cinematic-home) .workspace-persona canvas { opacity: .2; }
 }
+/* Minimap at the left edge of the chat area, next to the projects panel. */
+.chat-minimap { left: 14px; }
+@media (max-width: 1240px) { .chat-minimap { display: none; } }
