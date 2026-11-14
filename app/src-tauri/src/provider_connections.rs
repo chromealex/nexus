@@ -216,6 +216,9 @@ fn http_error(code: u16) -> String {
         + &format!(" (HTTP {code})")
 }
 async fn request(url: &str, key: &str, body: Option<&Value>) -> Result<Value, String> {
+    request_for(url, key, body, 45).await
+}
+async fn request_for(url: &str, key: &str, body: Option<&Value>, seconds: u64) -> Result<Value, String> {
     let mut c = curl();
     let mut child = c.spawn().map_err(|_| "Не удалось запустить HTTP-клиент")?;
     child
@@ -225,9 +228,9 @@ async fn request(url: &str, key: &str, body: Option<&Value>) -> Result<Value, St
         .write_all(config(url, key, body).as_bytes())
         .await
         .map_err(|_| "Ошибка HTTP-запроса")?;
-    let out = tokio::time::timeout(Duration::from_secs(45), child.wait_with_output())
+    let out = tokio::time::timeout(Duration::from_secs(seconds), child.wait_with_output())
         .await
-        .map_err(|_| "API не ответил за 45 секунд")?
+        .map_err(|_| format!("API не ответил за {seconds} секунд"))?
         .map_err(|_| "Ошибка сети")?;
     if out.stdout.len() > 8_388_608 {
         return Err("Ответ API слишком большой".into());
@@ -420,6 +423,12 @@ pub async fn run(
         secrets::get(&row.id)?
     };
     let endpoint = endpoint(&row.provider, &row.endpoint)?;
+    if let Some(browser) = control.browser() {
+        return run_with_browser(
+            &row, choice, prompt, &key, &endpoint, &browser, app, chat, control,
+        )
+        .await;
+    }
     let body = json!({"model":choice.model,"stream":true,"messages":[{"role":"user","content":prompt}]});
     let mut cmd = curl();
     if row.provider == "grok" {
@@ -510,6 +519,62 @@ pub async fn run(
     let _ = child.kill().await;
     let _ = child.wait().await;
     result
+}
+/// API models have no MCP client, so Nexus runs the function-calling loop itself against the browser
+/// gateway. Every call still passes the gateway policy and the chat confirmation.
+async fn run_with_browser(
+    row: &Connection,
+    choice: &chat_models::Choice,
+    prompt: &str,
+    key: &str,
+    endpoint: &str,
+    browser: &super::browser_tools::Spec,
+    app: &tauri::AppHandle,
+    chat: &str,
+    control: &chat_runs::Control,
+) -> Result<(String, String), String> {
+    control.metadata(&format!(
+        "Route: {}\nModel: {}\nEffort: provider-default\nBrowser: {}",
+        row.name, choice.model, browser.mode
+    ));
+    let operation = async {
+        let _ = app.emit(
+            "chat-progress",
+            json!({"chatId":chat,"stage":"Запуск браузера агента…"}),
+        );
+        let mut client = super::browser_tools::Client::connect(browser).await?;
+        let result=async{
+   let tools=client.tools().await?;if tools.is_empty(){return Err("Браузер агента не предоставил инструменты".to_string())}
+   let mut messages=vec![json!({"role":"user","content":prompt})];let mut log=String::new();
+   for _ in 0..24{
+    let body=json!({"model":choice.model,"messages":messages,"tools":tools,"tool_choice":"auto"});
+    let v=request_for(&format!("{endpoint}/chat/completions"),key,Some(&body),300).await?;
+    let message=v["choices"][0]["message"].clone();
+    let calls=message["tool_calls"].as_array().cloned().unwrap_or_default();
+    if calls.is_empty(){
+     let text=message["content"].as_str().unwrap_or("").to_string();if text.trim().is_empty(){return Err("API не вернул текст ответа".to_string())}
+     control.update(&text);let _=app.emit("chat-text",json!({"chatId":chat,"text":control.text()}));return Ok((text,log));
+    }
+    messages.push(json!({"role":"assistant","content":message["content"].clone(),"tool_calls":calls.clone()}));
+    for call in calls.iter().take(8){
+     let name=call["function"]["name"].as_str().unwrap_or("").to_string();
+     let arguments=call["function"]["arguments"].as_str().and_then(|a|serde_json::from_str::<Value>(a).ok()).filter(Value::is_object).unwrap_or_else(||json!({}));
+     let _=app.emit("chat-progress",json!({"chatId":chat,"stage":format!("Браузер: {name}")}));
+     let output=if tools.iter().any(|t|t["function"]["name"]==name.as_str()){client.call(&name,arguments).await.unwrap_or_else(|e|format!("Ошибка: {e}"))}else{"Ошибка: такого инструмента нет".into()};
+     if log.len()<20000{log.push_str(&format!("Browser: {name}\n"));control.diagnostics(&log);}
+     messages.push(json!({"role":"tool","tool_call_id":call["id"],"content":output}));
+    }
+    // Keep the request bounded: older page snapshots are the bulk of the context.
+    let mut total:usize=messages.iter().map(|m|m["content"].as_str().map(str::len).unwrap_or(0)).sum();
+    for m in messages.iter_mut().skip(1){if total<400_000{break}if m["role"]=="tool"{let len=m["content"].as_str().map(str::len).unwrap_or(0);if len>2000{m["content"]=json!("[старый результат браузера сокращён]");total-=len;}}}
+   }
+   Err("Агент сделал слишком много шагов в браузере. Уточните задачу.".to_string())
+  }.await;
+        client.close().await;
+        let (text, log) = result?;
+        Ok((text, format!("{}\n{}", control.details(), log)))
+    };
+    tokio::select! {biased;_=control.cancelled()=>Err(chat_runs::STOPPED.into()),v=tokio::time::timeout(Duration::from_secs(1800),operation)=>v.unwrap_or_else(|_|Err("Время работы с браузером истекло".into()))}
 }
 static LOCAL_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
 static LOCAL_CANCEL: AtomicBool = AtomicBool::new(false);

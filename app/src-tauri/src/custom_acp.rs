@@ -30,6 +30,8 @@ pub async fn run(
         "Route: {}\nModel: {}\nEffort: provider-default",
         agent.manifest.name, agent.manifest.name
     ));
+    // ACP agents start the Nexus browser gateway as a standard stdio MCP server.
+    let mcp_servers = control.browser().map(|b| b.acp()).unwrap_or_else(|| json!([]));
     let operation = async {
         let mut supports_images = false;
         let mut answer = String::new();
@@ -62,10 +64,10 @@ pub async fn run(
                     if let Some(method) = &agent.manifest.auth_method {
                         write(&mut input,json!({"jsonrpc":"2.0","id":2,"method":"authenticate","params":{"methodId":method}})).await?;
                     } else {
-                        write(&mut input,json!({"jsonrpc":"2.0","id":3,"method":"session/new","params":{"cwd":workspace,"mcpServers":[]}})).await?;
+                        write(&mut input,json!({"jsonrpc":"2.0","id":3,"method":"session/new","params":{"cwd":workspace,"mcpServers":mcp_servers}})).await?;
                     }
                 } else if v["id"] == 2 {
-                    write(&mut input,json!({"jsonrpc":"2.0","id":3,"method":"session/new","params":{"cwd":workspace,"mcpServers":[]}})).await?;
+                    write(&mut input,json!({"jsonrpc":"2.0","id":3,"method":"session/new","params":{"cwd":workspace,"mcpServers":mcp_servers}})).await?;
                 } else if v["id"] == 3 {
                     session = v["result"]["sessionId"]
                         .as_str()
@@ -121,8 +123,13 @@ pub async fn run(
                 }
             } else if v["method"] == "session/request_permission" {
                 let params = &v["params"];
-                let allow =
-                    chat_permissions::ask(app, chat, &agent.manifest.name, "tool", params.clone()).await?;
+                // Calls of the browser gateway are confirmed by the gateway itself.
+                let gateway = control.browser().is_some() && super::browser_tools::acp_gateway_call(params);
+                let allow = if gateway {
+                    true
+                } else {
+                    chat_permissions::ask(app, chat, &agent.manifest.name, "tool", params.clone()).await?
+                };
                 let option = params["options"]
                     .as_array()
                     .and_then(|options| {
@@ -132,7 +139,7 @@ pub async fn run(
                     })
                     .and_then(|o| o["optionId"].as_str());
                 let outcome = if let Some(option) = option {
-                    if allow {
+                    if allow && !gateway {
                         control.mark_permission();
                     }
                     json!({"outcome":"selected","optionId":option})

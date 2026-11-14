@@ -17,6 +17,8 @@ import {PermissionCard} from './permission-card.jsx';
 import {ProjectNavigation} from './project-navigation.jsx';
 import {useChatScroll} from './use-chat-scroll.js';
 import {ComposerParams, ParamRow, composerParamsSummary} from './composer-params.jsx';
+import {BrowserParam} from './browser-param.jsx';
+import {browserSummary} from './browser-mode.js';
 import {shortcutFor, withShortcut} from './shortcuts.js';
 import {ChatSkeleton} from './nav-extras.jsx';
 import {ComposerInput} from './composer-input.jsx';
@@ -227,6 +229,64 @@ function App() {
   const routePreview = routingAdvice(chatDraft, routeOptions);
   const teamEnabled = !!chats.find(c => c.id === activeChat)?.teamEnabled;
   const teamPreview = teamPlan(chatDraft, routeOptions, teamEnabled);
+  const [browserState, setBrowserState] = useState(null),
+    [browserBusy, setBrowserBusy] = useState(false),
+    [browserError, setBrowserError] = useState('');
+  useEffect(() => {
+    let live = true;
+    setBrowserError('');
+    if (!activeChat) {
+      setBrowserState(null);
+      return;
+    }
+    invoke('browser_tools_status', {chatId: activeChat})
+      .then(v => live && setBrowserState({...v, chatId: activeChat}))
+      .catch(() => live && setBrowserState(null));
+    return () => {
+      live = false;
+    };
+  }, [activeChat]);
+  const browserMode = browserState?.chatId === activeChat ? browserState.mode : 'off';
+  async function saveBrowserMode(mode) {
+    if (!activeChat) return;
+    const chatId = activeChat;
+    setBrowserBusy(true);
+    setBrowserError('');
+    try {
+      const v = await invoke('save_chat_browser', {chatId, mode});
+      setBrowserState(s => (s?.chatId === chatId ? {...v, chatId} : s));
+    } catch (e) {
+      setBrowserError(String(e));
+    } finally {
+      setBrowserBusy(false);
+    }
+  }
+  async function installBrowser() {
+    const chatId = activeChat;
+    setBrowserBusy(true);
+    setBrowserError('');
+    setBrowserState(s => s && {...s, installing: true});
+    try {
+      const v = await invoke('install_browser_tools');
+      setBrowserState(s => s && {...s, ...v, mode: s.mode, chatId: s.chatId});
+    } catch (e) {
+      setBrowserError(String(e));
+      if (chatId)
+        invoke('browser_tools_status', {chatId})
+          .then(v => setBrowserState(s => (s?.chatId === chatId ? {...v, chatId} : s)))
+          .catch(() => {});
+    } finally {
+      setBrowserBusy(false);
+      setBrowserState(s => s && {...s, installing: false});
+    }
+  }
+  async function openBrowserExtension() {
+    try {
+      await invoke('open_browser_extension_page');
+    } catch (e) {
+      setBrowserError(String(e));
+    }
+  }
   async function saveTeamEnabled(value) {
     if (!activeChat || modelSaving || chatSending) return;
     const chatId = activeChat;
@@ -2257,8 +2317,9 @@ function App() {
                           reasoning: reasoningMode,
                           reasoningLabel: REASONING_LABELS[reasoningMode],
                           team: teamEnabled,
+                          browser: browserSummary(browserMode),
                         })}
-                        fullSummary={`Приоритет: ${ROUTING_PRIORITIES[routingPriority]} · Глубина: ${REASONING_LABELS[reasoningMode]} · ${teamEnabled ? 'Команда' : 'Один агент'}`}
+                        fullSummary={`Приоритет: ${ROUTING_PRIORITIES[routingPriority]} · Глубина: ${REASONING_LABELS[reasoningMode]} · ${teamEnabled ? 'Команда' : 'Один агент'} · Браузер: ${browserSummary(browserMode) || 'выключен'}`}
                       >
                         <ParamRow
                           label="Приоритет автовыбора"
@@ -2325,6 +2386,16 @@ function App() {
                             <option value="team">Команда</option>
                           </CustomSelect>
                         </ParamRow>
+                        <BrowserParam
+                          status={browserState?.chatId === activeChat ? browserState : null}
+                          disabled={chatSending || !activeChat}
+                          busy={browserBusy}
+                          error={browserError}
+                          onMode={saveBrowserMode}
+                          onInstall={installBrowser}
+                          onCancel={() => invoke('cancel_browser_install').catch(() => {})}
+                          onExtension={openBrowserExtension}
+                        />
                         <div className="composer-param-toggles">
                           <label>
                             <input

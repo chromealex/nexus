@@ -25,6 +25,7 @@ pub struct Control {
     metadata: Mutex<String>,
     log: Mutex<String>,
     created: Instant,
+    browser: Mutex<Option<super::browser_tools::Spec>>,
 }
 impl Control {
     fn new(chat_id: String, request_id: String) -> Self {
@@ -45,6 +46,7 @@ impl Control {
             metadata: Mutex::new(String::new()),
             log: Mutex::new(String::new()),
             created: Instant::now(),
+            browser: Mutex::new(None),
         }
     }
     pub fn specialist(chat: &str, effort: String) -> Self {
@@ -56,6 +58,21 @@ impl Control {
     }
     pub fn is_specialist(&self) -> bool {
         self.specialist
+    }
+    // Browser gateway of this generation; never set for read-only team specialists.
+    pub fn set_browser(&self, spec: Option<super::browser_tools::Spec>) {
+        if self.specialist {
+            return;
+        }
+        if let Ok(mut browser) = self.browser.lock() {
+            *browser = spec
+        }
+    }
+    pub fn browser(&self) -> Option<super::browser_tools::Spec> {
+        if self.specialist {
+            return None;
+        }
+        self.browser.lock().ok().and_then(|b| b.clone())
     }
     pub fn set_effort(&self, value: &str) {
         if let Ok(mut effort) = self.effort.lock() {

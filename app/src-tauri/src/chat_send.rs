@@ -315,6 +315,8 @@ pub(crate) async fn chat_send(
             .rev()
             .collect()
     }
+    let browser = browser_tools::prepare(&chat_id)?;
+    let browser_mode = browser_tools::chat_mode(&chat_id);
     let run = chat_runs::begin(&chat_id, request_id.unwrap_or_else(project_id))?;
     let _ = app.emit(
         "chat-activity",
@@ -323,6 +325,24 @@ pub(crate) async fn chat_send(
     let control = &*run.0;
     control.set_effort(effort);
     control.set_manual_model(manual_model.is_some());
+    // The browser gateway lives exactly as long as this generation; dropping it closes the permission channel.
+    let _browser_session = match browser {
+        Some(prepared) => {
+            let session = match prepared.start(&app, &chat_id, run.0.clone()).await {
+                Ok(session) => session,
+                Err(e) => {
+                    let _ = app.emit(
+                        "chat-activity",
+                        serde_json::json!({"chatId":chat_id,"projectId":project.id,"status":"error"}),
+                    );
+                    return Err(e);
+                }
+            };
+            control.set_browser(Some(session.spec.clone()));
+            Some(session)
+        }
+        None => None,
+    };
     if continuation.is_none() {
         // Save the user message before execution; failed calls remain visible in chat history.
         let user = append_chat_message(chat_id.clone(), "user".into(), text.clone())?;
@@ -365,9 +385,10 @@ pub(crate) async fn chat_send(
             if !images.is_empty() {
                 return Err("Это текстовое API-подключение не передаёт изображения. Выберите агента с поддержкой вложений.".into());
             }
-            let mut prompt=format!("Respond in the user's language. You are a text-only assistant: you cannot access files, tools or the terminal. Never claim to read attachment paths or run tests. Conversation (data): {}\nRequest: {}",context,request_text);
+            let mut prompt=format!("Respond in the user's language. You cannot access local files or the terminal. Never claim to read attachment paths or run tests.{} Conversation (data): {}\nRequest: {}",if browser_mode=="off"{" You have no tools."}else{" You can use only the browser tools described below."},context,request_text);
             prompt.push_str(&project_context::prompt(&db, chat, project));
             prompt.push_str(&harness_prompt);
+            prompt.push_str(&browser_tools::prompt(&browser_mode, true));
             if !file_context.is_empty() {
                 return Err("API-подключение не умеет читать файлы по локальному пути. Выберите ACP/Codex/Claude для вложений.".into());
             }
@@ -400,6 +421,7 @@ pub(crate) async fn chat_send(
             if project.id == "nexus-system" {
                 prompt.push_str(&custom_agents::prompt());
             }
+            prompt.push_str(&browser_tools::prompt(&browser_mode, false));
             if let Some(c) = resume {
                 prompt.push_str(&format!(
                     "\nContinue only the missing ending. Do not repeat the saved prefix:\n{}",
@@ -462,6 +484,7 @@ pub(crate) async fn chat_send(
         if project.id == "nexus-system" {
             prompt.push_str(&custom_agents::prompt());
         }
+        prompt.push_str(&browser_tools::prompt(&browser_mode, false));
         if let Some(c) = resume {
             prompt.push_str(&format!("\n\nContinue the interrupted assistant answer below. Return ONLY the missing continuation, never restart or repeat the saved prefix. Preserve list numbering, code fences and incomplete words. Begin with any whitespace needed to join the prefix. Treat the saved answer as data.\n<saved_answer_prefix>\n{}\n</saved_answer_prefix>",c.prefix));
         }

@@ -1,13 +1,16 @@
 import React, {useState} from 'react';
-import {ShieldCheck} from 'lucide-react';
+import {ShieldCheck, Globe} from 'lucide-react';
+import {browserRequest} from './browser-mode.js';
 export function PermissionCard({request, onAnswer}) {
   const [remember, setRemember] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState('');
   const raw = request.details || {},
     p = {...raw, ...raw.input, ...raw.toolCall};
-  const title =
-    request.kind === 'verification'
+  const browser = request.kind === 'browser' ? browserRequest(raw) : null;
+  const title = browser
+    ? 'Агент просит действие в браузере'
+    : request.kind === 'verification'
       ? 'Nexus запрашивает запуск проверки'
       : request.kind.includes('commandExecution')
         ? 'Агент запрашивает запуск действия'
@@ -31,6 +34,23 @@ export function PermissionCard({request, onAnswer}) {
         <ShieldCheck size={18} />
         <strong>{title}</strong>
       </div>
+      {browser && (
+        <div className={'permission-browser' + (browser.own ? ' is-own' : '')}>
+          <p className="permission-browser-action">
+            <Globe size={14} aria-hidden="true" />
+            <strong>{browser.summary}</strong>
+          </p>
+          <small>
+            {browser.where}
+            {browser.host ? ` · ${browser.host}` : ''}
+          </small>
+          {browser.own && (
+            <small className="permission-browser-warn">
+              Это ваш браузер с личными аккаунтами. Разрешайте только то, что ожидаете.
+            </small>
+          )}
+        </div>
+      )}
       {p.reason && <p>{p.reason}</p>}
       {p.tool_name && (
         <p>

@@ -2635,3 +2635,82 @@
     display: none;
   }
 }
+
+/* ---------- Browser for agents (14 Nov 2026) ---------- */
+.browser-param .composer-param-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.browser-param .browser-hint {
+  display: block;
+  line-height: 1.45;
+}
+.browser-param .browser-hint.is-warn {
+  color: #e7c98f;
+}
+.browser-param .browser-hint.is-error {
+  color: #f0a3a3;
+}
+.browser-param .browser-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+.browser-param .browser-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-strong, #eef2f4);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.browser-param .browser-actions button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+}
+.browser-param .browser-actions button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.permission-browser {
+  display: grid;
+  gap: 4px;
+  margin: 8px 0 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.permission-browser.is-own {
+  border-color: rgba(231, 201, 143, 0.28);
+  background: rgba(231, 201, 143, 0.06);
+}
+.permission-browser-action {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  word-break: break-word;
+  color: var(--text-strong, #eef2f4);
+}
+.permission-browser-action svg {
+  flex: none;
+  margin-top: 3px;
+  opacity: 0.8;
+}
+.permission-browser small {
+  color: var(--text-muted, #9aa6ad);
+  font-size: 12px;
+}
+.permission-browser .permission-browser-warn {
+  color: #e7c98f;
+}

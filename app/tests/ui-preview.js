@@ -1,4 +1,14 @@
 // In-memory fixtures only. This page never invokes the Tauri backend or real accounts.
+const browserTools = {
+    installed: new URLSearchParams(location.search).has('browser'),
+    installedVersion: null,
+    version: '0.0.85',
+    node: true,
+    chrome: true,
+    installing: false,
+    extensionUrl: '',
+  },
+  browserModes = {};
 const callbacks = new Map(),
   listeners = new Map();
 let sequence = 0;
@@ -245,6 +255,18 @@ window.__TAURI_INTERNALS__ = {
       listeners.delete(args.eventId);
       return;
     }
+    if (cmd === 'browser_tools_status') return {...browserTools, mode: browserModes[args.chatId] || 'off'};
+    if (cmd === 'save_chat_browser') {
+      browserModes[args.chatId] = args.mode;
+      return {...browserTools, mode: args.mode};
+    }
+    if (cmd === 'install_browser_tools') {
+      await new Promise(r => setTimeout(r, 400));
+      browserTools.installed = true;
+      browserTools.installedVersion = '0.0.85';
+      return {...browserTools};
+    }
+    if (cmd === 'cancel_browser_install' || cmd === 'open_browser_extension_page') return;
     if (cmd === 'list_projects') return projects;
     if (cmd === 'list_project_chats')
       return chats.filter(c => c.projectId === args.projectId && !c.archived && !c.deletedAt);

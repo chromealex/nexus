@@ -54,6 +54,22 @@ fn scope(kind: &str, params: &Value) -> Option<(Value, String)> {
             json!({"command":params.get("command"),"cwd":params.get("cwd")}),
             "Повторный запуск этой команды проверки в этой папке".into(),
         )),
+        // Browser rules can be remembered only for the separate Nexus profile, per tool (and per site
+        // for navigation). Actions in the user's own Chrome are always confirmed one by one.
+        "browser" => {
+            if params["mode"] != "isolated" {
+                return None;
+            }
+            let tool = params["tool"].as_str()?;
+            let host = params["host"].as_str();
+            let label = match host {
+                Some(h) if tool == "browser_navigate" => {
+                    format!("Открытие страниц сайта {h} в отдельном профиле браузера")
+                }
+                _ => format!("Действие браузера {tool} в отдельном профиле, с любыми параметрами"),
+            };
+            Some((json!({"tool":tool,"host":host}), label))
+        }
         "tool" => params.get("tool_name").and_then(Value::as_str).map(|name| {
             (
                 json!({"tool":name}),
@@ -246,6 +262,21 @@ mod persistent_scope_tests {
             scope("tool", &json!({"tool_name":"Write"})).unwrap().0
         );
         assert!(scope("unknown", &json!({})).is_none());
+        assert!(scope("browser", &json!({"mode":"chrome","tool":"browser_click"})).is_none());
+        assert_ne!(
+            scope(
+                "browser",
+                &json!({"mode":"isolated","tool":"browser_navigate","host":"a.com"})
+            )
+            .unwrap()
+            .0,
+            scope(
+                "browser",
+                &json!({"mode":"isolated","tool":"browser_navigate","host":"b.com"})
+            )
+            .unwrap()
+            .0
+        );
         assert!(scope("tool", &json!({})).is_none());
         let a = Grant {
             project: "p".into(),

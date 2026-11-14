@@ -4,11 +4,12 @@ import {SlidersHorizontal, ChevronDown} from 'lucide-react';
 // Secondary composer settings (routing priority, reasoning depth, team) behind one button.
 // The button shows only the values that differ from the defaults, so the common case stays short.
 // Model and Discussion/Execution remain separate, always visible controls.
-export function composerParamsSummary({priority, priorityLabel, reasoning, reasoningLabel, team}) {
+export function composerParamsSummary({priority, priorityLabel, reasoning, reasoningLabel, team, browser}) {
   return [
     priority !== 'balanced' && priorityLabel,
     reasoning !== 'auto' && reasoningLabel,
     team && 'Команда',
+    browser,
   ].filter(Boolean);
 }
 

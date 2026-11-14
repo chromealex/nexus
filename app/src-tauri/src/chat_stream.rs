@@ -97,7 +97,7 @@ pub async fn run(
                 } {
                     Some(1) => {
                         write(&mut stdin, json!({"method":"initialized"})).await?;
-                        write(&mut stdin,json!({"id":2,"method":"thread/start","params":{"model":control.model(),"cwd":workspace,"sandbox":"read-only","approvalPolicy":"on-request","ephemeral":true,"config":{"model_reasoning_effort":control.effort()}}})).await?;
+                        write(&mut stdin,json!({"id":2,"method":"thread/start","params":{"model":control.model(),"cwd":workspace,"sandbox":"read-only","approvalPolicy":"on-request","ephemeral":true,"config":codex_config(control)}})).await?;
                     }
                     Some(2) => {
                         let id = v
@@ -119,6 +119,19 @@ pub async fn run(
                             control.update(&answer);
                             publish(app, chat, &control.text());
                         }
+                    }
+                    // Browser calls are confirmed by the Nexus gateway itself; Codex pre-approves that one
+                    // server, and its elicitation is accepted so the user is not asked twice.
+                    "mcpServer/elicitation/request"
+                        if control.browser().is_some()
+                            && v.pointer("/params/serverName").and_then(Value::as_str)
+                                == Some(super::browser_tools::SERVER) =>
+                    {
+                        write(
+                            &mut stdin,
+                            json!({"id":v["id"],"result":{"action":"accept","content":{}}}),
+                        )
+                        .await?;
                     }
                     "item/tool/requestUserInput" => {
                         let response = if control.is_specialist() {
@@ -165,12 +178,18 @@ pub async fn run(
                 if v["type"] == "control_request" {
                     let request = &v["request"];
                     if request["subtype"] == "can_use_tool" {
+                        let gateway = control.browser().is_some()
+                            && request["tool_name"].as_str().is_some_and(|name| {
+                                name.starts_with(&format!("mcp__{}__", super::browser_tools::SERVER))
+                            });
                         let allow = if control.is_specialist() {
                             false
+                        } else if gateway {
+                            true
                         } else {
                             super::chat_permissions::ask(app, chat, "claude", "tool", request.clone()).await?
                         };
-                        if allow {
+                        if allow && !gateway {
                             control.mark_permission();
                         }
                         let response = if allow {
@@ -242,6 +261,14 @@ pub async fn run(
         .map_err(|e| format!("{e}\n{stderr}"))
 }
 
+/// Codex thread config: reasoning effort, plus the Nexus browser gateway when this chat has one.
+fn codex_config(control: &super::chat_runs::Control) -> Value {
+    let mut config = json!({"model_reasoning_effort":control.effort()});
+    if let Some(browser) = control.browser() {
+        config[format!("mcp_servers.{}", super::browser_tools::SERVER)] = browser.codex_config();
+    }
+    config
+}
 #[cfg(test)]
 mod idle_tests {
     use super::*;

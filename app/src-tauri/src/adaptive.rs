@@ -652,6 +652,10 @@ pub(crate) async fn execute_routed_step(
             if control.is_specialist() && account.provider == "claude" {
                 cmd.args(["--tools", "Read,Glob,Grep"]);
             }
+            if let Some(browser) = control.browser().filter(|_| account.provider == "claude") {
+                cmd.args(["--mcp-config", &browser.claude_config])
+                    .env("MCP_TOOL_TIMEOUT", "660000");
+            }
             cmd.current_dir(&work);
             match chat_stream::run(
                 cmd,

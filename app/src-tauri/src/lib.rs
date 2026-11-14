@@ -4,6 +4,8 @@ mod agent_registry;
 mod api_server;
 mod attachments;
 mod background;
+mod browser_policy;
+mod browser_tools;
 mod channel_adapters;
 mod chat_continuation;
 mod chat_history;
@@ -224,6 +226,11 @@ pub fn run() {
             auth_cancels: Arc::new(Mutex::new(HashMap::new())),
         })
         .invoke_handler(tauri::generate_handler![
+            browser_tools::browser_tools_status,
+            browser_tools::save_chat_browser,
+            browser_tools::install_browser_tools,
+            browser_tools::cancel_browser_install,
+            browser_tools::open_browser_extension_page,
             remote_channels::channels_secret,
             background::background_settings,
             background::background_save,
