@@ -3017,3 +3017,18 @@
     grid-template-columns: 0 minmax(0, 1fr) min(var(--browser-pane-width, 480px), 55vw);
   }
 }
+
+/* Tabs: the underline extends past the label on both sides; the first label stays aligned with the content. */
+:is(.connections-nav, .project-tool-tabs) {
+  gap: 4px;
+  padding-inline: calc(var(--dialog-padding) - 12px);
+}
+:is(.connections-nav, .project-tool-tabs) > button,
+.connections-nav > button:last-child {
+  padding-inline: 12px;
+}
+@media (max-width: 720px) {
+  :is(.connections-nav, .project-tool-tabs) {
+    gap: 0;
+  }
+}
