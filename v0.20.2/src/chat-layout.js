@@ -1,7 +1,8 @@
 // Pure layout helpers for the chat: minimap geometry and text size steps.
 
 export const TEXT_SIZES = [13, 14, 15, 16, 17, 18, 20];
-export const DEFAULT_TEXT_SIZE = 15;
+// 16px with a 1.7 line height reads comfortably on Retina at a normal distance.
+export const DEFAULT_TEXT_SIZE = 16;
 export function stepTextSize(current, direction) {
   if (direction === 0) return DEFAULT_TEXT_SIZE;
   const index = TEXT_SIZES.indexOf(TEXT_SIZES.includes(current) ? current : DEFAULT_TEXT_SIZE);
