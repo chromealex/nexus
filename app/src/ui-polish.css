@@ -3890,3 +3890,59 @@ a.file-link {
   backdrop-filter: blur(26px) saturate(140%) !important;
   -webkit-backdrop-filter: blur(26px) saturate(140%) !important;
 }
+
+/* Project icons and the hover «+» for a new chat. */
+.project-icon {
+  flex: none;
+  border-radius: 4px;
+  object-fit: contain;
+}
+.project-icon-settings {
+  display: grid;
+  gap: 8px;
+}
+.project-icon-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted, #9aa6ad);
+}
+.project-icon-preview {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-muted, #9aa6ad);
+}
+.project-icon-preview .project-icon {
+  border-radius: 6px;
+}
+.project-icon-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.project-icon-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-strong, #eef2f4);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.project-icon-actions button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.nav-row .nav-new-chat svg {
+  display: block;
+}

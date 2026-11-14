@@ -384,6 +384,18 @@ window.__TAURI_INTERNALS__ = {
       };
     }
     if (cmd === 'reveal_project_file' || cmd === 'open_system_target') return;
+    if (cmd === 'project_icon' || cmd === 'set_project_icon')
+      return args.mode === 'none'
+        ? {mode: 'none', url: null, source: null}
+        : {
+            mode: 'auto',
+            source: 'docs/assets/icon.svg',
+            url:
+              'data:image/svg+xml;base64,' +
+              btoa(
+                '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><rect width="16" height="16" rx="4" fill="#3d6fe0"/><path d="M4 11V5l4 4 4-4v6" stroke="#fff" fill="none" stroke-width="1.6"/></svg>'
+              ),
+          };
     if (cmd === 'channels_list')
       return ['telegram', 'discord', 'slack', 'email', 'imessage', 'github', 'linear'].map(kind => ({
         config: {

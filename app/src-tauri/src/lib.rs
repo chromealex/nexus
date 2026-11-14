@@ -31,6 +31,7 @@ mod path_picker;
 mod process_group;
 mod project_board;
 mod project_context;
+mod project_icons;
 mod project_store;
 mod provider_connections;
 mod push_notify;
@@ -233,6 +234,8 @@ pub fn run() {
             browser_tools::browser_tools_status,
             system_open::open_system_target,
             path_picker::pick_path,
+            project_icons::project_icon,
+            project_icons::set_project_icon,
             file_preview::read_project_file,
             file_preview::reveal_project_file,
             browser_host::browser_pane_open,

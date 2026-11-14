@@ -681,7 +681,9 @@ function App() {
         const rows = await invoke('list_project_chats', {projectId: project});
         if (viewRef.current.project !== project) return;
         setChats(rows);
-        if (!rows.some(c => c.id === viewRef.current.chat)) setActiveChat(rows.at(-1)?.id || '');
+        // An empty chat id is an open draft of a new chat: keep it.
+        if (viewRef.current.chat && !rows.some(c => c.id === viewRef.current.chat))
+          setActiveChat(rows.at(-1)?.id || '');
       } catch (e) {
         setProjectError(String(e));
       }
@@ -1728,6 +1730,14 @@ function App() {
             setChats(v => (v.some(x => x.id === c.id) ? v.map(x => (x.id === c.id ? c : x)) : [...v, c]));
             setActiveChat(c.id);
           }
+        }}
+        onDraftChat={projectId => {
+          // A new chat is only a draft until its first message: nothing is created in the project yet.
+          if (projectId !== activeProject) {
+            pendingChatRef.current = {project: projectId, chat: ''};
+            setActiveProject(projectId);
+          } else setActiveChat('');
+          setTimeout(() => document.querySelector('[aria-label="Message to NEXUS"]')?.focus(), 0);
         }}
         onProjects={reloadProjects}
         onConnections={() => {

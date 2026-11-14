@@ -1,4 +1,5 @@
 import {CustomSelect} from './custom-select.jsx';
+import {ProjectIcon, ProjectIconSettings, useProjectIcons} from './project-icons.jsx';
 import {useToastOn} from './toaster.jsx';
 import {PathPick} from './path-pick.jsx';
 import {ProjectPermissions} from './project-permissions.jsx';
@@ -44,6 +45,7 @@ export function ProjectNavigation({
   onProject,
   onChat,
   onCreated,
+  onDraftChat,
   onProjects,
   disabled,
   busy,
@@ -71,6 +73,7 @@ export function ProjectNavigation({
       }
     });
   useToastOn(error, () => setError(''), 'error');
+  const projectIcons = useProjectIcons(projects);
   const searchRef = useRef(null),
     newChatRef = useRef(null);
   const nav = useRef(null),
@@ -145,6 +148,13 @@ export function ProjectNavigation({
   const toggle = key => setExpanded(v => ({...v, [key]: v[key] === false ? true : false}));
   async function newChat(projectId = activeProject, folderId = null, parentChatId = null) {
     if (createBusy.current || busy) return;
+    // A plain new chat opens as a draft; it is created when the first message is sent.
+    if (!folderId && !parentChatId && onDraftChat && projectId) {
+      setMenu(null);
+      setExpanded(v => ({...v, ['p' + projectId]: true}));
+      onDraftChat(projectId);
+      return;
+    }
     createBusy.current = true;
     setMenu(null);
     try {
@@ -562,7 +572,7 @@ export function ProjectNavigation({
                       setExpanded(v => ({...v, ['p' + p.id]: true}));
                     }}
                   >
-                    {p.system ? <Network size={16} /> : <Folder size={16} />}
+                    {p.system ? <Network size={16} /> : <ProjectIcon icon={projectIcons[p.id]} />}
                     <FadeLabel>{p.name}</FadeLabel>
                     <small
                       className="nav-chat-count"
@@ -572,6 +582,18 @@ export function ProjectNavigation({
                     </small>
                     {p.system && <LockKeyhole size={10} aria-label="Системный проект" />}
                   </button>
+                  {
+                    <button
+                      type="button"
+                      className="nav-action nav-new-chat"
+                      title="Новый чат в проекте"
+                      aria-label={'Новый чат в проекте ' + p.name}
+                      disabled={busy || disabled}
+                      onClick={() => newChat(p.id)}
+                    >
+                      <Plus size={14} />
+                    </button>
+                  }
                   {more('project', p)}
                 </div>
                 {expanded['p' + p.id] !== false && (
@@ -944,6 +966,7 @@ function ProjectEditor({editor, project, folders, chats, onClose, onSaved}) {
                 </p>
               </>
             )}
+            {type === 'project' && <ProjectIconSettings projectId={item.id} />}
             {type === 'project' && <ProjectPermissions projectId={item.id} />}
           </div>
           <div className="settings-actions">
