@@ -50,7 +50,7 @@ pub async fn ensure(app: &tauri::AppHandle, chat: &str) -> Result<u16, String> {
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     let script = browser_tools::tools_root().join("nexus-browser-host.mjs");
     std::fs::write(&script, HOST).map_err(|e| e.to_string())?;
-    let mut child = Command::new(node)
+    let mut child = crate::new_command(node)
         .arg(&script)
         .env(
             "NEXUS_NODE_MODULES",

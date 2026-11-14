@@ -94,7 +94,7 @@ pub fn validate(m: &Manifest) -> Result<(), String> {
     Ok(())
 }
 pub fn command(agent: &CustomAgent, cwd: &str) -> Command {
-    let mut cmd = Command::new(&agent.path);
+    let mut cmd = crate::new_command(&agent.path);
     for key in [
         "OPENAI_API_KEY",
         "ANTHROPIC_API_KEY",
@@ -121,10 +121,9 @@ pub fn command(agent: &CustomAgent, cwd: &str) -> Command {
             .env("GOOSE_PROVIDER", "ollama")
             .env("GOOSE_MODEL", "qwen3:4b");
     }
-    cmd.args(&agent.manifest.args)
-        .current_dir(cwd)
-        .kill_on_drop(true)
-        .process_group(0);
+    cmd.args(&agent.manifest.args).current_dir(cwd).kill_on_drop(true);
+    #[cfg(unix)]
+    cmd.process_group(0);
     if let Some(node) = node_bin() {
         let mut paths = vec![node, app_bin()];
         if let Some(path) = std::env::var_os("PATH") {
@@ -227,7 +226,7 @@ async fn connect_inner(manifest: Manifest, workspace: &str) -> Result<CustomAgen
         if manifest.executable.contains('/') {
             return Err("Для npm-пакета укажите имя команды, а не путь".into());
         }
-        let mut cmd = Command::new(node.join("node"));
+        let mut cmd = crate::new_command(node.join("node"));
         cmd.arg(npm)
             .args(["install", "-g", package, "--no-audit", "--no-fund"])
             .env("NPM_CONFIG_PREFIX", &prefix)

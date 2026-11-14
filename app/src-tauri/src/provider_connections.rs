@@ -181,7 +181,7 @@ fn config(url: &str, key: &str, body: Option<&Value>) -> String {
     s
 }
 fn curl() -> Command {
-    let mut c = Command::new("/usr/bin/curl");
+    let mut c = crate::new_command(super::curl_path());
     c.args([
         "--silent",
         "--show-error",
@@ -769,7 +769,7 @@ async fn rate_headers(
     key: &str,
     body: Option<&Value>,
 ) -> Result<(u16, Vec<(String, String)>), String> {
-    let mut c = Command::new("/usr/bin/curl");
+    let mut c = crate::new_command(super::curl_path());
     c.args([
         "--silent",
         "--show-error",

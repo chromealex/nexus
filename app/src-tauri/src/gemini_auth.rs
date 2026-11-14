@@ -34,7 +34,7 @@ pub(super) async fn authenticate(
     interactive: bool,
 ) -> Result<(), String> {
     let bin = find_bin("gemini").ok_or("Gemini CLI is not installed")?;
-    let mut cmd = Command::new(bin);
+    let mut cmd = crate::new_command(bin);
     cmd.arg("--acp")
         .env("GEMINI_CLI_HOME", &account.config_dir)
         .current_dir(&account.config_dir)

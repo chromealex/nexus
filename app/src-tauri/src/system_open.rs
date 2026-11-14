@@ -18,7 +18,7 @@ pub(crate) fn target_args(target: &str) -> Option<Vec<&'static str>> {
 #[tauri::command]
 pub async fn open_system_target(target: String) -> Result<(), String> {
     let args = target_args(&target).ok_or("Неизвестное место для открытия")?;
-    let status = Command::new("open")
+    let status = crate::new_command("open")
         .args(args)
         .status()
         .await

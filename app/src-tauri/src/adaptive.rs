@@ -439,7 +439,7 @@ Rules: 1 to 8 steps, step dependencies use 1-based earlier step numbers. Prefer 
 User task: {task}"#
     );
     let exe = find_bin(&account.provider).ok_or("Planner CLI not installed")?;
-    let mut cmd = Command::new(exe);
+    let mut cmd = crate::new_command(exe);
     if account.provider == "claude" {
         cmd.args([
             "-p",
@@ -612,7 +612,7 @@ pub(crate) async fn execute_routed_step(
             }
         };
         let exe = find_bin(&account.provider).ok_or("CLI is not installed")?;
-        let mut cmd = Command::new(exe);
+        let mut cmd = crate::new_command(exe);
         if let Some((app, chat_id, images, control)) = stream {
             control.set_account(&account.id);
             control.update("");
@@ -811,7 +811,7 @@ pub(crate) async fn run_task_account(
         return Err("Workspace directory does not exist".into());
     }
     let exe = find_bin(&account.provider).ok_or("CLI is not installed")?;
-    let mut cmd = Command::new(exe);
+    let mut cmd = crate::new_command(exe);
     if account.provider == "claude" {
         cmd.args(["-p", &prompt, "--permission-mode", "plan"])
             .env("CLAUDE_CONFIG_DIR", &account.config_dir);
@@ -870,7 +870,7 @@ pub(crate) async fn run_task(
         ],
         _ => return Err("Task runner not implemented for this agent yet".into()),
     };
-    let mut cmd = Command::new(exe);
+    let mut cmd = crate::new_command(exe);
     cmd.args(args)
         .current_dir(work)
         .stdin(std::process::Stdio::null())

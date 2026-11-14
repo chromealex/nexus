@@ -547,7 +547,7 @@ pub(crate) async fn claude_limits_probe(id: String) -> Result<bool, String> {
     let exe = find_bin("claude").ok_or("Claude Code не установлен")?;
     let dir = home().join("Library/Application Support/NEXUS/limit-probe");
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
-    let mut child = Command::new(exe)
+    let mut child = crate::new_command(exe)
         .args([
             "-p",
             "Reply with OK",

@@ -1,0 +1,100 @@
+name: Release
+
+# Push a tag like v0.21.0 to build macOS and Windows and publish a GitHub release.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  macos:
+    name: macOS (universal, signed and notarized)
+    runs-on: macos-14
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+      - run: npm ci
+      - name: Build, sign with Developer ID and notarize
+        env:
+          # Repository secrets (Settings → Secrets and variables → Actions). Without them the build is ad-hoc.
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: "${{ secrets.APPLE_CERTIFICATE != '' && 'Developer ID Application: Alexander Silaev (2CGDESX4ZX)' || '-' }}"
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: npm run tauri:build -- --target universal-apple-darwin --bundles app
+      - name: Verify and pack
+        run: |
+          APP=src-tauri/target/universal-apple-darwin/release/bundle/macos/NEXUS.app
+          codesign --verify --deep --strict "$APP"
+          codesign -dv "$APP" 2>&1 | grep -E "Authority|TeamIdentifier" || true
+          spctl --assess --type execute -v "$APP" || echo "::warning::Gatekeeper did not accept the app (not notarized?)"
+          VERSION=$(node -p "require('./package.json').version")
+          ditto -c -k --keepParent "$APP" "../NEXUS-$VERSION-macOS.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: NEXUS-*-macOS.zip
+
+  windows:
+    name: Windows (preview)
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: dtolnay/rust-toolchain@stable
+      - run: npm ci
+      - run: npm run tauri:build -- --bundles nsis
+      - name: Pack
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          cp src-tauri/target/release/bundle/nsis/*-setup.exe "../NEXUS-$VERSION-Windows-x64-setup.exe"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: NEXUS-*-Windows-x64-setup.exe
+
+  release:
+    name: Publish release
+    needs: [macos, windows]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Release notes from CHANGELOG
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          awk -v v="## $VERSION " 'index($0, v)==1 {on=1; next} /^## / && on {exit} on' CHANGELOG.md > notes.md
+          printf '\n### Установка\n- **macOS**: распакуйте `NEXUS-%s-macOS.zip` и перетащите NEXUS в «Программы». Сборка подписана Developer ID и нотаризована.\n- **Windows (превью)**: запустите `NEXUS-%s-Windows-x64-setup.exe`. Сборка без подписи Microsoft — SmartScreen предупредит, нажмите «Подробнее → Выполнить в любом случае».\n' "$VERSION" "$VERSION" >> notes.md
+          cat notes.md
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: NEXUS ${{ github.ref_name }}
+          body_path: notes.md
+          files: dist/*
+          fail_on_unmatched_files: true

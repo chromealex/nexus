@@ -215,7 +215,7 @@ pub(crate) async fn install_agent_inner(
         emit(app, id, "checking", "Looking for uv package manager", None);
         let uv=find_bin("uv").ok_or("uv is not installed. Install uv from https://docs.astral.sh/uv/getting-started/installation/ then retry")?;
         emit(app, id, "installing", "Running uv tool install aider-chat", None);
-        let mut cmd = Command::new(uv);
+        let mut cmd = crate::new_command(uv);
         cmd.args(["tool", "install", "aider-chat"])
             .current_dir(home())
             .stdout(std::process::Stdio::piped())
@@ -256,7 +256,7 @@ pub(crate) async fn install_agent_inner(
     emit(app, id, "checking", "Checking local Node.js and npm", None);
     let node =
         node_bin().ok_or("Node.js/npm not found. Install Node.js 22+ using nvm, then restart NEXUS.")?;
-    let version = Command::new(node.join("node"))
+    let version = crate::new_command(node.join("node"))
         .arg("--version")
         .output()
         .await
@@ -301,7 +301,7 @@ pub(crate) async fn install_agent_inner(
         &format!("Using npm {}", npm_js.display()),
         None,
     );
-    let mut cmd = Command::new(node.join("node"));
+    let mut cmd = crate::new_command(node.join("node"));
     cmd.arg(&npm_js);
     cmd.args(["install", "-g", pkg, "--no-audit", "--no-fund"])
         .env("NPM_CONFIG_PREFIX", &prefix)

@@ -147,7 +147,7 @@ pub async fn install_browser_tools(app: tauri::AppHandle) -> Result<Value, Strin
         "browser-install-progress",
         json!({"stage":format!("Загрузка {PACKAGE}@{VERSION}…")}),
     );
-    let mut cmd = Command::new(node.join("npm"));
+    let mut cmd = crate::new_command(node.join("npm"));
     cmd.args(["install", "--prefix"])
         .arg(&dir)
         .args([
@@ -199,7 +199,7 @@ pub async fn install_browser_tools(app: tauri::AppHandle) -> Result<Value, Strin
 
 #[tauri::command]
 pub async fn open_browser_extension_page() -> Result<(), String> {
-    let mut cmd = Command::new("open");
+    let mut cmd = crate::new_command("open");
     if chrome_installed() {
         cmd.args(["-a", "Google Chrome"]);
     }
@@ -218,7 +218,8 @@ pub struct Prepared {
 /// but the tools are missing.
 pub fn prepare(chat: &str) -> Result<Option<Prepared>, String> {
     let mode = chat_mode(chat);
-    if mode == "off" {
+    // The gateway talks to Nexus over a Unix socket; on other systems agents run without the browser.
+    if mode == "off" || cfg!(not(unix)) {
         return Ok(None);
     }
     // On by default: until the browser is set up, chats simply run without it. A browser the user
@@ -275,6 +276,19 @@ fn token() -> String {
     }
     b.iter().map(|x| format!("{x:02x}")).collect()
 }
+#[cfg(not(unix))]
+impl Prepared {
+    pub async fn start(
+        self,
+        _app: &tauri::AppHandle,
+        _chat: &str,
+        _control: std::sync::Arc<chat_runs::Control>,
+    ) -> Result<Session, String> {
+        let _ = self.mode;
+        Err("Браузер для агентов пока доступен только в macOS".into())
+    }
+}
+#[cfg(unix)]
 impl Prepared {
     pub async fn start(
         self,
@@ -372,6 +386,7 @@ impl Prepared {
         })
     }
 }
+#[cfg(unix)]
 async fn serve(
     stream: tokio::net::UnixStream,
     app: &tauri::AppHandle,
@@ -437,7 +452,7 @@ pub struct Client {
 }
 impl Client {
     pub async fn connect(spec: &Spec) -> Result<Self, String> {
-        let mut cmd = Command::new(&spec.command);
+        let mut cmd = crate::new_command(&spec.command);
         cmd.args(&spec.args)
             .envs(spec.env.iter().cloned())
             .kill_on_drop(true)

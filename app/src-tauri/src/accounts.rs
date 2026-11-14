@@ -192,7 +192,7 @@ pub(crate) async fn account_login(
             }
             return;
         }
-        let mut cmd = Command::new(bin);
+        let mut cmd = crate::new_command(bin);
         match account.provider.as_str() {
             "claude" => {
                 cmd.args(["auth", "login"]);
@@ -280,7 +280,7 @@ pub(crate) async fn account_login(
                 let _ = t2.await;
                 match result {
                     Ok(Ok(exit)) if exit.success() => {
-                        let mut check = Command::new(find_bin(&account.provider).unwrap());
+                        let mut check = crate::new_command(find_bin(&account.provider).unwrap());
                         if account.provider == "claude" {
                             check
                                 .args(["auth", "status"])
@@ -561,7 +561,7 @@ pub(crate) async fn account_quota(id: String) -> Result<QuotaReport, String> {
         Some(p) => p,
         None => return Ok(quota_unavailable("Codex app-server", "Codex CLI not installed")),
     };
-    let mut child = match Command::new(exe)
+    let mut child = match crate::new_command(exe)
         .arg("app-server")
         .env("CODEX_HOME", &account.config_dir)
         .current_dir(home())
@@ -658,7 +658,7 @@ pub(crate) async fn check_account(id: String) -> Result<AccountCheck, String> {
         return Ok(gemini_auth::check(&account).await);
     }
     let exe = find_bin(&account.provider).ok_or("CLI is not installed")?;
-    let mut cmd = Command::new(exe);
+    let mut cmd = crate::new_command(exe);
     match account.provider.as_str() {
         "claude" => {
             cmd.args(["auth", "status"]);
@@ -719,7 +719,7 @@ pub(crate) async fn check_account(id: String) -> Result<AccountCheck, String> {
 pub(crate) async fn open_codex_device_page() -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {
-        let status = Command::new("/usr/bin/open")
+        let status = crate::new_command("/usr/bin/open")
             .arg("https://auth.openai.com/codex/device")
             .status()
             .await
@@ -754,7 +754,7 @@ pub(crate) async fn open_external(url: String) -> Result<(), String> {
     if !allowed.iter().any(|p| url.starts_with(p)) {
         return Err("Untrusted URL".into());
     }
-    let status = Command::new("open")
+    let status = crate::new_command("open")
         .arg(&url)
         .status()
         .await

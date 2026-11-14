@@ -97,9 +97,35 @@ struct State {
 }
 
 fn home() -> PathBuf {
+    // Windows has no HOME; the profile folder plays the same role (data under …\Library\Application Support\NEXUS).
     std::env::var_os("HOME")
+        .or_else(|| std::env::var_os("USERPROFILE"))
         .map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from("."))
+}
+/// tokio Command that never opens a console window on Windows (the app has no console of its own).
+pub(crate) fn new_command<S: AsRef<std::ffi::OsStr>>(program: S) -> tokio::process::Command {
+    #[allow(unused_mut)]
+    let mut cmd = tokio::process::Command::new(program);
+    #[cfg(windows)]
+    cmd.creation_flags(0x0800_0000); // CREATE_NO_WINDOW
+    cmd
+}
+/// curl shipped with the OS: /usr/bin/curl on macOS, curl.exe (System32) on Windows 10+.
+pub(crate) fn curl_path() -> &'static str {
+    if cfg!(windows) {
+        "curl.exe"
+    } else {
+        "/usr/bin/curl"
+    }
+}
+/// Executable names to try for a CLI: npm installs `name.cmd` shims on Windows.
+pub(crate) fn exe_names(name: &str) -> Vec<String> {
+    if cfg!(windows) {
+        vec![format!("{name}.exe"), format!("{name}.cmd"), name.to_string()]
+    } else {
+        vec![name.to_string()]
+    }
 }
 fn app_bin() -> PathBuf {
     home().join("Library/Application Support/NEXUS/bin")
@@ -129,9 +155,19 @@ fn node_bin() -> Option<PathBuf> {
         PathBuf::from("/opt/homebrew/bin"),
         PathBuf::from("/usr/local/bin"),
     ]);
-    candidates
-        .into_iter()
-        .find(|p| p.join("node").exists() && p.join("npm").exists())
+    #[cfg(windows)]
+    {
+        if let Some(pf) = std::env::var_os("ProgramFiles") {
+            candidates.push(PathBuf::from(pf).join("nodejs"));
+        }
+        if let Some(path) = std::env::var_os("PATH") {
+            candidates.extend(std::env::split_paths(&path));
+        }
+    }
+    candidates.into_iter().find(|p| {
+        exe_names("node").iter().any(|n| p.join(n).is_file())
+            && exe_names("npm").iter().any(|n| p.join(n).is_file())
+    })
 }
 fn find_bin(name: &str) -> Option<PathBuf> {
     let mut dirs = vec![app_bin(), home().join(".local/bin")];
@@ -145,7 +181,13 @@ fn find_bin(name: &str) -> Option<PathBuf> {
     if let Some(path) = std::env::var_os("PATH") {
         dirs.extend(std::env::split_paths(&path));
     }
-    dirs.into_iter().map(|p| p.join(name)).find(|p| p.is_file())
+    #[cfg(windows)]
+    if let Some(appdata) = std::env::var_os("APPDATA") {
+        dirs.push(PathBuf::from(appdata).join("npm"));
+    }
+    dirs.into_iter()
+        .flat_map(|p| exe_names(name).into_iter().map(move |n| p.join(n)))
+        .find(|p| p.is_file())
 }
 const AGENTS: &[(&str, &str, &str, Option<&str>)] = &[
     (

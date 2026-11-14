@@ -82,7 +82,7 @@ pub struct CurlOut {
 }
 /// Runs /usr/bin/curl with the whole request (including credentials) in a stdin config file.
 async fn curl(config: String, proto: &str, timeout: u64, extra: &[&str]) -> Result<CurlOut, String> {
-    let mut c = Command::new("/usr/bin/curl");
+    let mut c = crate::new_command(super::curl_path());
     c.args([
         "--silent",
         "--show-error",
@@ -1026,7 +1026,7 @@ async fn sqlite(query: &str) -> Result<Value, String> {
     let db = chat_db();
     let out = tokio::time::timeout(
         std::time::Duration::from_secs(20),
-        Command::new("/usr/bin/sqlite3")
+        crate::new_command("/usr/bin/sqlite3")
             .arg("-readonly")
             .arg("-json")
             .arg(&db)
@@ -1149,7 +1149,7 @@ end run"#;
 async fn osascript(args: &[&str]) -> Result<String, String> {
     let out = tokio::time::timeout(
         std::time::Duration::from_secs(40),
-        Command::new("/usr/bin/osascript")
+        crate::new_command("/usr/bin/osascript")
             .args(args)
             .kill_on_drop(true)
             .stdin(Stdio::null())

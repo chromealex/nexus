@@ -59,7 +59,7 @@ fn parse_models(data: &Value) -> Vec<Choice> {
 }
 async fn codex_models(config: &str) -> Result<Vec<Choice>, String> {
     let exe = super::find_bin("codex").ok_or("Codex не установлен")?;
-    let mut child = Command::new(exe)
+    let mut child = crate::new_command(exe)
         .arg("app-server")
         .env("CODEX_HOME", config)
         .kill_on_drop(true)

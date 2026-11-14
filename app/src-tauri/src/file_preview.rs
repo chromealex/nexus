@@ -131,7 +131,7 @@ pub async fn reveal_project_file(chat_id: String, path: String, open: bool) -> R
     if open && !opens_in_app(&real) {
         return Err("Этот тип файла можно только показать в Finder".into());
     }
-    let mut cmd = Command::new("open");
+    let mut cmd = crate::new_command("open");
     if !open {
         cmd.arg("-R");
     }

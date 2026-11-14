@@ -2,7 +2,16 @@
 
 Short history of NEXUS Desktop. The original per-version notes are in [docs/history](docs/history).
 
-## 0.21 (in progress, November 2026)
+## 0.21.0 (14 November 2026)
+- First public builds: macOS (Apple Silicon and Intel, signed with Developer ID and notarized) and a Windows preview.
+- Windows preview: chat with Codex / Claude Code / ACP agents, projects, files and history. Not available on Windows yet: the chat browser for agents, iMessage, macOS notifications and the native file picker; API keys need the macOS Keychain, so API connections are macOS-only for now.
+- Chat browser: each chat has its own invisible Chrome with tabs and sign-ins; the side panel opens when an agent uses it, with a live view, clicks and typing; a preview while the panel is hidden. All agents (Claude, Codex, ACP, API) use it through one confirmation gateway.
+- Side panel with files: paths in answers and attachments open on the right (code with lines, Markdown, sandboxed HTML, CSV, JSON, images, PDF, media).
+- Execution modes: «Выполнение · с разрешениями» by default and «Выполнение · без разрешений».
+- Notifications at the top of the window, one card surface with background blur, minimap instead of the scrollbar, scroll fades, project icons, draft new chats, import of projects from Claude Code and Codex, native file/folder pickers, iMessage setup buttons.
+- «Инструменты» folded into the chat (task plan next to the paperclip) and project settings (remembered permissions).
+
+## 0.21 (November 2026, earlier work)
 - Task channels: Telegram, Discord, Slack, email (IMAP/SMTP), iMessage, GitHub Issues, Linear, a local HTTP API for Siri / Shortcuts, ntfy push and macOS notifications, background mode. See `app/CHANNELS_V021.md`.
 - Channel security: random one-time permission codes, no bare "yes" answers from email/trackers, DMARC or aligned DKIM required for email, LAN API limited to discussion mode, API connection limit and request deadline.
 - Chat: answer variants and regenerate, edit last request, per-chat drafts, chat search (⌘F), chat list search (⌘K), keyboard shortcuts, day separators, bookmarks, export to Markdown, code highlighting, Mermaid diagrams and chart widgets in answers (charts load on demand), minimap, adjustable text size.

@@ -86,7 +86,7 @@ pub fn discover(workspace: &str) -> Vec<Check> {
 }
 async fn execute(check: &Check, workspace: &str, control: &chat_runs::Control) -> Result<ResultRow, String> {
     let exe = find_bin(&check.program).ok_or_else(|| format!("{} не найден", check.program))?;
-    let mut cmd = Command::new(exe);
+    let mut cmd = crate::new_command(exe);
     cmd.args(&check.args)
         .current_dir(workspace)
         .stdin(std::process::Stdio::null())
@@ -105,6 +105,7 @@ async fn execute(check: &Check, workspace: &str, control: &chat_runs::Control) -
         );
     }
     // A project test script can execute arbitrary project code. Approval precedes this spawn.
+    #[cfg(unix)]
     cmd.process_group(0);
     let mut child = cmd.spawn().map_err(|_| "Не удалось запустить проверку")?;
     let group = process_group::Group::new(&child);

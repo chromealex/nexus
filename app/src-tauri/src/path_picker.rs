@@ -29,7 +29,7 @@ pub async fn pick_path(kind: String, prompt: Option<String>) -> Result<Option<St
         .filter(|c| !c.is_control())
         .take(120)
         .collect();
-    let out = Command::new("osascript")
+    let out = crate::new_command("osascript")
         .args(["-e", script, "--", &prompt])
         .output()
         .await

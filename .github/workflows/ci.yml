@@ -56,3 +56,28 @@ jobs:
           workspaces: app/src-tauri
       - run: cargo fmt --check --manifest-path src-tauri/Cargo.toml
       - run: cargo test --manifest-path src-tauri/Cargo.toml --lib
+
+  windows:
+    name: Rust check (Windows preview)
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: app
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: dtolnay/rust-toolchain@stable
+      - run: npm ci
+      - run: npm run build
+      - name: cargo check (errors become annotations)
+        run: |
+          set +e
+          cargo check --manifest-path src-tauri/Cargo.toml --lib --message-format=short 2>&1 | tee check.log
+          status=${PIPESTATUS[0]}
+          grep -E "error(\[E[0-9]+\])?:" check.log | head -30 | while IFS= read -r line; do echo "::error::$line"; done
+          exit $status

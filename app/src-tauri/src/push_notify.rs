@@ -39,7 +39,7 @@ pub async fn send(
         quoted(server),
         quoted(&payload(topic, title, message, priority).to_string())
     );
-    let mut child = Command::new("/usr/bin/curl")
+    let mut child = crate::new_command(super::curl_path())
         .args([
             "--silent",
             "--show-error",

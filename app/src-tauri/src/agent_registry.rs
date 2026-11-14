@@ -12,7 +12,7 @@ pub struct Entry {
 }
 #[tauri::command]
 pub async fn agent_registry() -> Result<Vec<Entry>, String> {
-    let mut cmd = Command::new("/usr/bin/curl");
+    let mut cmd = crate::new_command(super::curl_path());
     cmd.args([
         "--fail",
         "--silent",
