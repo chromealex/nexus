@@ -38,3 +38,4 @@
 *.glb
 generated_images/
 *.tmp.rs
+*.command
