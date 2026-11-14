@@ -49,8 +49,8 @@ The source lives in [`app/`](app). Working rules for contributors and coding age
 AGENTS.md                         Current working rules (Russian)
 CHANGELOG.md                      Version history
 docs/                             Model notes, agent rules history, old release notes
-Hi3D_Untitled_allparts_*.glb      Source 3D scan for the particle portrait
-generated_images/                 Concept images
+Hi3D_Untitled_allparts_*.glb      Source 3D scan for the particle portrait (kept locally, not in git)
+generated_images/                 Concept images (kept locally, not in git)
 .github/workflows/ci.yml          CI: UI tests, UI build, Rust tests on Linux
 app/
   src/                            React UI (main.jsx = App, chat-message-view.jsx, dialogs, navigation, persona, styles)

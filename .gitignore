@@ -33,3 +33,7 @@
 *.p8
 *.cer
 *.mobileprovision
+
+# Large source assets stay local
+*.glb
+generated_images/
