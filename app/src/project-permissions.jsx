@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {useToastOn} from './toaster.jsx';
 import {invoke} from '@tauri-apps/api/core';
+import {loc} from './i18n.js';
 
 // «Настройки проекта → Разрешения»: rules remembered with «Разрешать всегда», revocable one by one or all.
 export function ProjectPermissions({projectId}) {
@@ -38,14 +39,16 @@ export function ProjectPermissions({projectId}) {
   return (
     <div className="project-permissions">
       <div className="context-heading">
-        <h3>Разрешения</h3>
-        <small>Правила «Разрешать всегда» для агентов и браузера в этом проекте</small>
+        <h3>{loc('Разрешения')}</h3>
+        <small>{loc('Правила «Разрешать всегда» для агентов и браузера в этом проекте')}</small>
       </div>
       {rows === null ? (
-        <p className="project-permissions-empty">Загрузка…</p>
+        <p className="project-permissions-empty">{loc('Загрузка…')}</p>
       ) : rows.length === 0 ? (
         <p className="project-permissions-empty">
-          Постоянных разрешений нет. Они появляются, когда в карточке разрешения отмечено «Разрешать всегда».
+          {loc(
+            'Постоянных разрешений нет. Они появляются, когда в карточке разрешения отмечено «Разрешать всегда».'
+          )}
         </p>
       ) : (
         <ul>
@@ -64,11 +67,11 @@ export function ProjectPermissions({projectId}) {
                         kind: row.kind,
                         scope: row.scope,
                       }),
-                    'Разрешение отозвано.'
+                    loc('Разрешение отозвано.')
                   )
                 }
               >
-                Отозвать
+                {loc('Отозвать')}
               </button>
             </li>
           ))}
@@ -76,8 +79,12 @@ export function ProjectPermissions({projectId}) {
       )}
       {rows?.length > 1 &&
         (confirmAll ? (
-          <div className="project-revoke-confirm" role="group" aria-label="Подтверждение отзыва разрешений">
-            <span>Отозвать все разрешения проекта? Агентам снова понадобится подтверждение.</span>
+          <div
+            className="project-revoke-confirm"
+            role="group"
+            aria-label={loc('Подтверждение отзыва разрешений')}
+          >
+            <span>{loc('Отозвать все разрешения проекта? Агентам снова понадобится подтверждение.')}</span>
             <button
               type="button"
               className="danger"
@@ -85,14 +92,14 @@ export function ProjectPermissions({projectId}) {
               onClick={() =>
                 run(
                   () => invoke('reset_project_permissions', {projectId}),
-                  'Все разрешения проекта отозваны.'
+                  loc('Все разрешения проекта отозваны.')
                 )
               }
             >
-              Отозвать все
+              {loc('Отозвать все')}
             </button>
             <button type="button" disabled={busy} onClick={() => setConfirmAll(false)}>
-              Отмена
+              {loc('Отмена')}
             </button>
           </div>
         ) : (
@@ -102,11 +109,11 @@ export function ProjectPermissions({projectId}) {
             disabled={busy}
             onClick={() => setConfirmAll(true)}
           >
-            Отозвать все
+            {loc('Отозвать все')}
           </button>
         ))}
       <small className="project-permissions-note">
-        Разрешения macOS (доступ к файлам, автоматизация) настраиваются в системе отдельно.
+        {loc('Разрешения macOS (доступ к файлам, автоматизация) настраиваются в системе отдельно.')}
       </small>
     </div>
   );

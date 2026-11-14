@@ -39,6 +39,8 @@ import {
   Rows3,
   Rows4,
 } from 'lucide-react';
+import {loc} from './i18n.js';
+import {LanguageSelect} from './language-select.jsx';
 
 export function ProjectNavigation({
   projects,
@@ -163,7 +165,7 @@ export function ProjectNavigation({
     try {
       const c = await invoke('create_project_chat', {
         projectIdValue: projectId,
-        title: parentChatId ? 'Подчат' : 'Новый чат',
+        title: parentChatId ? loc('Подчат') : loc('Новый чат'),
       });
       const saved =
         folderId || parentChatId
@@ -216,8 +218,8 @@ export function ProjectNavigation({
         <Folder size={15} />
         <input
           autoFocus
-          aria-label="Название новой папки"
-          placeholder="Название папки"
+          aria-label={loc('Название новой папки')}
+          placeholder={loc('Название папки')}
           value={folderName}
           maxLength={120}
           onChange={e => setFolderName(e.target.value)}
@@ -228,10 +230,10 @@ export function ProjectNavigation({
             }
           }}
         />
-        <button title="Создать папку" disabled={!folderName.trim()}>
+        <button title={loc('Создать папку')} disabled={!folderName.trim()}>
           <Check size={14} />
         </button>
-        <button type="button" title="Отмена" onClick={() => setCreating(null)}>
+        <button type="button" title={loc('Отмена')} onClick={() => setCreating(null)}>
           <X size={13} />
         </button>
       </form>
@@ -252,8 +254,8 @@ export function ProjectNavigation({
           chat: item,
           wasActive: activeChat === item.id,
           text:
-            (action === 'archive' ? 'Чат перенесён в архив' : 'Чат перемещён в корзину') +
-            (subchats ? ' вместе с подчатами' : ''),
+            (action === 'archive' ? loc('Чат перенесён в архив') : loc('Чат перемещён в корзину')) +
+            (subchats ? loc(' вместе с подчатами') : ''),
           undo: true,
         });
       }
@@ -275,7 +277,7 @@ export function ProjectNavigation({
       setToast(null);
     } catch (e) {
       setToast(null);
-      setError('Не удалось вернуть чат: ' + String(e));
+      setError(loc('Не удалось вернуть чат: ') + String(e));
     }
   }
   newChatRef.current = newChat;
@@ -339,9 +341,9 @@ export function ProjectNavigation({
       <>
         <button
           className="nav-action nav-more"
-          aria-label={'Действия: ' + (item.name || item.title)}
+          aria-label={loc('Действия: ') + (item.name || item.title)}
           aria-expanded={menu === key}
-          title="Действия"
+          title={loc('Действия')}
           onClick={() => setMenu(menu === key ? null : key)}
         >
           <MoreHorizontal size={16} />
@@ -358,7 +360,7 @@ export function ProjectNavigation({
                   }
                 >
                   <SquarePen size={14} />
-                  Новый чат
+                  {loc('Новый чат')}
                 </button>
                 <button
                   role="menuitem"
@@ -371,7 +373,7 @@ export function ProjectNavigation({
                   }
                 >
                   <Folder size={14} />
-                  Новая папка
+                  {loc('Новая папка')}
                 </button>
               </>
             )}
@@ -382,7 +384,7 @@ export function ProjectNavigation({
                 onClick={() => newChat(item.projectId, item.folderId || null, item.id)}
               >
                 <MessageSquare size={14} />
-                Создать подчат
+                {loc('Создать подчат')}
               </button>
             )}
             <button
@@ -398,18 +400,18 @@ export function ProjectNavigation({
               }}
             >
               <Settings size={14} />
-              {type === 'chat' ? 'Название и расположение' : 'Настройки и контекст'}
+              {type === 'chat' ? loc('Название и расположение') : loc('Настройки и контекст')}
             </button>
             {type === 'chat' && (
               <>
                 <hr />
                 <button role="menuitem" disabled={busy} onClick={() => changeChat(item, 'archive')}>
                   <Archive size={14} />
-                  Архивировать
+                  {loc('Архивировать')}
                 </button>
                 <button role="menuitem" disabled={busy} onClick={() => changeChat(item, 'trash')}>
                   <Trash2 size={14} />
-                  Удалить
+                  {loc('Удалить')}
                 </button>
               </>
             )}
@@ -441,14 +443,14 @@ export function ProjectNavigation({
             >
               <span className="chat-status-slot">
                 {running ? (
-                  <span className="visually-hidden">Генерирует ответ</span>
+                  <span className="visually-hidden">{loc('Генерирует ответ')}</span>
                 ) : unread ? (
-                  <span className="unread-dot" role="status" aria-label="Новый ответ" />
+                  <span className="unread-dot" role="status" aria-label={loc('Новый ответ')} />
                 ) : null}
               </span>
               <button
                 className="nav-toggle"
-                aria-label={'Подчаты: ' + c.title}
+                aria-label={loc('Подчаты: ') + c.title}
                 onClick={() => toggle('c' + c.id)}
               >
                 {chats.some(x => x.parentChatId === c.id) ? (
@@ -493,7 +495,12 @@ export function ProjectNavigation({
               <FadeLabel>{f.name}</FadeLabel>
               <small
                 className="nav-chat-count"
-                title={countLabel(folderChatCount(chats, folders, projectId, f.id), 'чат', 'чата', 'чатов')}
+                title={countLabel(
+                  folderChatCount(chats, folders, projectId, f.id),
+                  loc('чат'),
+                  loc('чата'),
+                  loc('чатов')
+                )}
               >
                 {folderChatCount(chats, folders, projectId, f.id)}
               </small>
@@ -512,40 +519,45 @@ export function ProjectNavigation({
   }
   return (
     <>
-      <nav ref={nav} className={'project-nav' + (compact ? ' nav-compact' : '')} aria-label="Проекты и чаты">
+      <nav
+        ref={nav}
+        className={'project-nav' + (compact ? ' nav-compact' : '')}
+        aria-label={loc('Проекты и чаты')}
+      >
         <div className="cinematic-wordmark">NEXUS</div>
         <button
           className="new-chat-nav"
-          title={withShortcut('Новый чат в текущем проекте', 'newChat')}
+          title={withShortcut(loc('Новый чат в текущем проекте'), 'newChat')}
           disabled={!activeProject || disabled || busy}
           onClick={() => newChat()}
         >
           <SquarePen size={17} />
-          Новый чат<kbd aria-hidden="true">{shortcutText('newChat')}</kbd>
+          {loc('Новый чат')}
+          <kbd aria-hidden="true">{shortcutText('newChat')}</kbd>
         </button>
         <NavSearch value={query} onChange={setQuery} inputRef={searchRef} onKeyDown={searchKey} />
         <div className="nav-section-title">
-          {query.trim() ? 'Результаты' : 'Проекты'}
+          {query.trim() ? loc('Результаты') : loc('Проекты')}
           <span className="nav-section-actions">
             <button
-              title={compact ? 'Обычная плотность списка' : 'Компактный список'}
-              aria-label={compact ? 'Обычная плотность списка' : 'Компактный список'}
+              title={compact ? loc('Обычная плотность списка') : loc('Компактный список')}
+              aria-label={compact ? loc('Обычная плотность списка') : loc('Компактный список')}
               aria-pressed={compact}
               onClick={() => setCompact(v => !v)}
             >
               {compact ? <Rows3 size={15} /> : <Rows4 size={15} />}
             </button>
             <button
-              title="Импорт проектов из Claude Code и Codex"
-              aria-label="Импорт проектов из Claude Code и Codex"
+              title={loc('Импорт проектов из Claude Code и Codex')}
+              aria-label={loc('Импорт проектов из Claude Code и Codex')}
               disabled={disabled || busy}
               onClick={() => setImporting(true)}
             >
               <FolderInput size={15} />
             </button>
             <button
-              title="Добавить проект"
-              aria-label="Добавить проект"
+              title={loc('Добавить проект')}
+              aria-label={loc('Добавить проект')}
               disabled={disabled || busy}
               onClick={() => setEditor({type: 'new-project'})}
             >
@@ -570,7 +582,7 @@ export function ProjectNavigation({
                 <div className={'nav-row project-name ' + (p.id === activeProject ? 'current' : '')}>
                   <button
                     className="nav-toggle"
-                    title="Свернуть или развернуть проект"
+                    title={loc('Свернуть или развернуть проект')}
                     onClick={() => toggle('p' + p.id)}
                   >
                     {expanded['p' + p.id] !== false ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
@@ -587,18 +599,18 @@ export function ProjectNavigation({
                     <FadeLabel>{p.name}</FadeLabel>
                     <small
                       className="nav-chat-count"
-                      title={countLabel(projectChatCount(chats, p.id), 'чат', 'чата', 'чатов')}
+                      title={countLabel(projectChatCount(chats, p.id), loc('чат'), loc('чата'), loc('чатов'))}
                     >
                       {projectChatCount(chats, p.id)}
                     </small>
-                    {p.system && <LockKeyhole size={10} aria-label="Системный проект" />}
+                    {p.system && <LockKeyhole size={10} aria-label={loc('Системный проект')} />}
                   </button>
                   {
                     <button
                       type="button"
                       className="nav-action nav-new-chat"
-                      title="Новый чат в проекте"
-                      aria-label={'Новый чат в проекте ' + p.name}
+                      title={loc('Новый чат в проекте')}
+                      aria-label={loc('Новый чат в проекте ') + p.name}
                       disabled={busy || disabled}
                       onClick={() => newChat(p.id)}
                     >
@@ -614,7 +626,7 @@ export function ProjectNavigation({
                     {chatRows(p.id)}
                     {!chats.some(c => c.projectId === p.id) && !folders.some(f => f.projectId === p.id) && (
                       <button className="nav-empty" disabled={busy} onClick={() => newChat(p.id)}>
-                        Начать новый чат
+                        {loc('Начать новый чат')}
                       </button>
                     )}
                   </>
@@ -628,16 +640,18 @@ export function ProjectNavigation({
           <div className="nav-saved-links">
             <button onClick={() => setSavedKind('archive')}>
               <Archive size={14} />
-              Архив
+              {loc('Архив')}
             </button>
             <button onClick={() => setSavedKind('trash')}>
               <Trash2 size={14} />
-              Корзина
+              {loc('Корзина')}
             </button>
           </div>
-          <button title={withShortcut('Агенты и подключения', 'connections')} onClick={onConnections}>
+          <LanguageSelect />
+          <button title={withShortcut(loc('Агенты и подключения'), 'connections')} onClick={onConnections}>
             <Network size={16} />
-            Агенты и подключения<kbd aria-hidden="true">{shortcutText('connections')}</kbd>
+            {loc('Агенты и подключения')}
+            <kbd aria-hidden="true">{shortcutText('connections')}</kbd>
           </button>
         </div>
       </nav>
@@ -737,12 +751,12 @@ function ProjectEditor({editor, project, folders, chats, onClose, onSaved}) {
     if (!picked.length) return;
     const room = MAX_CONTEXT_SOURCES - contexts.length;
     if (picked.length > room) {
-      setError(`Можно добавить ещё ${room} — предел ${MAX_CONTEXT_SOURCES} источников`);
+      setError(loc('Можно добавить ещё {0} — предел {1} источников', room, MAX_CONTEXT_SOURCES));
       return;
     }
     const big = picked.find(f => f.size > MAX_DOCUMENT_BYTES);
     if (big) {
-      setError(`«${big.name}» больше 20 МБ`);
+      setError(loc('«{0}» больше 20 МБ', big.name));
       return;
     }
     if (type === 'new-project') {
@@ -809,7 +823,9 @@ function ProjectEditor({editor, project, folders, chats, onClose, onSaved}) {
           if (failed.length) {
             await onSaved(
               result,
-              'Проект создан, но не загрузились: ' + failed.join(', ') + '. Добавьте их в настройках проекта.'
+              loc('Проект создан, но не загрузились: ') +
+                failed.join(', ') +
+                loc('. Добавьте их в настройках проекта.')
             );
             return;
           }
@@ -838,11 +854,11 @@ function ProjectEditor({editor, project, folders, chats, onClose, onSaved}) {
     }
   }
   const title = {
-    'new-project': 'Новый проект',
-    project: 'Настройки проекта',
-    'new-folder': 'Новая папка',
-    folder: 'Настройки папки',
-    chat: 'Настройки чата',
+    'new-project': loc('Новый проект'),
+    project: loc('Настройки проекта'),
+    'new-folder': loc('Новая папка'),
+    folder: loc('Настройки папки'),
+    chat: loc('Настройки чата'),
   }[type];
   return (
     <div
@@ -859,20 +875,20 @@ function ProjectEditor({editor, project, folders, chats, onClose, onSaved}) {
               {type === 'project'
                 ? item.workspace
                 : type === 'new-project'
-                  ? 'Локальная папка с кодом станет рабочим каталогом агента'
+                  ? loc('Локальная папка с кодом станет рабочим каталогом агента')
                   : project?.name}
             </small>
           </div>
-          <button type="button" disabled={busy} aria-label="Закрыть настройки" onClick={onClose}>
+          <button type="button" disabled={busy} aria-label={loc('Закрыть настройки')} onClick={onClose}>
             <X size={19} />
           </button>
         </div>
         <form onSubmit={save}>
           <div className="settings-body">
             <label>
-              Название
+              {loc('Название')}
               <input
-                aria-label="Название"
+                aria-label={loc('Название')}
                 value={name}
                 maxLength={120}
                 onChange={e => setName(e.target.value)}
@@ -881,29 +897,29 @@ function ProjectEditor({editor, project, folders, chats, onClose, onSaved}) {
             </label>
             {type === 'new-project' && (
               <label>
-                Рабочая папка
+                {loc('Рабочая папка')}
                 <span className="path-field">
                   <input
-                    aria-label="Рабочая папка"
+                    aria-label={loc('Рабочая папка')}
                     placeholder="/Users/you/Projects/MyProject"
                     value={workspace}
                     onChange={e => setWorkspace(e.target.value)}
                     required
                   />
-                  <PathPick kind="folder" prompt="Рабочая папка проекта" onPick={setWorkspace} />
+                  <PathPick kind="folder" prompt={loc('Рабочая папка проекта')} onPick={setWorkspace} />
                 </span>
-                <small>Основной локальный каталог проекта</small>
+                <small>{loc('Основной локальный каталог проекта')}</small>
               </label>
             )}
             {(type === 'folder' || type === 'new-folder') && (
               <label>
-                Родительская папка
+                {loc('Родительская папка')}
                 <CustomSelect
-                  aria-label="Родительская папка"
+                  aria-label={loc('Родительская папка')}
                   value={parent}
                   onChange={e => setParent(e.target.value)}
                 >
-                  <option value="">В корне проекта</option>
+                  <option value="">{loc('В корне проекта')}</option>
                   {folders
                     .filter(f => f.id !== item?.id)
                     .map(f => (
@@ -917,16 +933,16 @@ function ProjectEditor({editor, project, folders, chats, onClose, onSaved}) {
             {type === 'chat' && (
               <>
                 <label>
-                  Папка
+                  {loc('Папка')}
                   <CustomSelect
-                    aria-label="Папка чата"
+                    aria-label={loc('Папка чата')}
                     value={folder}
                     onChange={e => {
                       setFolder(e.target.value);
                       setParentChat('');
                     }}
                   >
-                    <option value="">В корне проекта</option>
+                    <option value="">{loc('В корне проекта')}</option>
                     {folders.map(f => (
                       <option key={f.id} value={f.id}>
                         {f.name}
@@ -935,13 +951,13 @@ function ProjectEditor({editor, project, folders, chats, onClose, onSaved}) {
                   </CustomSelect>
                 </label>
                 <label>
-                  Родительский чат
+                  {loc('Родительский чат')}
                   <CustomSelect
-                    aria-label="Родительский чат"
+                    aria-label={loc('Родительский чат')}
                     value={parentChat}
                     onChange={e => setParentChat(e.target.value)}
                   >
-                    <option value="">Самостоятельный чат</option>
+                    <option value="">{loc('Самостоятельный чат')}</option>
                     {chats
                       .filter(c => c.id !== item.id && (c.folderId || '') === folder)
                       .map(c => (
@@ -951,7 +967,7 @@ function ProjectEditor({editor, project, folders, chats, onClose, onSaved}) {
                       ))}
                   </CustomSelect>
                   <small>
-                    Подчат получает последние сообщения родительских чатов и контекст своей папки.
+                    {loc('Подчат получает последние сообщения родительских чатов и контекст своей папки.')}
                   </small>
                 </label>
               </>
@@ -960,15 +976,15 @@ function ProjectEditor({editor, project, folders, chats, onClose, onSaved}) {
               <>
                 <div className="context-heading">
                   <h3>
-                    Контекст
+                    {loc('Контекст')}
                     {type === 'new-project' && (
-                      <small className="optional"> · можно добавить сейчас или позже</small>
+                      <small className="optional"> {loc('· можно добавить сейчас или позже')}</small>
                     )}
                   </h3>
                   <small>
                     {type === 'project' || type === 'new-project'
-                      ? 'Наследуется всеми папками и чатами проекта'
-                      : 'Дополняет контекст проекта и родительских папок'}
+                      ? loc('Наследуется всеми папками и чатами проекта')
+                      : loc('Дополняет контекст проекта и родительских папок')}
                   </small>
                 </div>
                 <ContextSources
@@ -976,13 +992,12 @@ function ProjectEditor({editor, project, folders, chats, onClose, onSaved}) {
                   setContexts={setContexts}
                   onFiles={upload}
                   busy={busy}
-                  pendingNote="загрузится при создании проекта"
+                  pendingNote={loc('загрузится при создании проекта')}
                 />
                 <p className="context-help">
-                  Папки и файлы агент читает с вашего компьютера. Загруженные документы и картинки хранятся в
-                  Nexus. Ссылки передаются как источники: доступ к содержимому зависит от возможностей агента
-                  и авторизации сайта. В запрос уходит до 48 000 символов контекста — длинные заметки
-                  сокращаются.
+                  {loc(
+                    'Папки и файлы агент читает с вашего компьютера. Загруженные документы и картинки хранятся в Nexus. Ссылки передаются как источники: доступ к содержимому зависит от возможностей агента и авторизации сайта. В запрос уходит до 48 000 символов контекста — длинные заметки сокращаются.'
+                  )}
                 </p>
               </>
             )}
@@ -991,10 +1006,10 @@ function ProjectEditor({editor, project, folders, chats, onClose, onSaved}) {
           </div>
           <div className="settings-actions">
             <button type="button" disabled={busy} onClick={onClose}>
-              Отмена
+              {loc('Отмена')}
             </button>
             <button className="primary" disabled={busy || !name.trim()} type="submit">
-              {busy ? 'Сохраняю…' : type.startsWith('new-') ? 'Создать' : 'Сохранить'}
+              {busy ? loc('Сохраняю…') : type.startsWith('new-') ? loc('Создать') : loc('Сохранить')}
             </button>
           </div>
         </form>

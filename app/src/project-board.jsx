@@ -5,19 +5,20 @@ import {invoke} from '@tauri-apps/api/core';
 import {listen} from '@tauri-apps/api/event';
 import {countLabel} from './locale-format.js';
 import {Target, ListChecks, Plus, X, Trash2, MessageSquare, ChevronRight} from 'lucide-react';
+import {loc} from './i18n.js';
 const STATUS = {
-  running: 'В работе',
-  planning: 'Планирование',
-  verifying: 'Проверка',
-  review: 'Ждёт проверки',
-  answered: 'Ответ получен',
-  done: 'Проверки пройдены',
-  failed: 'Ошибка',
-  stopped: 'Остановлена',
-  interrupted: 'Прервана перезапуском',
-  pending: 'Ожидает',
-  completed: 'Предложение готово',
-  blocked: 'Зависимость не завершена',
+  running: loc('В работе'),
+  planning: loc('Планирование'),
+  verifying: loc('Проверка'),
+  review: loc('Ждёт проверки'),
+  answered: loc('Ответ получен'),
+  done: loc('Проверки пройдены'),
+  failed: loc('Ошибка'),
+  stopped: loc('Остановлена'),
+  interrupted: loc('Прервана перезапуском'),
+  pending: loc('Ожидает'),
+  completed: loc('Предложение готово'),
+  blocked: loc('Зависимость не завершена'),
 };
 export function ProjectBoard({projectId, chatId, onChat, open, onToggle}) {
   const [board, setBoard] = useState({goals: [], tasks: []}),
@@ -86,19 +87,19 @@ export function ProjectBoard({projectId, chatId, onChat, open, onToggle}) {
       <div className="project-work-strip">
         <button onClick={onToggle} aria-expanded={open}>
           <Target size={15} />
-          {board.goals.find(g => !g.done)?.title || 'Цели проекта'}
+          {board.goals.find(g => !g.done)?.title || loc('Цели проекта')}
           <ChevronRight size={13} />
         </button>
         <button onClick={onToggle}>
           <ListChecks size={15} />
-          {active.length ? `${active.length} · требуют внимания` : 'Задачи проекта'}
+          {active.length ? loc('{0} · требуют внимания', active.length) : loc('Задачи проекта')}
         </button>
       </div>
       {open && (
-        <section className="project-work-panel" aria-label="Цели и задачи проекта">
+        <section className="project-work-panel" aria-label={loc('Цели и задачи проекта')}>
           <div className="project-work-heading">
-            <strong>Цели и задачи</strong>
-            <button aria-label="Закрыть цели и задачи" onClick={onToggle}>
+            <strong>{loc('Цели и задачи')}</strong>
+            <button aria-label={loc('Закрыть цели и задачи')} onClick={onToggle}>
               <X size={16} />
             </button>
           </div>
@@ -106,11 +107,11 @@ export function ProjectBoard({projectId, chatId, onChat, open, onToggle}) {
             <div>
               <h3>
                 <Target size={15} />
-                Цели
+                {loc('Цели')}
               </h3>
               <button disabled={busy} onClick={() => setEditing(v => !v)}>
                 <Plus size={14} />
-                Добавить
+                {loc('Добавить')}
               </button>
             </div>
             {board.goals.map(g => (
@@ -134,7 +135,7 @@ export function ProjectBoard({projectId, chatId, onChat, open, onToggle}) {
                   <span className={g.done ? 'goal-done' : ''}>{g.title}</span>
                 </label>
                 <button
-                  aria-label={'Удалить цель ' + g.title}
+                  aria-label={loc('Удалить цель ') + g.title}
                   disabled={busy}
                   onClick={() => mutate(() => invoke('remove_project_goal', {projectId, id: g.id}))}
                 >
@@ -157,28 +158,33 @@ export function ProjectBoard({projectId, chatId, onChat, open, onToggle}) {
               >
                 <input
                   autoFocus
-                  aria-label="Новая цель проекта"
-                  placeholder="Какой результат нужен?"
+                  aria-label={loc('Новая цель проекта')}
+                  placeholder={loc('Какой результат нужен?')}
                   value={title}
                   maxLength={300}
                   onChange={e => setTitle(e.target.value)}
                 />
-                <button disabled={busy || !title.trim()}>Сохранить</button>
+                <button disabled={busy || !title.trim()}>{loc('Сохранить')}</button>
               </form>
             )}
             {!board.goals.length && !editing && (
-              <p>Добавьте цель — она будет видна здесь и попадёт в контекст агента.</p>
+              <p>{loc('Добавьте цель — она будет видна здесь и попадёт в контекст агента.')}</p>
             )}
           </div>
           <div className="task-list-heading board-section-heading">
             <h3>
               <ListChecks size={15} />
-              Задачи из чатов{board.tasks.length > 0 && <small>{board.tasks.length}</small>}
+              {loc('Задачи из чатов')}
+              {board.tasks.length > 0 && <small>{board.tasks.length}</small>}
             </h3>
-            <CustomSelect value={filter} aria-label="Фильтр задач" onChange={e => setFilter(e.target.value)}>
-              <option value="all">Все</option>
-              <option value="active">Требуют внимания</option>
-              <option value="chat">Текущий чат</option>
+            <CustomSelect
+              value={filter}
+              aria-label={loc('Фильтр задач')}
+              onChange={e => setFilter(e.target.value)}
+            >
+              <option value="all">{loc('Все')}</option>
+              <option value="active">{loc('Требуют внимания')}</option>
+              <option value="chat">{loc('Текущий чат')}</option>
             </CustomSelect>
           </div>
           <div className="project-task-list">
@@ -198,8 +204,8 @@ export function ProjectBoard({projectId, chatId, onChat, open, onToggle}) {
                       {STATUS[t.status] || t.status}
                     </span>
                     <button
-                      title="Открыть чат задачи"
-                      aria-label={'Открыть чат: ' + t.title}
+                      title={loc('Открыть чат задачи')}
+                      aria-label={loc('Открыть чат: ') + t.title}
                       onClick={() => onChat(t.chatId)}
                     >
                       <MessageSquare size={14} />
@@ -208,14 +214,19 @@ export function ProjectBoard({projectId, chatId, onChat, open, onToggle}) {
                   <strong>{t.title}</strong>
                   {t.steps.length > 0 && (
                     <details>
-                      <summary>Автоплан · {countLabel(t.steps.length, 'этап', 'этапа', 'этапов')}</summary>
+                      <summary>
+                        {loc('Автоплан ·')}{' '}
+                        {countLabel(t.steps.length, loc('этап'), loc('этапа'), loc('этапов'))}
+                      </summary>
                       <ol>
                         {t.steps.map((step, i) => (
                           <li key={i}>{step}</li>
                         ))}
                       </ol>
                       <small>
-                        План по правилам. Результат ответа сам по себе не подтверждает выполнение этапов.
+                        {loc(
+                          'План по правилам. Результат ответа сам по себе не подтверждает выполнение этапов.'
+                        )}
                       </small>
                     </details>
                   )}
@@ -226,14 +237,16 @@ export function ProjectBoard({projectId, chatId, onChat, open, onToggle}) {
                         <div
                           className="task-progress"
                           role="progressbar"
-                          aria-label="Готовность подзадач"
+                          aria-label={loc('Готовность подзадач')}
                           aria-valuemin={0}
                           aria-valuemax={t.team.length}
                           aria-valuenow={done}
                         >
                           <span style={{width: (done / t.team.length) * 100 + '%'}} />
                           <small>
-                            {done} из {countLabel(t.team.length, 'подзадачи', 'подзадач', 'подзадач')} готово
+                            {done} {loc('из')}{' '}
+                            {countLabel(t.team.length, loc('подзадачи'), loc('подзадач'), loc('подзадач'))}{' '}
+                            {loc('готово')}
                           </small>
                         </div>
                       );
@@ -241,7 +254,8 @@ export function ProjectBoard({projectId, chatId, onChat, open, onToggle}) {
                   {t.team?.length > 0 && (
                     <details>
                       <summary>
-                        Команда · {countLabel(t.team.length, 'подзадача', 'подзадачи', 'подзадач')}
+                        {loc('Команда ·')}{' '}
+                        {countLabel(t.team.length, loc('подзадача'), loc('подзадачи'), loc('подзадач'))}
                       </summary>
                       <ol>
                         {t.team.map(r => (
@@ -254,12 +268,12 @@ export function ProjectBoard({projectId, chatId, onChat, open, onToggle}) {
                                   : r.status
                               ] || r.status}{' '}
                               · {r.step.modelChoice}
-                              {r.elapsedMs > 0 ? ` · ${(r.elapsedMs / 1000).toFixed(1)} с` : ''}
+                              {r.elapsedMs > 0 ? loc(' · {0} с', (r.elapsedMs / 1000).toFixed(1)) : ''}
                             </p>
                             <small>{r.step.reason}</small>
                             {r.result && (
                               <details>
-                                <summary>Результат подзадачи</summary>
+                                <summary>{loc('Результат подзадачи')}</summary>
                                 <pre className="team-step-result">{r.result}</pre>
                               </details>
                             )}
@@ -267,15 +281,16 @@ export function ProjectBoard({projectId, chatId, onChat, open, onToggle}) {
                         ))}
                       </ol>
                       <small>
-                        Результаты специалистов — предложения. Реализация и проверки выполняются итоговым
-                        агентом.
+                        {loc(
+                          'Результаты специалистов — предложения. Реализация и проверки выполняются итоговым агентом.'
+                        )}
                       </small>
                     </details>
                   )}
                   <p>{t.verification}</p>
                 </article>
               ))}
-            {!board.tasks.length && <p>Отправьте запрос в чат — его статус появится здесь.</p>}
+            {!board.tasks.length && <p>{loc('Отправьте запрос в чат — его статус появится здесь.')}</p>}
           </div>
         </section>
       )}

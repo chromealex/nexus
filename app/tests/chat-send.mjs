@@ -1,4 +1,5 @@
 import {sliceBetween} from './helpers/source-slice.mjs';
+import {loc} from '../src/i18n.js';
 import {teamPlan} from '../src/team-plan.js';
 import {chatErrorMessage} from '../src/chat-errors.js';
 import {routingAdvice} from '../src/agent-catalog.js';
@@ -18,6 +19,7 @@ function fixture({chat = '', fail = false} = {}) {
   let release;
   const gate = new Promise(r => (release = r));
   const ctx = {
+    loc,
     teamPlan,
     teamMode: 'single',
     chatErrorMessage,

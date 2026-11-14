@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {layoutMinimap} from './chat-layout.js';
+import {loc} from './i18n.js';
 
 // Overview of the loaded conversation, left of the message column.
 // Bars are measured from the real DOM (message heights, code/graphic blocks inside answers),
@@ -114,7 +115,7 @@ export function ChatMinimap({viewportRef, contentRef, bookmarks = [], onNavigate
             key={bar.id}
             className={'minimap-bar role-' + bar.role + (marked.has(bar.id) ? ' is-bookmarked' : '')}
             style={{top: bar.top, height: bar.height}}
-            title={(bar.role === 'user' ? 'Вы: ' : 'Nexus: ') + bar.excerpt}
+            title={(bar.role === 'user' ? loc('Вы: ') : 'Nexus: ') + bar.excerpt}
           >
             {bar.blocks.map((b, i) => (
               <span

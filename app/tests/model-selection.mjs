@@ -1,4 +1,5 @@
 import {sliceBetween} from './helpers/source-slice.mjs';
+import {loc} from '../src/i18n.js';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
@@ -42,6 +43,7 @@ let rows = [
   ],
   resolve;
 const ctx = {
+  loc,
   activeChat: 'a',
   modelSaving: false,
   setModelSaving: () => {},

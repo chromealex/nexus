@@ -1,5 +1,6 @@
 import React, {useEffect, useId, useRef, useState} from 'react';
 import {SlidersHorizontal, ChevronDown} from 'lucide-react';
+import {loc} from './i18n.js';
 
 // Secondary composer settings (routing priority, reasoning depth, team) behind one button.
 // The button shows only the values that differ from the defaults, so the common case stays short.
@@ -8,7 +9,7 @@ export function composerParamsSummary({priority, priorityLabel, reasoning, reaso
   return [
     priority !== 'balanced' && priorityLabel,
     reasoning !== 'auto' && reasoningLabel,
-    team && 'Команда',
+    team && loc('Команда'),
     browser,
   ].filter(Boolean);
 }
@@ -46,7 +47,7 @@ export function ComposerParams({summary, fullSummary, disabled, children}) {
         onClick={() => setOpen(v => !v)}
       >
         <SlidersHorizontal size={13} aria-hidden="true" />
-        <span>{summary.length ? summary.join(' · ') : 'Параметры'}</span>
+        <span>{summary.length ? summary.join(' · ') : loc('Параметры')}</span>
         <ChevronDown size={12} aria-hidden="true" />
       </button>
       {open && (
@@ -54,7 +55,7 @@ export function ComposerParams({summary, fullSummary, disabled, children}) {
           className="composer-params-popover"
           id={id}
           role="dialog"
-          aria-label="Параметры запроса"
+          aria-label={loc('Параметры запроса')}
           onKeyDown={e => {
             if (e.key === 'Escape' && !e.defaultPrevented) {
               e.stopPropagation();
@@ -63,7 +64,7 @@ export function ComposerParams({summary, fullSummary, disabled, children}) {
             }
           }}
         >
-          <strong>Параметры запроса</strong>
+          <strong>{loc('Параметры запроса')}</strong>
           {children}
         </div>
       )}

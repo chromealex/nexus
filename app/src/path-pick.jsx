@@ -2,9 +2,10 @@ import React, {useState} from 'react';
 import {invoke} from '@tauri-apps/api/core';
 import {FolderOpen} from 'lucide-react';
 import {notify} from './toasts.js';
+import {loc} from './i18n.js';
 
 // «Выбрать…» next to a path field: the native macOS panel fills the field; cancel changes nothing.
-export function PathPick({kind = 'file', prompt, onPick, disabled, label = 'Выбрать…'}) {
+export function PathPick({kind = 'file', prompt, onPick, disabled, label = loc('Выбрать…')}) {
   const [busy, setBusy] = useState(false);
   return (
     <button

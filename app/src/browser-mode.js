@@ -1,8 +1,9 @@
+import {loc} from './i18n.js';
 // Chat browser: labels, hints, input mapping and preview rules. Pure, so it is tested without the UI.
 export const BROWSER_MODES = {
-  builtin: 'Встроенный браузер',
-  chrome: 'Мой Chrome (со входами)',
-  off: 'Выключен',
+  builtin: loc('Встроенный браузер'),
+  chrome: loc('Мой Chrome (со входами)'),
+  off: loc('Выключен'),
 };
 
 // Old settings used "isolated" for the built-in browser.
@@ -13,7 +14,7 @@ export function normalizeMode(mode) {
 // Shown on «Параметры» only when it differs from the default built-in browser.
 export function browserSummary(mode) {
   mode = normalizeMode(mode);
-  return mode === 'chrome' ? 'Мой Chrome' : mode === 'off' ? 'Без браузера' : '';
+  return mode === 'chrome' ? loc('Мой Chrome') : mode === 'off' ? loc('Без браузера') : '';
 }
 
 // What the user must know or do before the agent can use the browser in this chat.
@@ -23,30 +24,36 @@ export function browserHint(mode, status = {}) {
   if (mode === 'off')
     return {
       tone: 'info',
-      text: 'Агенты в этом чате не пользуются браузером. Включите встроенный браузер, чтобы они открывали сайты, нажимали и заполняли формы — с вашим подтверждением.',
+      text: loc(
+        'Агенты в этом чате не пользуются браузером. Включите встроенный браузер, чтобы они открывали сайты, нажимали и заполняли формы — с вашим подтверждением.'
+      ),
     };
-  if (status.installing) return {tone: 'info', text: 'Устанавливается Playwright…'};
+  if (status.installing) return {tone: 'info', text: loc('Устанавливается Playwright…')};
   if (status.node === false)
-    return {tone: 'warn', text: 'Нужен Node.js 22+ (nvm или Homebrew), затем перезапустите Nexus.'};
+    return {tone: 'warn', text: loc('Нужен Node.js 22+ (nvm или Homebrew), затем перезапустите Nexus.')};
   if (status.chrome === false)
-    return {tone: 'warn', text: 'Не найден Google Chrome в «Программах». Установите Chrome.'};
+    return {tone: 'warn', text: loc('Не найден Google Chrome в «Программах». Установите Chrome.')};
   if (!status.installed)
     return {
       tone: 'warn',
       text:
-        `Нужно один раз установить Playwright ${status.version || ''}`.trim() +
-        ' (около 20 МБ). Отдельный браузер не скачивается — работает невидимый Chrome.',
+        loc('Нужно один раз установить Playwright {0}', status.version || '').trim() +
+        loc(' (около 20 МБ). Отдельный браузер не скачивается — работает невидимый Chrome.'),
       action: 'install',
     };
   if (mode === 'chrome')
     return {
       tone: 'warn',
-      text: 'Агент работает в вашем Chrome с вашими входами через расширение Playwright MCP Bridge; при подключении Chrome попросит выбрать вкладку. Каждое действие подтверждается отдельно, «разрешать всегда» недоступно.',
+      text: loc(
+        'Агент работает в вашем Chrome с вашими входами через расширение Playwright MCP Bridge; при подключении Chrome попросит выбрать вкладку. Каждое действие подтверждается отдельно, «разрешать всегда» недоступно.'
+      ),
       action: 'extension',
     };
   return {
     tone: 'info',
-    text: 'У каждого чата свой браузер: вкладки и входы на сайты сохраняются. Он открыт справа; агенты читают страницы без вопросов, а действия подтверждаются в чате.',
+    text: loc(
+      'У каждого чата свой браузер: вкладки и входы на сайты сохраняются. Он открыт справа; агенты читают страницы без вопросов, а действия подтверждаются в чате.'
+    ),
   };
 }
 
@@ -54,8 +61,8 @@ export function browserHint(mode, status = {}) {
 export function browserRequest(details = {}) {
   const own = details.mode === 'chrome';
   return {
-    summary: details.summary || details.tool || 'Действие в браузере',
-    where: own ? 'В вашем Chrome со входами' : 'Во встроенном браузере этого чата',
+    summary: details.summary || details.tool || loc('Действие в браузере'),
+    where: own ? loc('В вашем Chrome со входами') : loc('Во встроенном браузере этого чата'),
     own,
     host: details.host || '',
   };
@@ -110,7 +117,7 @@ export function previewVisible({paneOpen, mode, agentBusy, activityAt, now = Dat
 export function tabTitle(tab) {
   if (!tab) return '';
   if (tab.title) return tab.title;
-  if (!tab.url || tab.url === 'about:blank') return 'Новая вкладка';
+  if (!tab.url || tab.url === 'about:blank') return loc('Новая вкладка');
   try {
     return new URL(tab.url).host || tab.url;
   } catch {

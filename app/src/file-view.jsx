@@ -5,6 +5,7 @@ import {Copy, Check, FolderOpen, ExternalLink, Download, File as FileIcon} from 
 import {fileKind, parseDelimited, languageForFile} from './chat-files.js';
 import {languageOf, tokenize} from './code-highlight.js';
 import {ChatMarkdown} from './chat-message-view.jsx';
+import {loc} from './i18n.js';
 
 const TEXT_LIMIT = 1_000_000;
 const APP_TYPES =
@@ -135,7 +136,7 @@ function TableView({text, name}) {
     () => parseDelimited(text, name.toLowerCase().endsWith('.tsv') ? '\t' : ',', 501),
     [text, name]
   );
-  if (!rows.length) return <p className="file-empty">Пустая таблица</p>;
+  if (!rows.length) return <p className="file-empty">{loc('Пустая таблица')}</p>;
   const [head, ...body] = rows;
   return (
     <div className="file-table">
@@ -157,7 +158,7 @@ function TableView({text, name}) {
           ))}
         </tbody>
       </table>
-      {rows.length > 500 && <p className="file-empty">Показаны первые 500 строк.</p>}
+      {rows.length > 500 && <p className="file-empty">{loc('Показаны первые 500 строк.')}</p>}
     </div>
   );
 }
@@ -181,7 +182,7 @@ export function FileView({file, chatId}) {
       return state.text;
     }
   }, [state.kind, state.text]);
-  if (state.loading) return <div className="file-view is-empty">Загрузка…</div>;
+  if (state.loading) return <div className="file-view is-empty">{loc('Загрузка…')}</div>;
   if (state.error)
     return (
       <div className="file-view is-empty">
@@ -201,23 +202,26 @@ export function FileView({file, chatId}) {
       <div className="file-view-bar">
         <span className="file-view-path" title={state.path || state.display}>
           {state.display}
-          <small> · {kb} КБ</small>
+          <small>
+            {' '}
+            · {kb} {loc('КБ')}
+          </small>
         </span>
         {canRender && (
-          <span className="file-view-toggle" role="group" aria-label="Вид файла">
+          <span className="file-view-toggle" role="group" aria-label={loc('Вид файла')}>
             <button type="button" className={!source ? 'is-active' : ''} onClick={() => setSource(false)}>
-              Просмотр
+              {loc('Просмотр')}
             </button>
             <button type="button" className={source ? 'is-active' : ''} onClick={() => setSource(true)}>
-              Код
+              {loc('Код')}
             </button>
           </span>
         )}
         {state.text && (
           <button
             type="button"
-            title="Копировать содержимое"
-            aria-label="Копировать содержимое"
+            title={loc('Копировать содержимое')}
+            aria-label={loc('Копировать содержимое')}
             onClick={async () => {
               try {
                 await navigator.clipboard.writeText(state.text);
@@ -234,8 +238,8 @@ export function FileView({file, chatId}) {
             {APP_TYPES.test(state.name) && (
               <button
                 type="button"
-                title="Открыть в приложении"
-                aria-label="Открыть в приложении"
+                title={loc('Открыть в приложении')}
+                aria-label={loc('Открыть в приложении')}
                 onClick={() => reveal(true)}
               >
                 <ExternalLink size={14} />
@@ -243,15 +247,15 @@ export function FileView({file, chatId}) {
             )}
             <button
               type="button"
-              title="Показать в Finder"
-              aria-label="Показать в Finder"
+              title={loc('Показать в Finder')}
+              aria-label={loc('Показать в Finder')}
               onClick={() => reveal(false)}
             >
               <FolderOpen size={14} />
             </button>
           </>
         ) : (
-          <a href={state.url} download={state.name} title="Скачать" aria-label="Скачать">
+          <a href={state.url} download={state.name} title={loc('Скачать')} aria-label={loc('Скачать')}>
             <Download size={14} />
           </a>
         )}
@@ -275,7 +279,9 @@ export function FileView({file, chatId}) {
           <>
             {/* No scripts, forms or same-origin access: the page is only drawn. */}
             <iframe className="file-html" title={state.name} sandbox="" srcDoc={state.text} />
-            <p className="file-view-note">Скрипты страницы отключены — показана только разметка и стили.</p>
+            <p className="file-view-note">
+              {loc('Скрипты страницы отключены — показана только разметка и стили.')}
+            </p>
           </>
         ) : state.kind === 'table' && !source ? (
           <TableView text={state.text} name={state.name} />
@@ -286,15 +292,15 @@ export function FileView({file, chatId}) {
         ) : (
           <div className="file-view is-empty">
             <FileIcon size={30} aria-hidden="true" />
-            <p>Встроенного просмотра для этого формата нет.</p>
+            <p>{loc('Встроенного просмотра для этого формата нет.')}</p>
             {project && APP_TYPES.test(state.name) && (
               <button type="button" onClick={() => reveal(true)}>
-                Открыть в приложении
+                {loc('Открыть в приложении')}
               </button>
             )}
           </div>
         )}
-        {state.truncated && <p className="file-view-note">Показан первый 1 МБ файла.</p>}
+        {state.truncated && <p className="file-view-note">{loc('Показан первый 1 МБ файла.')}</p>}
       </div>
     </div>
   );

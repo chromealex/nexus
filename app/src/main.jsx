@@ -77,8 +77,14 @@ import {
   UserActions,
   MessageEditor,
 } from './chat-message-view.jsx';
+import {loc} from './i18n.js';
 
-const REASONING_LABELS = {auto: 'Авто', fast: 'Быстро', normal: 'Обычно', deep: 'Глубоко'};
+const REASONING_LABELS = {
+  auto: loc('Авто'),
+  fast: loc('Быстро'),
+  normal: loc('Обычно'),
+  deep: loc('Глубоко'),
+};
 
 function App() {
   const [historyMeta, setHistoryMeta] = useState({hasMore: false, beforeId: null}),
@@ -339,7 +345,7 @@ function App() {
       const saved = await invoke('save_chat_model', {chatId, modelChoice: value});
       setChats(rows => rows.map(c => (c.id === chatId ? saved : c)));
     } catch (e) {
-      setProjectError('Не удалось сохранить модель: ' + String(e));
+      setProjectError(loc('Не удалось сохранить модель: ') + String(e));
     } finally {
       setModelSaving(false);
     }
@@ -353,7 +359,7 @@ function App() {
       routeApproval.current = null;
       setChats(rows => rows.map(c => (c.id === chatId ? saved : c)));
     } catch (e) {
-      setProjectError('Не удалось сохранить приоритет: ' + String(e));
+      setProjectError(loc('Не удалось сохранить приоритет: ') + String(e));
     } finally {
       setModelSaving(false);
     }
@@ -479,14 +485,14 @@ function App() {
     const files = Array.from(list || []),
       project = activeProject;
     if (files.length + draftFiles.length > 8) {
-      setProjectError('Можно прикрепить до 8 файлов');
+      setProjectError(loc('Можно прикрепить до 8 файлов'));
       return;
     }
     if (
       files.some(f => f.size > 20000000) ||
       files.reduce((n, f) => n + f.size, 0) + draftFiles.reduce((n, f) => n + f.size, 0) > 40000000
     ) {
-      setProjectError('Максимум 20 МБ на файл и 40 МБ на сообщение');
+      setProjectError(loc('Максимум 20 МБ на файл и 40 МБ на сообщение'));
       return;
     }
     setFilesBusy(true);
@@ -496,7 +502,7 @@ function App() {
         const data = await new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
-          reader.onerror = () => reject(Error('Не удалось прочитать ' + file.name));
+          reader.onerror = () => reject(Error(loc('Не удалось прочитать ') + file.name));
           reader.readAsDataURL(file);
         });
         const stored = await invoke('upload_attachment', {
@@ -567,7 +573,7 @@ function App() {
     try {
       setModelChoices(await invoke('list_chat_models'));
     } catch (e) {
-      setModelLoadError('Не удалось загрузить модели: ' + String(e));
+      setModelLoadError(loc('Не удалось загрузить модели: ') + String(e));
     } finally {
       modelLoadRef.current = false;
       setModelsBusy(false);
@@ -715,7 +721,7 @@ function App() {
       setChatMessages(rows => prependMessages(rows, page.messages));
       setHistoryMeta({hasMore: page.hasMore, beforeId: page.beforeId});
     } catch (e) {
-      if (viewRef.current.chat === chat) setProjectError('Не удалось загрузить историю: ' + String(e));
+      if (viewRef.current.chat === chat) setProjectError(loc('Не удалось загрузить историю: ') + String(e));
     } finally {
       if (historyRef.current === request) {
         request.busy = false;
@@ -922,7 +928,7 @@ function App() {
           more = page.hasMore;
         }
       } catch (e) {
-        setProjectError('Не удалось загрузить историю: ' + String(e));
+        setProjectError(loc('Не удалось загрузить историю: ') + String(e));
         return;
       }
       chatScroll.keepReading();
@@ -959,13 +965,13 @@ function App() {
       });
       if (kind === 'copy') {
         await navigator.clipboard.writeText(markdown);
-        setExportNote({text: 'Чат скопирован в Markdown'});
+        setExportNote({text: loc('Чат скопирован в Markdown')});
       } else {
         const path = await invoke('save_chat_export', {fileName: chat.title, content: markdown});
-        setExportNote({text: 'Сохранено: ' + path.split('/').slice(-2).join('/'), path});
+        setExportNote({text: loc('Сохранено: ') + path.split('/').slice(-2).join('/'), path});
       }
     } catch (e) {
-      setProjectError('Экспорт не выполнен: ' + String(e));
+      setProjectError(loc('Экспорт не выполнен: ') + String(e));
     }
   }
   // Errors and notices go to the toasts at the top of the window and close by themselves.
@@ -975,7 +981,7 @@ function App() {
     notify(exportNote.text, {
       tone: 'success',
       action: path && {
-        label: 'Показать в Finder',
+        label: loc('Показать в Finder'),
         run: () => invoke('reveal_chat_export', {path}).catch(e => setProjectError(String(e))),
       },
     });
@@ -983,7 +989,7 @@ function App() {
   }, [exportNote]);
   useEffect(() => installScrollFades(), []);
   useToastOn(projectError, () => setProjectError(''), 'error', {
-    label: 'Подключения',
+    label: loc('Подключения'),
     run: () => setOpen(true),
   });
   useToastOn(accountMessage, () => setAccountMessage(''), 'info');
@@ -995,7 +1001,7 @@ function App() {
       .reverse()
       .find(m => m.role === 'user');
     if (!request) {
-      setProjectError('Исходный запрос не загружен — прокрутите историю выше');
+      setProjectError(loc('Исходный запрос не загружен — прокрутите историю выше'));
       return;
     }
     sendChat(request.content, message.id, true);
@@ -1021,8 +1027,8 @@ function App() {
     if (!prefs.notify || document.hasFocus() || !message) return;
     const chat = chats.find(c => c.id === message.chatId);
     invoke('notify_answer_ready', {
-      title: 'Nexus · ' + (chat?.title || 'ответ готов'),
-      body: excerpt(message.content, 160) || 'Ответ готов',
+      title: 'Nexus · ' + (chat?.title || loc('ответ готов')),
+      body: excerpt(message.content, 160) || loc('Ответ готов'),
     }).catch(() => {});
   }
   // Global shortcuts. Open dialogs own the keyboard, so nothing fires while one is shown.
@@ -1137,15 +1143,16 @@ function App() {
       selection: routeApproval.current?.text === input ? routeApproval.current.choice : modelChoice,
     });
     if (resolved.error || !resolved.choice) {
-      setProjectError(resolved.error || 'Нет совместимой модели. Проверьте подключения и параметры.');
+      setProjectError(resolved.error || loc('Нет совместимой модели. Проверьте подключения и параметры.'));
       return;
     }
 
     const team = continueMessageId
       ? null
       : teamPlan(
-          (replyTo ? 'Контекст цитаты: ' + replyTo.content.slice(0, 3000).replace(/\n/g, ' ') + '\n' : '') +
-            input,
+          (replyTo
+            ? loc('Контекст цитаты: ') + replyTo.content.slice(0, 3000).replace(/\n/g, ' ') + '\n'
+            : '') + input,
           routeOptions,
           teamMode
         );
@@ -1176,14 +1183,14 @@ function App() {
     setChatSending(true);
     const content =
         (replyTo
-          ? 'Ответ на сообщение NEXUS:\n' +
+          ? loc('Ответ на сообщение NEXUS:\n') +
             replyTo.content
               .slice(0, 3000)
               .split('\n')
               .map(l => '> ' + l)
               .join('\n') +
             '\n\n'
-          : '') + (input.trim() || (draftFiles.length ? 'Посмотри приложенные файлы.' : '')),
+          : '') + (input.trim() || (draftFiles.length ? loc('Посмотри приложенные файлы.') : '')),
       project = activeProject;
     const attachments = continueMessageId ? [] : draftFiles;
     let chatId = activeChat;
@@ -1257,7 +1264,7 @@ function App() {
       if (viewRef.current.project === project && viewRef.current.chat === chatId) {
         setProjectError(chatErrorMessage(e));
         if (!continueMessageId) setChatDraft(draft => draft || input);
-        setChatTrace('Запрос не выполнен');
+        setChatTrace(loc('Запрос не выполнен'));
       }
     } finally {
       if (chatId) {
@@ -1292,7 +1299,7 @@ function App() {
     } catch (e) {
       stopRequestedRef.current = false;
       setStopping(false);
-      setProjectError('Не удалось остановить генерацию: ' + String(e));
+      setProjectError(loc('Не удалось остановить генерацию: ') + String(e));
     }
   }
   async function addProject() {
@@ -1403,7 +1410,9 @@ function App() {
   async function checkProfile(id) {
     if (checkingAccounts.current.has(id) || ['starting', 'waiting'].includes(authJobs[id]?.phase)) return;
     checkingAccounts.current.add(id);
-    setAccountChecks(v => (v[id] ? v : {...v, [id]: {status: 'checking', detail: 'Проверяем подключение…'}}));
+    setAccountChecks(v =>
+      v[id] ? v : {...v, [id]: {status: 'checking', detail: loc('Проверяем подключение…')}}
+    );
     try {
       const result = await invoke('check_account', {id});
       setAccountChecks(v => ({...v, [id]: result}));
@@ -1522,7 +1531,7 @@ function App() {
         [v.id]: {phase: v.phase, log: ((s[v.id]?.log || '') + '\n' + v.message).slice(-20000)},
       }));
       if (v.phase === 'ready') {
-        setAccountChecks(s => ({...s, [v.id]: {status: 'ready', detail: 'Вход подтверждён'}}));
+        setAccountChecks(s => ({...s, [v.id]: {status: 'ready', detail: loc('Вход подтверждён')}}));
         loadChatModels();
       }
     }).then(u => {
@@ -1763,24 +1772,24 @@ function App() {
       >
         <div className="mac-navigation">
           <button
-            title={withShortcut('Предыдущий чат', 'previous')}
-            aria-label="Предыдущий чат"
+            title={withShortcut(loc('Предыдущий чат'), 'previous')}
+            aria-label={loc('Предыдущий чат')}
             disabled={chatSending || chats.findIndex(c => c.id === activeChat) <= 0}
             onClick={() => setActiveChat(chats[chats.findIndex(c => c.id === activeChat) - 1].id)}
           >
             <ArrowLeft size={16} />
           </button>
           <button
-            title={withShortcut('Следующий чат', 'next')}
-            aria-label="Следующий чат"
+            title={withShortcut(loc('Следующий чат'), 'next')}
+            aria-label={loc('Следующий чат')}
             disabled={chatSending || chats.findIndex(c => c.id === activeChat) >= chats.length - 1}
             onClick={() => setActiveChat(chats[chats.findIndex(c => c.id === activeChat) + 1].id)}
           >
             <ArrowRight size={16} />
           </button>
           <button
-            title={withShortcut('Показать или скрыть проекты', 'sidebar')}
-            aria-label="Показать или скрыть проекты"
+            title={withShortcut(loc('Показать или скрыть проекты'), 'sidebar')}
+            aria-label={loc('Показать или скрыть проекты')}
             onClick={() => setNavCollapsed(v => !v)}
           >
             <PanelLeft size={16} />
@@ -1793,17 +1802,20 @@ function App() {
           <span className="status">● LOCAL SYSTEM</span>
           {activeChat && !panelShown && (chatBrowser.available || panelFiles.length > 0) && (
             <button
-              title="Показать боковую панель"
+              title={loc('Показать боковую панель')}
               onClick={() => {
                 if (!panelFiles.length) setPanelView('browser');
                 toggleBrowserPane(true);
               }}
             >
-              <PanelRight size={14} aria-hidden="true" /> {panelFiles.length ? 'Панель' : 'Браузер'}
+              <PanelRight size={14} aria-hidden="true" /> {panelFiles.length ? loc('Панель') : loc('Браузер')}
             </button>
           )}
-          <button title={withShortcut('Агенты и подключения', 'connections')} onClick={() => setOpen(!open)}>
-            Агенты <span className="count">{agents.filter(a => a.installed).length}</span>
+          <button
+            title={withShortcut(loc('Агенты и подключения'), 'connections')}
+            onClick={() => setOpen(!open)}
+          >
+            {loc('Агенты')} <span className="count">{agents.filter(a => a.installed).length}</span>
           </button>
         </div>
       </header>
@@ -1851,21 +1863,21 @@ function App() {
             <div className="chat-heading">
               <div>
                 <span className="chat-heading-project">
-                  {projects.find(p => p.id === activeProject)?.name || 'Проект'}
+                  {projects.find(p => p.id === activeProject)?.name || loc('Проект')}
                 </span>
                 <strong
                   className="chat-heading-title"
-                  title={chats.find(c => c.id === activeChat)?.title || 'Новый чат'}
+                  title={chats.find(c => c.id === activeChat)?.title || loc('Новый чат')}
                 >
-                  {chats.find(c => c.id === activeChat)?.title || 'Новый чат'}
+                  {chats.find(c => c.id === activeChat)?.title || loc('Новый чат')}
                 </strong>
               </div>
               {activeChat && chatMessages.length > 0 && (
                 <div className="chat-heading-actions">
                   <button
                     type="button"
-                    title={withShortcut('Найти в чате', 'find')}
-                    aria-label="Найти в чате"
+                    title={withShortcut(loc('Найти в чате'), 'find')}
+                    aria-label={loc('Найти в чате')}
                     aria-pressed={findOpen}
                     onClick={() => setFindOpen(v => !v)}
                   >
@@ -1874,8 +1886,8 @@ function App() {
                   {bookmarks.length > 0 && (
                     <button
                       type="button"
-                      title="Закладки чата"
-                      aria-label={'Закладки: ' + bookmarks.length}
+                      title={loc('Закладки чата')}
+                      aria-label={loc('Закладки: ') + bookmarks.length}
                       aria-expanded={chatMenu === 'bookmarks'}
                       onClick={() => setChatMenu(v => (v === 'bookmarks' ? null : 'bookmarks'))}
                     >
@@ -1885,8 +1897,8 @@ function App() {
                   )}
                   <button
                     type="button"
-                    title="Вид и экспорт"
-                    aria-label="Вид и экспорт чата"
+                    title={loc('Вид и экспорт')}
+                    aria-label={loc('Вид и экспорт чата')}
                     aria-expanded={chatMenu === 'more'}
                     onClick={() => setChatMenu(v => (v === 'more' ? null : 'more'))}
                   >
@@ -1904,23 +1916,23 @@ function App() {
                               revealMessage(b.id);
                             }}
                           >
-                            <small>{b.role === 'user' ? 'Вы' : 'Nexus'}</small>
-                            {b.excerpt || 'Сообщение'}
+                            <small>{b.role === 'user' ? loc('Вы') : 'Nexus'}</small>
+                            {b.excerpt || loc('Сообщение')}
                           </button>
                         ))
                       ) : (
-                        <p>Закладок нет. Отметьте сообщение значком закладки под ним.</p>
+                        <p>{loc('Закладок нет. Отметьте сообщение значком закладки под ним.')}</p>
                       )}
                     </div>
                   )}
                   {chatMenu === 'more' && (
                     <div className="chat-heading-menu more-menu">
-                      <div className="menu-section-title">Размер текста</div>
-                      <div className="text-size-row" role="group" aria-label="Размер текста сообщений">
+                      <div className="menu-section-title">{loc('Размер текста')}</div>
+                      <div className="text-size-row" role="group" aria-label={loc('Размер текста сообщений')}>
                         <button
                           type="button"
-                          aria-label="Мельче (⌘−)"
-                          title="Мельче (⌘−)"
+                          aria-label={loc('Мельче (⌘−)')}
+                          title={loc('Мельче (⌘−)')}
                           disabled={textSize === TEXT_SIZES[0]}
                           onClick={() => setTextSize(v => stepTextSize(v, -1))}
                         >
@@ -1932,7 +1944,7 @@ function App() {
                               type="button"
                               key={n}
                               aria-pressed={n === textSize}
-                              aria-label={n + ' пикселей'}
+                              aria-label={n + loc(' пикселей')}
                               onClick={() => setTextSize(n)}
                               style={{fontSize: Math.round(n * 0.8)}}
                             >
@@ -1942,8 +1954,8 @@ function App() {
                         </div>
                         <button
                           type="button"
-                          aria-label="Крупнее (⌘=)"
-                          title="Крупнее (⌘=)"
+                          aria-label={loc('Крупнее (⌘=)')}
+                          title={loc('Крупнее (⌘=)')}
                           disabled={textSize === TEXT_SIZES.at(-1)}
                           onClick={() => setTextSize(v => stepTextSize(v, 1))}
                         >
@@ -1957,7 +1969,7 @@ function App() {
                           disabled={textSize === DEFAULT_TEXT_SIZE}
                           onClick={() => setTextSize(v => stepTextSize(v, 0))}
                         >
-                          Сбросить (⌘0)
+                          {loc('Сбросить (⌘0)')}
                         </button>
                       </div>
                       <hr />
@@ -1968,16 +1980,16 @@ function App() {
                           onChange={e => setMinimapOn(e.target.checked)}
                         />
                         <MapIcon size={14} />
-                        Миникарта вместо полосы прокрутки
+                        {loc('Миникарта вместо полосы прокрутки')}
                       </label>
                       <hr />
                       <button role="menuitem" onClick={() => exportChat('copy')}>
                         <Copy size={14} />
-                        Копировать весь чат (Markdown)
+                        {loc('Копировать весь чат (Markdown)')}
                       </button>
                       <button role="menuitem" onClick={() => exportChat('file')}>
                         <FileDown size={14} />
-                        Сохранить в «Загрузки» (.md)
+                        {loc('Сохранить в «Загрузки» (.md)')}
                       </button>
                     </div>
                   )}
@@ -2036,7 +2048,7 @@ function App() {
                           disabled={historyBusy}
                           onClick={loadOlderMessages}
                         >
-                          {historyBusy ? 'Загружаю историю…' : 'Загрузить более ранние сообщения'}
+                          {historyBusy ? loc('Загружаю историю…') : loc('Загрузить более ранние сообщения')}
                         </button>
                       )}
                       {historyLoading && <ChatSkeleton />}
@@ -2091,7 +2103,7 @@ function App() {
                             </div>
                             {m.role === 'system' ? (
                               <details className="response-details">
-                                <summary>Технические детали</summary>
+                                <summary>{loc('Технические детали')}</summary>
                                 <pre>{m.content}</pre>
                               </details>
                             ) : editing === m.id ? (
@@ -2169,17 +2181,17 @@ function App() {
                             {m.stopped && (
                               <div className="generation-stopped">
                                 {continuingId === m.id && currentChatSending ? (
-                                  'Продолжаю ответ…'
+                                  loc('Продолжаю ответ…')
                                 ) : (
                                   <>
-                                    Ответ остановлен{' '}
+                                    {loc('Ответ остановлен')}{' '}
                                     <button
                                       type="button"
                                       className="continue-generation"
                                       disabled={chatSending || filesBusy}
-                                      onClick={() => sendChat('Продолжить', m.id)}
+                                      onClick={() => sendChat(loc('Продолжить'), m.id)}
                                     >
-                                      Продолжить
+                                      {loc('Продолжить')}
                                     </button>
                                   </>
                                 )}
@@ -2263,8 +2275,8 @@ function App() {
                     <button
                       type="button"
                       className="jump-latest"
-                      title="К последнему сообщению"
-                      aria-label="К последнему сообщению"
+                      title={loc('К последнему сообщению')}
+                      aria-label={loc('К последнему сообщению')}
                       onClick={chatScroll.jumpToLatest}
                     >
                       <ArrowDown size={18} />
@@ -2287,8 +2299,8 @@ function App() {
                   />
                 )}
                 {routeOffer?.projectId === activeProject && routeOffer?.chatId === activeChat && (
-                  <section className="routing-offer" aria-label="Выбор агента для задачи">
-                    <strong>Нужно совместимое подключение</strong>
+                  <section className="routing-offer" aria-label={loc('Выбор агента для задачи')}>
+                    <strong>{loc('Нужно совместимое подключение')}</strong>
                     <p>
                       {routeOffer.reason} {routeOffer.warning}
                     </p>
@@ -2299,7 +2311,7 @@ function App() {
                           setOpen(true);
                         }}
                       >
-                        Установить / подключить
+                        {loc('Установить / подключить')}
                       </button>
                       <button
                         disabled={!routeOffer.fallback}
@@ -2308,12 +2320,14 @@ function App() {
                           sendChat(routeOffer.text);
                         }}
                       >
-                        Использовать подключённого
+                        {loc('Использовать подключённого')}
                       </button>
-                      <button onClick={() => setRouteOffer(null)}>Отмена</button>
+                      <button onClick={() => setRouteOffer(null)}>{loc('Отмена')}</button>
                     </div>
                     <small>
-                      После подключения Nexus продолжит этот запрос, если чат и черновик не изменились.
+                      {loc(
+                        'После подключения Nexus продолжит этот запрос, если чат и черновик не изменились.'
+                      )}
                     </small>
                   </section>
                 )}
@@ -2327,13 +2341,13 @@ function App() {
                   {replyTo && (
                     <div className="reply-preview">
                       <div>
-                        <strong>Ответ на сообщение NEXUS</strong>
+                        <strong>{loc('Ответ на сообщение NEXUS')}</strong>
                         <p>{replyTo.content.slice(0, 180)}</p>
                       </div>
                       <button
                         type="button"
-                        aria-label="Отменить цитирование"
-                        title="Отменить цитирование"
+                        aria-label={loc('Отменить цитирование')}
+                        title={loc('Отменить цитирование')}
                         onClick={() => setReplyTo(null)}
                       >
                         ×
@@ -2385,12 +2399,12 @@ function App() {
                         className="attach-button"
                         title={
                           chatSending
-                            ? 'Дождитесь окончания ответа, чтобы прикрепить файлы'
+                            ? loc('Дождитесь окончания ответа, чтобы прикрепить файлы')
                             : filesBusy
-                              ? 'Файлы ещё добавляются'
-                              : 'Прикрепить файлы'
+                              ? loc('Файлы ещё добавляются')
+                              : loc('Прикрепить файлы')
                         }
-                        aria-label="Прикрепить файлы"
+                        aria-label={loc('Прикрепить файлы')}
                         disabled={!activeProject || chatSending || filesBusy}
                         onClick={() => fileInputRef.current?.click()}
                       >
@@ -2399,8 +2413,8 @@ function App() {
                       <button
                         type="button"
                         className={'attach-button composer-plan-toggle' + (planOpen ? ' is-active' : '')}
-                        title="План задачи: этапы по тексту запроса, без отправки"
-                        aria-label="План задачи"
+                        title={loc('План задачи: этапы по тексту запроса, без отправки')}
+                        aria-label={loc('План задачи')}
                         aria-expanded={planOpen}
                         disabled={!activeProject || chatSending}
                         onClick={() => setPlanOpen(v => !v)}
@@ -2429,23 +2443,31 @@ function App() {
                           team: teamMode === 'team',
                           browser: browserSummary(browserMode),
                         })}
-                        fullSummary={`Приоритет: ${ROUTING_PRIORITIES[routingPriority]} · Глубина: ${REASONING_LABELS[reasoningMode]} · ${{auto: 'Исполнители: авто', team: 'Команда', single: 'Один агент'}[teamMode]} · Браузер: ${browserSummary(browserMode) || 'выключен'}`}
+                        fullSummary={loc(
+                          'Приоритет: {0} · Глубина: {1} · {2} · Браузер: {3}',
+                          ROUTING_PRIORITIES[routingPriority],
+                          REASONING_LABELS[reasoningMode],
+                          {auto: loc('Исполнители: авто'), team: loc('Команда'), single: loc('Один агент')}[
+                            teamMode
+                          ],
+                          browserSummary(browserMode) || loc('выключен')
+                        )}
                       >
                         <ParamRow
-                          label="Приоритет автовыбора"
+                          label={loc('Приоритет автовыбора')}
                           hint={
                             modelChoice !== 'auto' && !modelChoice.startsWith('agent-auto:')
-                              ? 'Действует только при модели «Авто». Сейчас выбрана конкретная модель.'
-                              : 'Чем руководствоваться, когда модель выбирается автоматически.'
+                              ? loc('Действует только при модели «Авто». Сейчас выбрана конкретная модель.')
+                              : loc('Чем руководствоваться, когда модель выбирается автоматически.')
                           }
                         >
                           <CustomSelect
                             className="reasoning-mode"
-                            aria-label="Приоритет автовыбора"
+                            aria-label={loc('Приоритет автовыбора')}
                             title={
                               modelChoice !== 'auto' && !modelChoice.startsWith('agent-auto:')
-                                ? 'Приоритет действует только при модели «Авто»'
-                                : 'Приоритет автовыбора для этого чата'
+                                ? loc('Приоритет действует только при модели «Авто»')
+                                : loc('Приоритет автовыбора для этого чата')
                             }
                             value={routingPriority}
                             disabled={
@@ -2464,37 +2486,39 @@ function App() {
                           </CustomSelect>
                         </ParamRow>
                         <ParamRow
-                          label="Глубина рассуждений"
-                          hint="Независима от модели. Для ACP и API доступна только «Авто»."
+                          label={loc('Глубина рассуждений')}
+                          hint={loc('Независима от модели. Для ACP и API доступна только «Авто».')}
                         >
                           <CustomSelect
                             className="reasoning-mode"
-                            aria-label="Режим рассуждений"
-                            title="Глубина рассуждений агента"
+                            aria-label={loc('Режим рассуждений')}
+                            title={loc('Глубина рассуждений агента')}
                             disabled={chatSending}
                             value={reasoningMode}
                             onChange={e => setReasoningMode(e.target.value)}
                           >
-                            <option value="auto">Авто</option>
-                            <option value="fast">Быстро</option>
-                            <option value="normal">Обычно</option>
-                            <option value="deep">Глубоко</option>
+                            <option value="auto">{loc('Авто')}</option>
+                            <option value="fast">{loc('Быстро')}</option>
+                            <option value="normal">{loc('Обычно')}</option>
+                            <option value="deep">{loc('Глубоко')}</option>
                           </CustomSelect>
                         </ParamRow>
                         <ParamRow
-                          label="Исполнители"
-                          hint="«Авто» делит на части только составные запросы при автоматическом выборе модели и отдаёт каждую часть лучшей для неё модели. «Команда» делит всегда. Каждая часть — отдельный вызов и расход квоты."
+                          label={loc('Исполнители')}
+                          hint={loc(
+                            '«Авто» делит на части только составные запросы при автоматическом выборе модели и отдаёт каждую часть лучшей для неё модели. «Команда» делит всегда. Каждая часть — отдельный вызов и расход квоты.'
+                          )}
                         >
                           <CustomSelect
                             className="reasoning-mode"
-                            aria-label="Исполнители запроса"
+                            aria-label={loc('Исполнители запроса')}
                             value={teamMode}
                             disabled={chatSending || modelSaving || !activeChat}
                             onChange={e => saveTeamMode(e.target.value)}
                           >
-                            <option value="auto">Авто</option>
-                            <option value="single">Один агент</option>
-                            <option value="team">Команда</option>
+                            <option value="auto">{loc('Авто')}</option>
+                            <option value="single">{loc('Один агент')}</option>
+                            <option value="team">{loc('Команда')}</option>
                           </CustomSelect>
                         </ParamRow>
                         <BrowserParam
@@ -2514,7 +2538,7 @@ function App() {
                               checked={prefs.quickReplies}
                               onChange={e => setPrefs(p => ({...p, quickReplies: e.target.checked}))}
                             />
-                            Быстрые ответы под последним ответом
+                            {loc('Быстрые ответы под последним ответом')}
                           </label>
                           <label>
                             <input
@@ -2522,18 +2546,22 @@ function App() {
                               checked={prefs.notify}
                               onChange={e => setPrefs(p => ({...p, notify: e.target.checked}))}
                             />
-                            Уведомлять о готовом ответе, если окно в фоне
+                            {loc('Уведомлять о готовом ответе, если окно в фоне')}
                           </label>
                         </div>
                       </ComposerParams>
                       <CustomSelect
-                        aria-label="Режим работы"
+                        aria-label={loc('Режим работы')}
                         title={
                           executionMode === 'auto'
-                            ? 'Выполнение без разрешений: агент меняет файлы, запускает команды и работает в браузере чата без вопросов; проверки проекта запускаются сами. Действия в вашем Chrome со входами всё равно подтверждаются.'
+                            ? loc(
+                                'Выполнение без разрешений: агент меняет файлы, запускает команды и работает в браузере чата без вопросов; проверки проекта запускаются сами. Действия в вашем Chrome со входами всё равно подтверждаются.'
+                              )
                             : executionMode === 'execute'
-                              ? 'Выполнение: агент меняет файлы и запускает команды с вашим подтверждением, затем Nexus предлагает запустить проверки проекта (тесты, линтер, типы) — тоже с подтверждением'
-                              : 'Обсуждение: агент отвечает и читает файлы, ничего не меняя'
+                              ? loc(
+                                  'Выполнение: агент меняет файлы и запускает команды с вашим подтверждением, затем Nexus предлагает запустить проверки проекта (тесты, линтер, типы) — тоже с подтверждением'
+                                )
+                              : loc('Обсуждение: агент отвечает и читает файлы, ничего не меняя')
                         }
                         className={
                           'reasoning-mode execution-mode' + (executionMode === 'auto' ? ' is-auto' : '')
@@ -2542,38 +2570,38 @@ function App() {
                         disabled={chatSending}
                         onChange={e => setExecutionMode(e.target.value)}
                       >
-                        <option value="discuss">Обсуждение</option>
-                        <option value="execute">Выполнение · с разрешениями</option>
-                        <option value="auto">Выполнение · без разрешений</option>
+                        <option value="discuss">{loc('Обсуждение')}</option>
+                        <option value="execute">{loc('Выполнение · с разрешениями')}</option>
+                        <option value="auto">{loc('Выполнение · без разрешений')}</option>
                       </CustomSelect>
-                      <span>{filesBusy ? 'Добавляю файлы…' : 'Enter — отправить'}</span>
+                      <span>{filesBusy ? loc('Добавляю файлы…') : loc('Enter — отправить')}</span>
                     </div>
                     {currentChatSending ? (
                       <button
                         type="button"
                         className="stop-generation"
-                        title="Остановить генерацию"
-                        aria-label="Остановить генерацию"
+                        title={loc('Остановить генерацию')}
+                        aria-label={loc('Остановить генерацию')}
                         disabled={stopping}
                         onClick={stopChat}
                       >
                         <Square size={13} fill="currentColor" />
-                        <span>{stopping ? 'Останавливаю…' : 'Стоп'}</span>
+                        <span>{stopping ? loc('Останавливаю…') : loc('Стоп')}</span>
                       </button>
                     ) : (
                       <button
                         type="submit"
-                        aria-label="Отправить сообщение"
+                        aria-label={loc('Отправить сообщение')}
                         title={
                           !activeProject
-                            ? 'Сначала выберите проект'
+                            ? loc('Сначала выберите проект')
                             : filesBusy
-                              ? 'Файлы ещё добавляются'
+                              ? loc('Файлы ещё добавляются')
                               : chatDraft.length > (replyTo ? 8000 : 12000)
-                                ? 'Сообщение слишком длинное'
+                                ? loc('Сообщение слишком длинное')
                                 : !chatDraft.trim() && !draftFiles.length
-                                  ? 'Введите сообщение или прикрепите файл'
-                                  : 'Отправить сообщение (Enter)'
+                                  ? loc('Введите сообщение или прикрепите файл')
+                                  : loc('Отправить сообщение (Enter)')
                         }
                         disabled={
                           chatSending ||
@@ -2601,7 +2629,7 @@ function App() {
                   )}
                   <TeamPlanPreview
                     plan={teamPreview}
-                    integrator={modelChoices.find(m => m.id === routePreview.choice)?.label || 'Авто'}
+                    integrator={modelChoices.find(m => m.id === routePreview.choice)?.label || loc('Авто')}
                   />
                   <RoutingPreview route={routePreview} models={modelChoices} />
                   {modelLoadError && (

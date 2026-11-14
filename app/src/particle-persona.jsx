@@ -1,5 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {hitPersona, internalDischarge, CHARGE_DURATION_MS} from './persona-lightning.js';
+import {loc} from './i18n.js';
 
 // User-supplied Hi3D surface; smooth normals and two-pass particle occlusion.
 // This asset has no facial rig or morph targets.
@@ -69,7 +70,7 @@ export function ParticlePersona({interactive = true}) {
     const el = canvas.current,
       gl = el.getContext('webgl', {alpha: true, antialias: false, powerPreference: 'low-power'});
     if (!gl) {
-      setFailed({message: 'Не удалось создать контекст WebGL.', details: ''});
+      setFailed({message: loc('Не удалось создать контекст WebGL.'), details: ''});
       return;
     }
     let frame = 0,
@@ -90,21 +91,21 @@ export function ParticlePersona({interactive = true}) {
     async function init() {
       try {
         const response = await fetch('/persona/hi3d-head.points', {signal: abort.signal});
-        if (!response.ok) throw Error('Не удалось загрузить модель: HTTP ' + response.status);
+        if (!response.ok) throw Error(loc('Не удалось загрузить модель: HTTP ') + response.status);
         const data = new Float32Array(await response.arrayBuffer());
         if (disposed) return;
         const ribbonResponse = await fetch('/persona/hi3d-filaments.bin', {signal: abort.signal});
         if (!ribbonResponse.ok)
-          throw Error('Не удалось загрузить световые нити: HTTP ' + ribbonResponse.status);
+          throw Error(loc('Не удалось загрузить световые нити: HTTP ') + ribbonResponse.status);
         const ribbons = new Float32Array(await ribbonResponse.arrayBuffer());
         if (disposed) return;
         if (!ribbons.length || ribbons.length % (18 * 3) || !ribbons.every(Number.isFinite))
-          throw Error('Неподдерживаемый формат световых нитей.');
+          throw Error(loc('Неподдерживаемый формат световых нитей.'));
         const combined = new Float32Array(data.length + ribbons.length);
         combined.set(data);
         combined.set(ribbons, data.length);
         if (data.length !== 65200 * 18 || !data.every(Number.isFinite))
-          throw Error('Файл модели имеет неподдерживаемый формат.');
+          throw Error(loc('Файл модели имеет неподдерживаемый формат.'));
         let radius = 0,
           extentY = 0;
         for (let i = 0; i < data.length; i += 18) {
@@ -132,9 +133,9 @@ export function ParticlePersona({interactive = true}) {
           gl.compileShader(s);
           if (!gl.getShaderParameter(s, gl.COMPILE_STATUS))
             throw Error(
-              'Ошибка компиляции ' +
-                (type === gl.VERTEX_SHADER ? 'вершинного' : 'фрагментного') +
-                ' шейдера: ' +
+              loc('Ошибка компиляции ') +
+                (type === gl.VERTEX_SHADER ? loc('вершинного') : loc('фрагментного')) +
+                loc(' шейдера: ') +
                 gl.getShaderInfoLog(s)
             );
           return s;
@@ -144,7 +145,7 @@ export function ParticlePersona({interactive = true}) {
         gl.attachShader(program, compile(gl.FRAGMENT_SHADER, fragment));
         gl.linkProgram(program);
         if (!gl.getProgramParameter(program, gl.LINK_STATUS))
-          throw Error('Ошибка связывания шейдеров: ' + gl.getProgramInfoLog(program));
+          throw Error(loc('Ошибка связывания шейдеров: ') + gl.getProgramInfoLog(program));
         gl.useProgram(program);
         const buffer = gl.createBuffer();
         buffers.push(buffer);
@@ -280,8 +281,8 @@ export function ParticlePersona({interactive = true}) {
           e.preventDefault();
           cancelAnimationFrame(frame);
           setFailed({
-            message: 'Графический контекст был потерян.',
-            details: 'Перезапустите окно приложения.',
+            message: loc('Графический контекст был потерян.'),
+            details: loc('Перезапустите окно приложения.'),
           });
         };
         el.addEventListener('click', click);
@@ -310,7 +311,7 @@ export function ParticlePersona({interactive = true}) {
         shaders.forEach(s => gl.deleteShader(s));
         if (program) gl.deleteProgram(program);
         setFailed({
-          message: 'Не удалось отрисовать персонажа. Чат доступен.',
+          message: loc('Не удалось отрисовать персонажа. Чат доступен.'),
           details: error instanceof Error ? error.message : String(error),
         });
       }
@@ -335,7 +336,9 @@ export function ParticlePersona({interactive = true}) {
       <canvas
         ref={canvas}
         tabIndex={interactive ? 0 : -1}
-        aria-label={interactive ? 'Выпустить молнию из головы андроида' : 'Голограмма андроида на фоне'}
+        aria-label={
+          interactive ? loc('Выпустить молнию из головы андроида') : loc('Голограмма андроида на фоне')
+        }
         role={interactive ? 'button' : 'img'}
       />
       {bolts.map(bolt => (
@@ -375,7 +378,7 @@ export function ParticlePersona({interactive = true}) {
           <p>{failed.message}</p>
           {failed.details && (
             <details>
-              <summary>Причина ошибки</summary>
+              <summary>{loc('Причина ошибки')}</summary>
               <pre>{failed.details}</pre>
             </details>
           )}

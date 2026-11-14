@@ -1,4 +1,5 @@
 import {countLabel} from './locale-format.js';
+import {loc} from './i18n.js';
 export const quotaPercent = value =>
   typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 100 ? value : null;
 export function quotaDate(value) {
@@ -8,10 +9,10 @@ export function quotaDate(value) {
 }
 function windowName(minutes, fallback) {
   if (!Number.isFinite(minutes) || minutes <= 0) return fallback;
-  if (minutes === 10080) return 'Неделя';
-  if (minutes % 1440 === 0) return countLabel(minutes / 1440, 'день', 'дня', 'дней');
-  if (minutes % 60 === 0) return countLabel(minutes / 60, 'час', 'часа', 'часов');
-  return countLabel(minutes, 'минута', 'минуты', 'минут');
+  if (minutes === 10080) return loc('Неделя');
+  if (minutes % 1440 === 0) return countLabel(minutes / 1440, loc('день'), loc('дня'), loc('дней'));
+  if (minutes % 60 === 0) return countLabel(minutes / 60, loc('час'), loc('часа'), loc('часов'));
+  return countLabel(minutes, loc('минута'), loc('минуты'), loc('минут'));
 }
 export function quotaView(quota, statusline, now = Date.now()) {
   const report = statusline?.status === 'available' ? statusline.data : null;
@@ -24,13 +25,15 @@ export function quotaView(quota, statusline, now = Date.now()) {
   const windows = [
     {
       id: 'primary',
-      label: useStatusline ? '5 часов' : windowName(quota?.primaryWindowMinutes, 'Основное окно'),
+      label: useStatusline ? loc('5 часов') : windowName(quota?.primaryWindowMinutes, loc('Основное окно')),
       used: primary,
       resetAt: quotaDate(useStatusline ? report?.fiveHour?.resetAt : quota?.primaryResetAt),
     },
     {
       id: 'secondary',
-      label: useStatusline ? 'Неделя' : windowName(quota?.secondaryWindowMinutes, 'Дополнительное окно'),
+      label: useStatusline
+        ? loc('Неделя')
+        : windowName(quota?.secondaryWindowMinutes, loc('Дополнительное окно')),
       used: secondary,
       resetAt: quotaDate(useStatusline ? report?.sevenDay?.resetAt : quota?.secondaryResetAt),
     },
@@ -75,8 +78,8 @@ export function apiLimitsView(limits, now = Date.now()) {
         };
   };
   const windows = [
-    win('requests', 'Запросы в минуту', limits.requests),
-    win('tokens', 'Токены в минуту', limits.tokens),
+    win('requests', loc('Запросы в минуту'), limits.requests),
+    win('tokens', loc('Токены в минуту'), limits.tokens),
   ].filter(Boolean);
   const c = limits.credits,
     credits =

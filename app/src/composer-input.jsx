@@ -1,5 +1,6 @@
 import React, {useRef, useState} from 'react';
 import {composerSuggestion} from './composer-suggestions.js';
+import {loc} from './i18n.js';
 export function ComposerInput({
   value,
   onChange,
@@ -45,7 +46,7 @@ export function ComposerInput({
         value={value}
         disabled={disabled}
         maxLength={maxLength}
-        placeholder={suffix ? '' : hasHistory ? 'Напишите сообщение…' : 'Что создадим сегодня?'}
+        placeholder={suffix ? '' : hasHistory ? loc('Напишите сообщение…') : loc('Что создадим сегодня?')}
         onPaste={onPaste}
         onChange={e => {
           setDismissed(false);
@@ -92,7 +93,8 @@ export function ComposerInput({
             Tab
           </kbd>
           <span id="composer-suggestion-help" className="visually-hidden">
-            Tab — принять подсказку: {full}. Escape — скрыть.
+            {loc('Tab — принять подсказку:')} {full}
+            {loc('. Escape — скрыть.')}
           </span>
         </>
       )}

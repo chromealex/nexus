@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {X, AlertCircle, Info, CheckCircle2} from 'lucide-react';
 import {notify, onToast, pushToast} from './toasts.js';
+import {loc} from './i18n.js';
 
 function Toast({toast, onClose}) {
   const timer = useRef(null),
@@ -47,7 +48,12 @@ function Toast({toast, onClose}) {
           {toast.action.label}
         </button>
       )}
-      <button type="button" className="app-toast-close" aria-label="Закрыть уведомление" onClick={onClose}>
+      <button
+        type="button"
+        className="app-toast-close"
+        aria-label={loc('Закрыть уведомление')}
+        onClick={onClose}
+      >
         <X size={14} />
       </button>
     </div>

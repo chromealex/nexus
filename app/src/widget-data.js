@@ -1,3 +1,4 @@
+import {loc} from './i18n.js';
 // Validation for graphic blocks in answers (```nexus-widget JSON). Model output is untrusted:
 // every field is type-checked, strings are trimmed to sane lengths, counts are capped.
 // Anything that does not fit a known shape returns null and is shown as plain code instead.
@@ -53,7 +54,7 @@ export function normalizeWidget(data) {
       const value = num(data.value);
       return value === null
         ? null
-        : {type, label: str(data.label, 80) || 'Прогресс', value: Math.max(0, Math.min(100, value))};
+        : {type, label: str(data.label, 80) || loc('Прогресс'), value: Math.max(0, Math.min(100, value))};
     }
     case 'flow': {
       const steps = list(data.steps, 9)
@@ -74,7 +75,7 @@ export function normalizeWidget(data) {
     case 'line': {
       const x = list(data.x, 60).map(v => str(v, 24));
       const series = list(data.series, 4)
-        .map(s => ({name: str(s?.name, 40) || 'Ряд', values: list(s?.values, x.length).map(num)}))
+        .map(s => ({name: str(s?.name, 40) || loc('Ряд'), values: list(s?.values, x.length).map(num)}))
         .filter(s => s.values.some(v => v !== null));
       return x.length >= 2 && series.length ? {type, title, x, series, unit: str(data.unit, 12)} : null;
     }
@@ -126,10 +127,10 @@ export function alertKind(text) {
   return m ? m[1].toLowerCase() : null;
 }
 export const ALERT_TITLES = {
-  note: 'Примечание',
-  tip: 'Совет',
-  important: 'Важно',
-  warning: 'Внимание',
-  caution: 'Осторожно',
-  success: 'Готово',
+  note: loc('Примечание'),
+  tip: loc('Совет'),
+  important: loc('Важно'),
+  warning: loc('Внимание'),
+  caution: loc('Осторожно'),
+  success: loc('Готово'),
 };

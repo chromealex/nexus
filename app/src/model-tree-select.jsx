@@ -8,6 +8,7 @@ import {CATALOG, modelCapabilities, incompatibleReason, preferredModel} from './
 import {modelProfile, CRITERIA, criterionAssessment} from './model-profiles.js';
 import {evidenceFor, evidenceGap, evidenceText, COHORTS} from './model-benchmarks.js';
 import {invoke} from '@tauri-apps/api/core';
+import {loc} from './i18n.js';
 
 export function ModelTreeSelect({
   value,
@@ -58,7 +59,12 @@ export function ModelTreeSelect({
       return {
         provider,
         name,
-        kind: connection?.provider === 'local' ? 'Локальные' : provider.startsWith('api-') ? 'API' : 'Агенты',
+        kind:
+          connection?.provider === 'local'
+            ? loc('Локальные')
+            : provider.startsWith('api-')
+              ? 'API'
+              : loc('Агенты'),
         rows,
       };
     });
@@ -66,14 +72,14 @@ export function ModelTreeSelect({
     autoGroup = groups.find(g => value === 'agent-auto:' + g.provider);
   const title =
     value === 'auto'
-      ? 'Модель: Авто'
+      ? loc('Модель: Авто')
       : autoGroup
-        ? autoGroup.name + ' · Авто'
+        ? autoGroup.name + loc(' · Авто')
         : selected?.label ||
           (value.startsWith('agent-auto:')
-            ? (CATALOG.find(a => a.id === value.slice(11))?.name || 'Выбранный агент') +
-              ' · временно недоступен'
-            : 'Выбранная модель недоступна');
+            ? (CATALOG.find(a => a.id === value.slice(11))?.name || loc('Выбранный агент')) +
+              loc(' · временно недоступен')
+            : loc('Выбранная модель недоступна'));
   const needle = query.trim().toLowerCase();
   const matches = (m, name) =>
     [name, m.label, m.model, modelProfile(m, connections).role].join(' ').toLowerCase().includes(needle);
@@ -125,8 +131,8 @@ export function ModelTreeSelect({
         disabled={disabled}
         title={
           disabled
-            ? 'Модель выбирается для открытого чата; во время ответа выбор недоступен'
-            : withShortcut('Модель для этого чата', 'model')
+            ? loc('Модель выбирается для открытого чата; во время ответа выбор недоступен')
+            : withShortcut(loc('Модель для этого чата'), 'model')
         }
         aria-haspopup="dialog"
         aria-expanded={open}
@@ -137,7 +143,7 @@ export function ModelTreeSelect({
           setOpen(!open);
         }}
       >
-        {busy ? 'Обновление моделей…' : title}
+        {busy ? loc('Обновление моделей…') : title}
         <ChevronDown size={12} aria-hidden="true" />
       </button>
       {open &&
@@ -148,19 +154,19 @@ export function ModelTreeSelect({
               id={id}
               role="dialog"
               aria-modal="true"
-              aria-label="Выбор модели для этого чата"
+              aria-label={loc('Выбор модели для этого чата')}
               className="model-picker"
               onKeyDown={keydown}
             >
               <div className="model-picker-header">
                 <div>
-                  <strong>Модель для этого чата</strong>
-                  <small>Выбор сохраняется в истории проекта</small>
+                  <strong>{loc('Модель для этого чата')}</strong>
+                  <small>{loc('Выбор сохраняется в истории проекта')}</small>
                 </div>
                 <button
                   type="button"
                   className="model-picker-close"
-                  aria-label="Закрыть выбор модели"
+                  aria-label={loc('Закрыть выбор модели')}
                   onClick={close}
                 >
                   <X size={16} />
@@ -168,8 +174,8 @@ export function ModelTreeSelect({
               </div>
               <input
                 ref={search}
-                aria-label="Поиск модели или агента"
-                placeholder="Поиск модели, агента или задачи"
+                aria-label={loc('Поиск модели или агента')}
+                placeholder={loc('Поиск модели, агента или задачи')}
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 onKeyDown={e => {
@@ -180,7 +186,7 @@ export function ModelTreeSelect({
                 }}
               />
               <div className="model-picker-body">
-                <div role="tree" aria-label="Агенты и модели" className="model-tree">
+                <div role="tree" aria-label={loc('Агенты и модели')} className="model-tree">
                   <button
                     type="button"
                     role="treeitem"
@@ -188,7 +194,7 @@ export function ModelTreeSelect({
                     onFocus={() => setInspected(null)}
                     onClick={() => choose('auto')}
                   >
-                    Авто · возможности и опубликованные тесты
+                    {loc('Авто · возможности и опубликованные тесты')}
                   </button>
                   {groups.map(g => {
                     const rows = g.rows.filter(m => matches(m, g.name));
@@ -234,8 +240,8 @@ export function ModelTreeSelect({
                                   if (eligible.length) choose('agent-auto:' + g.provider);
                                 }}
                               >
-                                Авто внутри {g.name}
-                                {!eligible.length && <small>Нет совместимой модели</small>}
+                                {loc('Авто внутри')} {g.name}
+                                {!eligible.length && <small>{loc('Нет совместимой модели')}</small>}
                               </button>
                             )}
                             {rows.map(m => {
@@ -252,8 +258,8 @@ export function ModelTreeSelect({
                                   onClick={() => setInspected(m.id)}
                                 >
                                   <span>
-                                    {m.model === 'default' ? 'Модель runtime' : m.model}
-                                    {m.isDefault ? ' · по умолчанию' : ''}
+                                    {m.model === 'default' ? loc('Модель runtime') : m.model}
+                                    {m.isDefault ? loc(' · по умолчанию') : ''}
                                   </span>
                                   <small>{reason || modelProfile(m, connections).cost}</small>
                                 </button>
@@ -265,10 +271,12 @@ export function ModelTreeSelect({
                     );
                   })}
                   {!groups.some(g => g.rows.some(m => matches(m, g.name))) && (
-                    <p role="status">Подключённые модели не найдены</p>
+                    <p role="status">{loc('Подключённые модели не найдены')}</p>
                   )}
                   <details className="model-catalog">
-                    <summary>Каталог подключений · {CATALOG.length}</summary>
+                    <summary>
+                      {loc('Каталог подключений ·')} {CATALOG.length}
+                    </summary>
                     {CATALOG.filter(a =>
                       [a.name, a.description].join(' ').toLowerCase().includes(needle)
                     ).map(a => (
@@ -277,14 +285,16 @@ export function ModelTreeSelect({
                         <p>{a.description}</p>
                         <small>
                           {a.kind === 'external'
-                            ? 'Нет адаптера чата'
-                            : 'Модели доступны в дереве после подключения. Цена и качество зависят от конкретной модели.'}
+                            ? loc('Нет адаптера чата')
+                            : loc(
+                                'Модели доступны в дереве после подключения. Цена и качество зависят от конкретной модели.'
+                              )}
                         </small>
                       </div>
                     ))}
                   </details>
                 </div>
-                <div className="model-facts" role="region" aria-label="Характеристики модели">
+                <div className="model-facts" role="region" aria-label={loc('Характеристики модели')}>
                   {inspect ? (
                     <>
                       <strong>{inspect.label}</strong>
@@ -293,48 +303,57 @@ export function ModelTreeSelect({
                         disabled={!!incompatibleReason(inspect, task, reasoningMode, connections)}
                         onClick={() => choose(inspect.id)}
                       >
-                        Выбрать эту модель
+                        {loc('Выбрать эту модель')}
                       </button>
                       <p>{profile.role}</p>
-                      <small>Назначение по источнику; не сравнительный рейтинг</small>
+                      <small>{loc('Назначение по источнику; не сравнительный рейтинг')}</small>
                       {profile.evidence && <small>{profile.evidence}</small>}
                       {profile.resolvedNote && <small>{profile.resolvedNote}</small>}
                       <dl>
-                        <dt>Оплата подключения</dt>
+                        <dt>{loc('Оплата подключения')}</dt>
                         <dd>{profile.cost}</dd>
                         {profile.referencePrice && (
                           <>
-                            <dt>Справочно: публичный API</dt>
+                            <dt>{loc('Справочно: публичный API')}</dt>
                             <dd>
-                              {profile.referencePrice}. Базовый тариф; режим, длинный контекст и
-                              дополнительные услуги могут изменить цену. Тариф подписки не вычисляется из API.
+                              {profile.referencePrice}
+                              {loc(
+                                '. Базовый тариф; режим, длинный контекст и дополнительные услуги могут изменить цену. Тариф подписки не вычисляется из API.'
+                              )}
                             </dd>
                           </>
                         )}
                         {profile.exampleCost && (
                           <>
-                            <dt>Пример одинакового объёма в API</dt>
+                            <dt>{loc('Пример одинакового объёма в API')}</dt>
                             <dd>
-                              ${profile.exampleCost} за 10 000 входных + 2 000 выходных токенов. Без
-                              дополнительных токенов рассуждений, повторов и услуг.
+                              ${profile.exampleCost}{' '}
+                              {loc(
+                                'за 10 000 входных + 2 000 выходных токенов. Без дополнительных токенов рассуждений, повторов и услуг.'
+                              )}
                             </dd>
                           </>
                         )}
-                        <dt>Контекст</dt>
+                        <dt>{loc('Контекст')}</dt>
                         <dd>{profile.contextNote}</dd>
-                        <dt>Возможности в Nexus</dt>
+                        <dt>{loc('Возможности в Nexus')}</dt>
                         <dd>
-                          {caps.text ? 'Текст' : 'Нет адаптера для этой модели'} ·{' '}
-                          {caps.files ? 'файлы через агента' : 'без файлов'} ·{' '}
-                          {caps.tools ? 'инструменты с разрешениями' : 'без инструментов'} · изображения:{' '}
-                          {caps.images === true ? 'да' : caps.images === false ? 'нет' : 'не проверено'}
+                          {caps.text ? loc('Текст') : loc('Нет адаптера для этой модели')} ·{' '}
+                          {caps.files ? loc('файлы через агента') : loc('без файлов')} ·{' '}
+                          {caps.tools ? loc('инструменты с разрешениями') : loc('без инструментов')}{' '}
+                          {loc('· изображения:')}{' '}
+                          {caps.images === true
+                            ? loc('да')
+                            : caps.images === false
+                              ? loc('нет')
+                              : loc('не проверено')}
                         </dd>
                       </dl>
                       <table>
                         <thead>
                           <tr>
-                            <th>Критерий</th>
-                            <th>Качество / стоимость</th>
+                            <th>{loc('Критерий')}</th>
+                            <th>{loc('Качество / стоимость')}</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -347,21 +366,24 @@ export function ModelTreeSelect({
                         </tbody>
                       </table>
                       <details>
-                        <summary>Опубликованные сравнения · {evidenceFor(inspect).length}</summary>
+                        <summary>
+                          {loc('Опубликованные сравнения ·')} {evidenceFor(inspect).length}
+                        </summary>
                         {evidenceFor(inspect).map((r, i) => (
                           <div key={i}>
                             <p>{evidenceText(r)}</p>
                             <small>{COHORTS[r.cohort].limit}</small>
                             {r.outputSpeed != null && (
                               <p>
-                                Выдача: {r.outputSpeed} ток/с; первый ответ: {r.firstToken} с.
+                                {loc('Выдача:')} {r.outputSpeed} {loc('ток/с; первый ответ:')} {r.firstToken}{' '}
+                                {loc('с.')}
                               </p>
                             )}
                             {r.minutes != null && (
                               <p>
-                                Время задачи в тесте: {r.minutes} мин
-                                {r.cost != null ? `; API-расход: $${r.cost}` : ''}. Это не длительность и цена
-                                запроса Nexus.
+                                {loc('Время задачи в тесте:')} {r.minutes} {loc('мин')}
+                                {r.cost != null ? loc('; API-расход: ${0}', r.cost) : ''}
+                                {loc('. Это не длительность и цена запроса Nexus.')}
                               </p>
                             )}
                             <button
@@ -370,16 +392,16 @@ export function ModelTreeSelect({
                                 invoke('open_external', {url: r.source}).catch(e => setSourceError(String(e)))
                               }
                             >
-                              Источник результата
+                              {loc('Источник результата')}
                             </button>
                           </div>
                         ))}
                         {!evidenceFor(inspect).length && <p>{evidenceGap(inspect)}</p>}
                       </details>
                       <p>
-                        Это внешние результаты, не собственные прогоны Nexus. Режимы и условия отличаются;
-                        стоимость по отдельным категориям неизвестна. Отсутствие оценки не означает низкое
-                        качество.
+                        {loc(
+                          'Это внешние результаты, не собственные прогоны Nexus. Режимы и условия отличаются; стоимость по отдельным категориям неизвестна. Отсутствие оценки не означает низкое качество.'
+                        )}
                       </p>
                       {profile.source && (
                         <button
@@ -390,39 +412,32 @@ export function ModelTreeSelect({
                             )
                           }
                         >
-                          Официальный источник · {profile.date}
+                          {loc('Официальный источник ·')} {profile.date}
                         </button>
                       )}
                     </>
                   ) : (
                     <>
-                      <strong>Как работает «Авто»</strong>
+                      <strong>{loc('Как работает «Авто»')}</strong>
                       <p>
-                        Сначала проверяются вложения, режим выполнения и глубина рассуждений. Затем
-                        используются свежие опубликованные тесты точной версии модели: для кода — индекс
-                        агентов в том же Claude Code или Codex, для сложных задач — индекс AA, для PDF —
-                        GDP.pdf, для действий с инструментами — AutomationBench, для текста и изображений —
-                        Arena. Результаты служат ориентиром; режим Nexus может отличаться.
+                        {loc(
+                          'Сначала проверяются вложения, режим выполнения и глубина рассуждений. Затем используются свежие опубликованные тесты точной версии модели: для кода — индекс агентов в том же Claude Code или Codex, для сложных задач — индекс AA, для PDF — GDP.pdf, для действий с инструментами — AutomationBench, для текста и изображений — Arena. Результаты служат ориентиром; режим Nexus может отличаться.'
+                        )}
                       </p>
                       <p>
-                        Приоритет задаётся отдельно для каждого чата: Баланс, Качество, Экономия или Скорость.
-                        Баланс допускает отставание до 3 баллов ради меньшего времени или известной стоимости.
-                        Экономия и Скорость могут снижать качество. Это правило продукта, не статистическая
-                        гарантия. Короткие простые вопросы не сравниваются по рейтингам. Без двух сопоставимых
-                        моделей используется резервный выбор по совместимости и модели по умолчанию. Алиасы
-                        Claude Code сопоставляются с версией по официальной таблице, если настройки её не
-                        переопределяют; данные старше 90 дней не влияют на выбор. Выбор конкретной модели
-                        никогда не заменяется молча.
+                        {loc(
+                          'Приоритет задаётся отдельно для каждого чата: Баланс, Качество, Экономия или Скорость. Баланс допускает отставание до 3 баллов ради меньшего времени или известной стоимости. Экономия и Скорость могут снижать качество. Это правило продукта, не статистическая гарантия. Короткие простые вопросы не сравниваются по рейтингам. Без двух сопоставимых моделей используется резервный выбор по совместимости и модели по умолчанию. Алиасы Claude Code сопоставляются с версией по официальной таблице, если настройки её не переопределяют; данные старше 90 дней не влияют на выбор. Выбор конкретной модели никогда не заменяется молча.'
+                        )}
                       </p>
-                      <p>Для ACP без списка моделей доступна модель, выбранная самим runtime.</p>
+                      <p>{loc('Для ACP без списка моделей доступна модель, выбранная самим runtime.')}</p>
                     </>
                   )}
                 </div>
               </div>
               <div className="model-picker-footer">
-                <span>Все модели подключений · без скрытых замен</span>
+                <span>{loc('Все модели подключений · без скрытых замен')}</span>
                 <button type="button" disabled={busy} onClick={onRefresh}>
-                  Обновить каталог
+                  {loc('Обновить каталог')}
                 </button>
               </div>
             </section>

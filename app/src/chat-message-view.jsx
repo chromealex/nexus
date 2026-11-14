@@ -24,6 +24,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import React, {useEffect, useState, useRef, useContext, createContext} from 'react';
 import {invoke} from '@tauri-apps/api/core';
+import {loc} from './i18n.js';
 
 const ChatQuestionContext = createContext({allowQuestion: false});
 function MarkdownCode({className, children, ...props}) {
@@ -33,7 +34,7 @@ function MarkdownCode({className, children, ...props}) {
     try {
       return <AgentConnectionCard manifest={JSON.parse(String(children))} context={agentContext} />;
     } catch {
-      return <p>Параметры агента повреждены.</p>;
+      return <p>{loc('Параметры агента повреждены.')}</p>;
     }
   }
   if (lang === 'nexus-question') {
@@ -52,7 +53,7 @@ function MarkdownCode({className, children, ...props}) {
               Object.entries(values)
                 .map(([id, v]) => {
                   const q = normalizeQuestions(question.questions || question).find(q => q.id === id);
-                  return (q?.question || 'Выбор') + ': ' + v.answers.join(', ');
+                  return (q?.question || loc('Выбор')) + ': ' + v.answers.join(', ');
                 })
                 .join('\n'),
               {block, answers: values}
@@ -75,7 +76,12 @@ function MarkdownCode({className, children, ...props}) {
   const ref = !className && typeof children === 'string' ? filePathRef(children) : null;
   if (ref)
     return (
-      <button type="button" className="file-link" title="Открыть файл справа" onClick={() => openFile(ref)}>
+      <button
+        type="button"
+        className="file-link"
+        title={loc('Открыть файл справа')}
+        onClick={() => openFile(ref)}
+      >
         <code {...props}>{children}</code>
       </button>
     );
@@ -153,7 +159,9 @@ export function ResponseDetails({raw}) {
   const {rows} = responseDetails(raw);
   return (
     <details className="response-details activity-details">
-      <summary>Ход ответа и детали · {countLabel(rows.length, 'этап', 'этапа', 'этапов')}</summary>
+      <summary>
+        {loc('Ход ответа и детали ·')} {countLabel(rows.length, loc('этап'), loc('этапа'), loc('этапов'))}
+      </summary>
       <div className="activity-list">
         {rows.map((row, i) => (
           <div className="activity-row" key={i}>
@@ -196,7 +204,7 @@ export function MessageActions({
       clearTimeout(timer.current);
       timer.current = setTimeout(() => setCopied(false), 1600);
     } catch {
-      setActionError('Не удалось скопировать ответ');
+      setActionError(loc('Не удалось скопировать ответ'));
     }
   }
   async function selectVariant(index) {
@@ -225,26 +233,26 @@ export function MessageActions({
       });
       onUpdate(updated);
     } catch {
-      setActionError('Не удалось сохранить оценку');
+      setActionError(loc('Не удалось сохранить оценку'));
     } finally {
       setBusy(false);
     }
   }
   return (
     <div className="message-footer">
-      <div className="message-actions" role="group" aria-label="Действия с ответом">
+      <div className="message-actions" role="group" aria-label={loc('Действия с ответом')}>
         <button
           type="button"
-          title="Ответить с цитатой"
-          aria-label="Ответить с цитатой"
+          title={loc('Ответить с цитатой')}
+          aria-label={loc('Ответить с цитатой')}
           onClick={() => onReply(message)}
         >
           <Reply size={15} />
         </button>
         <button
           type="button"
-          title={copied ? 'Скопировано' : 'Копировать ответ'}
-          aria-label={copied ? 'Скопировано' : 'Копировать ответ'}
+          title={copied ? loc('Скопировано') : loc('Копировать ответ')}
+          aria-label={copied ? loc('Скопировано') : loc('Копировать ответ')}
           onClick={copy}
         >
           {copied ? <Check size={15} /> : <Copy size={15} />}
@@ -252,8 +260,8 @@ export function MessageActions({
         <button
           type="button"
           disabled={busy}
-          title="Полезный ответ"
-          aria-label="Полезный ответ"
+          title={loc('Полезный ответ')}
+          aria-label={loc('Полезный ответ')}
           aria-pressed={message.rating === 1}
           onClick={() => rate(1)}
         >
@@ -262,8 +270,8 @@ export function MessageActions({
         <button
           type="button"
           disabled={busy}
-          title="Неполезный ответ"
-          aria-label="Неполезный ответ"
+          title={loc('Неполезный ответ')}
+          aria-label={loc('Неполезный ответ')}
           aria-pressed={message.rating === -1}
           onClick={() => rate(-1)}
         >
@@ -271,8 +279,8 @@ export function MessageActions({
         </button>
         <button
           type="button"
-          title={bookmarked ? 'Убрать закладку' : 'Добавить в закладки чата'}
-          aria-label={bookmarked ? 'Убрать закладку' : 'Добавить в закладки'}
+          title={bookmarked ? loc('Убрать закладку') : loc('Добавить в закладки чата')}
+          aria-label={bookmarked ? loc('Убрать закладку') : loc('Добавить в закладки')}
           aria-pressed={bookmarked}
           onClick={() => onBookmark(message)}
         >
@@ -282,8 +290,10 @@ export function MessageActions({
           <button
             type="button"
             disabled={locked}
-            title="Повторить ответ с текущей моделью — новый вызов, расходует квоту. Прежний ответ сохранится как вариант."
-            aria-label="Повторить ответ"
+            title={loc(
+              'Повторить ответ с текущей моделью — новый вызов, расходует квоту. Прежний ответ сохранится как вариант.'
+            )}
+            aria-label={loc('Повторить ответ')}
             onClick={() => onRegenerate(message)}
           >
             <RotateCcw size={15} />
@@ -297,12 +307,12 @@ export function MessageActions({
           </time>
         )}
         {model && (
-          <span className="message-model" title={'Модель ответа: ' + model}>
+          <span className="message-model" title={loc('Модель ответа: ') + model}>
             {model}
           </span>
         )}
         {effort && (
-          <span className="message-mode" title="Режим рассуждений">
+          <span className="message-mode" title={loc('Режим рассуждений')}>
             {effortLabel(effort)}
           </span>
         )}
@@ -326,10 +336,10 @@ export function UserActions({message, canEdit, locked, onEdit, onToComposer, boo
   const date = messageDate(message.createdAt);
   return (
     <div className="message-footer user-footer">
-      <div className="message-actions" role="group" aria-label="Действия с сообщением">
+      <div className="message-actions" role="group" aria-label={loc('Действия с сообщением')}>
         {message.edited && (
-          <span className="message-edited" title="Запрос изменён после отправки">
-            изменено
+          <span className="message-edited" title={loc('Запрос изменён после отправки')}>
+            {loc('изменено')}
           </span>
         )}
         {date && (
@@ -339,8 +349,8 @@ export function UserActions({message, canEdit, locked, onEdit, onToComposer, boo
         )}
         <button
           type="button"
-          title={copied ? 'Скопировано' : 'Копировать'}
-          aria-label={copied ? 'Скопировано' : 'Копировать сообщение'}
+          title={copied ? loc('Скопировано') : loc('Копировать')}
+          aria-label={copied ? loc('Скопировано') : loc('Копировать сообщение')}
           onClick={copy}
         >
           {copied ? <Check size={15} /> : <Copy size={15} />}
@@ -349,8 +359,8 @@ export function UserActions({message, canEdit, locked, onEdit, onToComposer, boo
           <button
             type="button"
             disabled={locked}
-            title="Изменить запрос и получить новый ответ"
-            aria-label="Изменить запрос"
+            title={loc('Изменить запрос и получить новый ответ')}
+            aria-label={loc('Изменить запрос')}
             onClick={() => onEdit(message)}
           >
             <Pencil size={15} />
@@ -358,16 +368,16 @@ export function UserActions({message, canEdit, locked, onEdit, onToComposer, boo
         )}
         <button
           type="button"
-          title="Вставить текст в поле ввода"
-          aria-label="Вставить в поле ввода"
+          title={loc('Вставить текст в поле ввода')}
+          aria-label={loc('Вставить в поле ввода')}
           onClick={() => onToComposer(message)}
         >
           <CornerDownLeft size={15} />
         </button>
         <button
           type="button"
-          title={bookmarked ? 'Убрать закладку' : 'Добавить в закладки чата'}
-          aria-label={bookmarked ? 'Убрать закладку' : 'Добавить в закладки'}
+          title={bookmarked ? loc('Убрать закладку') : loc('Добавить в закладки чата')}
+          aria-label={bookmarked ? loc('Убрать закладку') : loc('Добавить в закладки')}
           aria-pressed={bookmarked}
           onClick={() => onBookmark(message)}
         >
@@ -398,7 +408,7 @@ export function MessageEditor({message, onSave, onCancel, busy}) {
     >
       <textarea
         ref={area}
-        aria-label="Изменить запрос"
+        aria-label={loc('Изменить запрос')}
         value={text}
         maxLength={12000}
         rows={Math.min(12, Math.max(3, text.split('\n').length))}
@@ -415,12 +425,14 @@ export function MessageEditor({message, onSave, onCancel, busy}) {
         }}
       />
       <div>
-        <small>Новый ответ заменит текущий на экране, прежний останется вариантом. ⌘Enter — отправить.</small>
+        <small>
+          {loc('Новый ответ заменит текущий на экране, прежний останется вариантом. ⌘Enter — отправить.')}
+        </small>
         <button type="button" onClick={onCancel} disabled={busy}>
-          Отмена
+          {loc('Отмена')}
         </button>
         <button type="submit" className="primary" disabled={busy || !text.trim()}>
-          Отправить
+          {loc('Отправить')}
         </button>
       </div>
     </form>

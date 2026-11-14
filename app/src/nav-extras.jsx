@@ -2,6 +2,7 @@ import React, {useEffect, useRef} from 'react';
 import {highlightParts} from './chat-search.js';
 import {MessageSquare, Search, X} from 'lucide-react';
 import {shortcutText} from './shortcuts.js';
+import {loc} from './i18n.js';
 
 export function Highlight({text, query}) {
   return (
@@ -21,8 +22,8 @@ export function NavSearch({value, onChange, inputRef, onKeyDown}) {
       <input
         ref={inputRef}
         type="search"
-        aria-label="Поиск чатов"
-        placeholder="Поиск чатов"
+        aria-label={loc('Поиск чатов')}
+        placeholder={loc('Поиск чатов')}
         value={value}
         onChange={e => onChange(e.target.value)}
         onKeyDown={onKeyDown}
@@ -33,8 +34,8 @@ export function NavSearch({value, onChange, inputRef, onKeyDown}) {
         <button
           type="button"
           className="nav-search-clear"
-          aria-label="Очистить поиск"
-          title="Очистить поиск"
+          aria-label={loc('Очистить поиск')}
+          title={loc('Очистить поиск')}
           onClick={() => {
             onChange('');
             inputRef.current?.focus();
@@ -53,11 +54,11 @@ export function NavSearchResults({results, query, active, onOpen, onHover}) {
   if (!results.length)
     return (
       <p className="nav-search-empty" role="status">
-        Ничего не найдено. Проверьте написание или ищите по названию папки.
+        {loc('Ничего не найдено. Проверьте написание или ищите по названию папки.')}
       </p>
     );
   return (
-    <div className="nav-search-results" role="listbox" aria-label="Найденные чаты">
+    <div className="nav-search-results" role="listbox" aria-label={loc('Найденные чаты')}>
       {results.map((r, i) => (
         <button
           key={r.chat.id}
@@ -106,10 +107,15 @@ export function UndoToast({toast, onUndo, onClose, timeout = 6000}) {
       <span>{toast.text}</span>
       {toast.undo && (
         <button type="button" onClick={onUndo} disabled={toast.busy}>
-          {toast.busy ? 'Возвращаю…' : 'Отменить'}
+          {toast.busy ? loc('Возвращаю…') : loc('Отменить')}
         </button>
       )}
-      <button type="button" className="undo-toast-close" aria-label="Скрыть сообщение" onClick={onClose}>
+      <button
+        type="button"
+        className="undo-toast-close"
+        aria-label={loc('Скрыть сообщение')}
+        onClick={onClose}
+      >
         <X size={14} />
       </button>
     </div>

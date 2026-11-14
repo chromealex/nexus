@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {useToastOn} from './toaster.jsx';
 import {ShieldCheck, Globe} from 'lucide-react';
 import {browserRequest} from './browser-mode.js';
+import {loc} from './i18n.js';
 export function PermissionCard({request, onAnswer}) {
   const [remember, setRemember] = useState(false),
     [busy, setBusy] = useState(false),
@@ -11,16 +12,16 @@ export function PermissionCard({request, onAnswer}) {
     p = {...raw, ...raw.input, ...raw.toolCall};
   const browser = request.kind === 'browser' ? browserRequest(raw) : null;
   const title = browser
-    ? 'Агент просит действие в браузере'
+    ? loc('Агент просит действие в браузере')
     : request.kind === 'verification'
-      ? 'Nexus запрашивает запуск проверки'
+      ? loc('Nexus запрашивает запуск проверки')
       : request.kind.includes('commandExecution')
-        ? 'Агент запрашивает запуск действия'
+        ? loc('Агент запрашивает запуск действия')
         : request.kind.includes('fileChange')
-          ? 'Агент запрашивает изменение файлов'
+          ? loc('Агент запрашивает изменение файлов')
           : request.kind.includes('permissions')
-            ? 'Агент запрашивает дополнительный доступ'
-            : 'Агент запрашивает использование инструмента';
+            ? loc('Агент запрашивает дополнительный доступ')
+            : loc('Агент запрашивает использование инструмента');
   async function answer(value) {
     setBusy(true);
     try {
@@ -31,7 +32,7 @@ export function PermissionCard({request, onAnswer}) {
     }
   }
   return (
-    <section className="permission-card" role="region" aria-label="Запрос разрешения">
+    <section className="permission-card" role="region" aria-label={loc('Запрос разрешения')}>
       <div className="permission-title">
         <ShieldCheck size={18} />
         <strong>{title}</strong>
@@ -48,7 +49,7 @@ export function PermissionCard({request, onAnswer}) {
           </small>
           {browser.own && (
             <small className="permission-browser-warn">
-              Это ваш браузер с личными аккаунтами. Разрешайте только то, что ожидаете.
+              {loc('Это ваш браузер с личными аккаунтами. Разрешайте только то, что ожидаете.')}
             </small>
           )}
         </div>
@@ -56,19 +57,27 @@ export function PermissionCard({request, onAnswer}) {
       {p.reason && <p>{p.reason}</p>}
       {p.tool_name && (
         <p>
-          Инструмент: <strong>{p.tool_name}</strong>
+          {loc('Инструмент:')} <strong>{p.tool_name}</strong>
         </p>
       )}
       {p.command && <pre>{p.command}</pre>}
-      {p.cwd && <small>Рабочая папка: {p.cwd}</small>}
+      {p.cwd && (
+        <small>
+          {loc('Рабочая папка:')} {p.cwd}
+        </small>
+      )}
       {p.permissions && (
         <div className="permission-scopes">
-          {p.permissions.network?.enabled && <p>Доступ к сети</p>}
-          {p.permissions.fileSystem && <p>Доступ к файлам: {JSON.stringify(p.permissions.fileSystem)}</p>}
+          {p.permissions.network?.enabled && <p>{loc('Доступ к сети')}</p>}
+          {p.permissions.fileSystem && (
+            <p>
+              {loc('Доступ к файлам:')} {JSON.stringify(p.permissions.fileSystem)}
+            </p>
+          )}
         </div>
       )}
       <details>
-        <summary>Полные сведения о запросе</summary>
+        <summary>{loc('Полные сведения о запросе')}</summary>
         <pre>{JSON.stringify(p, null, 2)}</pre>
       </details>
       {request.rememberLabel && (
@@ -80,26 +89,28 @@ export function PermissionCard({request, onAnswer}) {
             onChange={e => setRemember(e.target.checked)}
           />
           <span>
-            Разрешать всегда для этого проекта
+            {loc('Разрешать всегда для этого проекта')}
             <small>
-              {request.rememberLabel}. Правило действует для этого агента во всех чатах проекта до отзыва в
-              «Настройки проекта → Разрешения». Привязка к проекту не ограничивает пути доступа.
+              {request.rememberLabel}
+              {loc(
+                '. Правило действует для этого агента во всех чатах проекта до отзыва в «Настройки проекта → Разрешения». Привязка к проекту не ограничивает пути доступа.'
+              )}
             </small>
           </span>
         </label>
       )}
       <p className="permission-note">
         {remember
-          ? 'Вы сохраняете правило для будущих запросов.'
-          : 'Разрешение действует для этого запроса или текущего ответа.'}{' '}
-        Системные разрешения macOS подтверждаются отдельно.
+          ? loc('Вы сохраняете правило для будущих запросов.')
+          : loc('Разрешение действует для этого запроса или текущего ответа.')}{' '}
+        {loc('Системные разрешения macOS подтверждаются отдельно.')}
       </p>
       <div className="permission-actions">
         <button disabled={busy} onClick={() => answer(false)}>
-          Отклонить
+          {loc('Отклонить')}
         </button>
         <button disabled={busy} onClick={() => answer(true)}>
-          Разрешить
+          {loc('Разрешить')}
         </button>
       </div>
     </section>

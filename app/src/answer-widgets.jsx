@@ -18,6 +18,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import {normalizeWidget, alertKind, ALERT_TITLES} from './widget-data.js';
+import {loc} from './i18n.js';
 
 // Chart palette: cool primary, warm accent, then muted companions. Same in light of the glass UI.
 // Charts load lazily so the chart library stays out of the main bundle.
@@ -68,7 +69,7 @@ export function NexusWidget({data, source}) {
   const w = useMemo(() => normalizeWidget(data), [data]);
   if (!w)
     return (
-      <pre className="widget-invalid" title="Блок не распознан — показан исходный JSON">
+      <pre className="widget-invalid" title={loc('Блок не распознан — показан исходный JSON')}>
         <code>{source || JSON.stringify(data, null, 2)}</code>
       </pre>
     );
@@ -218,7 +219,7 @@ export function NexusWidget({data, source}) {
       return (
         <Frame kind="checklist" title={w.title}>
           <div className="checklist-summary">
-            {done} из {w.items.length}
+            {done} {loc('из')} {w.items.length}
           </div>
           <ul className="checklist">
             {w.items.map((c, i) => (
@@ -353,7 +354,7 @@ export function MermaidBlock({code}) {
     // Streaming answers change the code on every chunk: wait for a short pause before rendering.
     const timer = setTimeout(async () => {
       try {
-        if (code.length > 20000) throw Error('Диаграмма слишком большая');
+        if (code.length > 20000) throw Error(loc('Диаграмма слишком большая'));
         const mermaid = await loadMermaid();
         await mermaid.parse(code);
         const out = await mermaid.render(id, code);
@@ -401,22 +402,22 @@ export function MermaidBlock({code}) {
       <div className="diagram-toolbar">
         <span>
           <Workflow size={13} />
-          Схема
+          {loc('Схема')}
         </span>
         <div>
           <button
             type="button"
             aria-pressed={mode === 'code'}
             onClick={() => setMode(m => (m === 'code' ? 'diagram' : 'code'))}
-            title={mode === 'code' ? 'Показать схему' : 'Показать код Mermaid'}
+            title={mode === 'code' ? loc('Показать схему') : loc('Показать код Mermaid')}
           >
             <Code2 size={13} />
-            {mode === 'code' ? 'Схема' : 'Код'}
+            {mode === 'code' ? loc('Схема') : loc('Код')}
           </button>
-          <button type="button" onClick={copy} title="Копировать код Mermaid">
+          <button type="button" onClick={copy} title={loc('Копировать код Mermaid')}>
             {copied ? <Check size={13} /> : <Copy size={13} />}
           </button>
-          <button type="button" disabled={!svg} onClick={() => setZoom(true)} title="Открыть крупно">
+          <button type="button" disabled={!svg} onClick={() => setZoom(true)} title={loc('Открыть крупно')}>
             <Maximize2 size={13} />
           </button>
         </div>
@@ -428,11 +429,11 @@ export function MermaidBlock({code}) {
       ) : svg ? (
         <div className="mermaid-diagram" dangerouslySetInnerHTML={{__html: svg}} />
       ) : (
-        <div className="diagram-loading">Рисую схему…</div>
+        <div className="diagram-loading">{loc('Рисую схему…')}</div>
       )}
       {error && (
         <small className="diagram-error" role="status">
-          Схема не построена: {error}
+          {loc('Схема не построена:')} {error}
         </small>
       )}
       {zoom &&
@@ -441,7 +442,7 @@ export function MermaidBlock({code}) {
             className="diagram-zoom"
             role="dialog"
             aria-modal="true"
-            aria-label="Схема крупно"
+            aria-label={loc('Схема крупно')}
             onMouseDown={e => {
               if (e.target === e.currentTarget) setZoom(false);
             }}
@@ -449,7 +450,7 @@ export function MermaidBlock({code}) {
             <button
               type="button"
               className="diagram-zoom-close"
-              aria-label="Закрыть"
+              aria-label={loc('Закрыть')}
               onClick={() => setZoom(false)}
             >
               <X size={18} />

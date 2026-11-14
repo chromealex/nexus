@@ -2,10 +2,15 @@ import React, {useEffect, useState} from 'react';
 import {useToastOn} from './toaster.jsx';
 import {invoke} from '@tauri-apps/api/core';
 import {X} from 'lucide-react';
+import {loc} from './i18n.js';
 
 // Message text that asks the agent to follow a prepared plan.
 export function planMessage(task, steps) {
-  return `Выполни задачу по плану.\n\n${task}\n\nПлан:\n${steps.map((s, i) => `${i + 1}. ${s.title}: ${s.prompt}`).join('\n')}`;
+  return loc(
+    'Выполни задачу по плану.\n\n{0}\n\nПлан:\n{1}',
+    task,
+    steps.map((s, i) => `${i + 1}. ${s.title}: ${s.prompt}`).join('\n')
+  );
 }
 
 // Plan for the current draft, right under the composer (replaces «Инструменты → Планирование»).
@@ -40,22 +45,24 @@ export function ComposerPlan({task, workspace, onUse, onClose}) {
     }
   }
   return (
-    <section className="composer-plan" aria-label="План задачи">
+    <section className="composer-plan" aria-label={loc('План задачи')}>
       <header>
-        <strong>План задачи</strong>
-        <button type="button" aria-label="Закрыть план" onClick={onClose}>
+        <strong>{loc('План задачи')}</strong>
+        <button type="button" aria-label={loc('Закрыть план')} onClick={onClose}>
           <X size={14} />
         </button>
       </header>
       {!task.trim() ? (
-        <p className="composer-plan-hint">Опишите задачу в поле ввода — план составится по её тексту.</p>
+        <p className="composer-plan-hint">
+          {loc('Опишите задачу в поле ввода — план составится по её тексту.')}
+        </p>
       ) : (
         <div className="composer-plan-actions">
           <button type="button" disabled={!!busy} onClick={() => create(false)}>
-            {busy === 'rules' ? 'Составляю…' : 'По правилам · без ИИ'}
+            {busy === 'rules' ? loc('Составляю…') : loc('По правилам · без ИИ')}
           </button>
           <button type="button" disabled={!!busy} onClick={() => create(true)}>
-            {busy === 'ai' ? 'Уточняю…' : 'Уточнить с ИИ · расходует квоту'}
+            {busy === 'ai' ? loc('Уточняю…') : loc('Уточнить с ИИ · расходует квоту')}
           </button>
         </div>
       )}
@@ -73,16 +80,16 @@ export function ComposerPlan({task, workspace, onUse, onClose}) {
                 <span>{step.reason}</span>
                 <small>
                   {step.provider} · {step.model}
-                  {step.dependsOn.length ? ` · после ${step.dependsOn.join(', ')}` : ''}
+                  {step.dependsOn.length ? loc(' · после {0}', step.dependsOn.join(', ')) : ''}
                 </small>
               </li>
             ))}
           </ol>
           <div className="composer-plan-actions">
             <button type="button" className="primary" onClick={() => onUse(planMessage(planned, plan.steps))}>
-              Вставить план в сообщение
+              {loc('Вставить план в сообщение')}
             </button>
-            <small>Выполнение начнётся только после отправки.</small>
+            <small>{loc('Выполнение начнётся только после отправки.')}</small>
           </div>
         </>
       )}

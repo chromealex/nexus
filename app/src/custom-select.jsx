@@ -2,6 +2,7 @@ import React, {useId, useLayoutEffect, useRef, useState} from 'react';
 import {ModelTreeSelect} from './model-tree-select.jsx';
 import {createPortal} from 'react-dom';
 import {ChevronDown, Check} from 'lucide-react';
+import {loc} from './i18n.js';
 const labelText = value =>
   Array.isArray(value)
     ? value.map(labelText).join('')
@@ -188,7 +189,7 @@ function FlatSelect({value, onChange, children, disabled = false, className = ''
         type="button"
         className={'nexus-select-trigger ' + className}
         role="combobox"
-        aria-label={props['aria-label'] || label || title || 'Выбор значения'}
+        aria-label={props['aria-label'] || label || title || loc('Выбор значения')}
         aria-controls={open ? id : undefined}
         aria-expanded={open}
         aria-haspopup="listbox"
@@ -198,7 +199,7 @@ function FlatSelect({value, onChange, children, disabled = false, className = ''
         onClick={() => (open ? setOpen(false) : show())}
         onKeyDown={keydown}
       >
-        <span>{selected?.label || String(value || 'Выбрать')}</span>
+        <span>{selected?.label || String(value || loc('Выбрать'))}</span>
         <ChevronDown size={12} aria-hidden="true" />
       </button>
       {open &&
@@ -208,7 +209,7 @@ function FlatSelect({value, onChange, children, disabled = false, className = ''
             id={id}
             role="listbox"
             className="nexus-select-popup"
-            aria-label={props['aria-label'] || label || title || 'Варианты'}
+            aria-label={props['aria-label'] || label || title || loc('Варианты')}
             style={position}
           >
             {options.map((o, i) => (

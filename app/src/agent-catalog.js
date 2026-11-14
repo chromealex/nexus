@@ -1,5 +1,6 @@
 import {MODEL_PROFILES} from './model-profiles.js';
 import {benchmarkChoice} from './model-benchmarks.js';
+import {loc} from './i18n.js';
 // Agent capabilities, not invented model rankings. Model IDs come from live adapters.
 export const CATALOG = [
   {
@@ -7,14 +8,14 @@ export const CATALOG = [
     name: 'OpenAI Codex',
     kind: 'oauth',
     tags: ['code', 'reasoning', 'tools'],
-    description: 'Код, терминал, файлы и проверка результата. Вход с ChatGPT.',
+    description: loc('Код, терминал, файлы и проверка результата. Вход с ChatGPT.'),
   },
   {
     id: 'claude',
     name: 'Claude Code',
     kind: 'oauth',
     tags: ['code', 'reasoning', 'tools', 'writing'],
-    description: 'Работа с проектом, сложные изменения и тексты. Вход Anthropic.',
+    description: loc('Работа с проектом, сложные изменения и тексты. Вход Anthropic.'),
   },
   {
     id: 'antigravity',
@@ -24,15 +25,18 @@ export const CATALOG = [
     args: [],
     authMethod: 'oauth-personal',
     tags: ['code', 'tools', 'multimodal'],
-    description: 'Официальный ACP Google для личного входа. Отдельный runtime вместо старого Gemini CLI.',
+    description: loc(
+      'Официальный ACP Google для личного входа. Отдельный runtime вместо старого Gemini CLI.'
+    ),
   },
   {
     id: 'gemini',
     name: 'Gemini CLI',
     kind: 'gemini',
     tags: ['code', 'tools', 'multimodal'],
-    description:
-      'Личные подписки переведены в Antigravity. Здесь доступны Gemini API и существующие корпоративные профили.',
+    description: loc(
+      'Личные подписки переведены в Antigravity. Здесь доступны Gemini API и существующие корпоративные профили.'
+    ),
   },
   {
     id: 'grok',
@@ -40,16 +44,17 @@ export const CATALOG = [
     kind: 'api',
     provider: 'grok',
     tags: ['writing', 'reasoning'],
-    description: 'Текстовый чат через официальный xAI API. Подписка Grok и API оплачиваются отдельно.',
+    description: loc('Текстовый чат через официальный xAI API. Подписка Grok и API оплачиваются отдельно.'),
   },
   {
     id: 'qwen-local',
-    name: 'Qwen · локально',
+    name: loc('Qwen · локально'),
     kind: 'api',
     provider: 'local',
     tags: ['simple', 'local', 'review'],
-    description:
-      'Локальный Qwen через Ollama. Простые вопросы и дополнительная проверка текста без облачных токенов.',
+    description: loc(
+      'Локальный Qwen через Ollama. Простые вопросы и дополнительная проверка текста без облачных токенов.'
+    ),
   },
   {
     id: 'qwen',
@@ -58,7 +63,7 @@ export const CATALOG = [
     executable: 'qwen',
     args: ['--acp'],
     tags: ['code', 'tools', 'local'],
-    description: 'ACP-агент для кода на локальном qwen3:4b через Ollama. Настройки изолированы в Nexus.',
+    description: loc('ACP-агент для кода на локальном qwen3:4b через Ollama. Настройки изолированы в Nexus.'),
   },
   {
     id: 'goose',
@@ -67,8 +72,9 @@ export const CATALOG = [
     executable: 'goose',
     args: ['acp'],
     tags: ['code', 'tools', 'local'],
-    description:
-      'Установка официального бинарника и ACP. В Nexus использует локальный qwen3:4b через Ollama.',
+    description: loc(
+      'Установка официального бинарника и ACP. В Nexus использует локальный qwen3:4b через Ollama.'
+    ),
   },
   {
     id: 'opencode',
@@ -77,14 +83,14 @@ export const CATALOG = [
     executable: 'opencode',
     args: ['acp'],
     tags: ['code', 'tools'],
-    description: 'Открытый агент с ACP. Для чата нужен настроенный провайдер.',
+    description: loc('Открытый агент с ACP. Для чата нужен настроенный провайдер.'),
   },
   {
     id: 'aider',
     name: 'Aider',
     kind: 'external',
     tags: ['code'],
-    description: 'Доступен установщик через uv. ACP-адаптер в Nexus пока не реализован.',
+    description: loc('Доступен установщик через uv. ACP-адаптер в Nexus пока не реализован.'),
     url: 'https://aider.chat/docs/install.html',
   },
   {
@@ -95,7 +101,7 @@ export const CATALOG = [
     args: ['--acp'],
     npmPackage: '@github/copilot',
     tags: ['code', 'tools'],
-    description: 'Подключается через ACP; доступ зависит от вашего плана GitHub.',
+    description: loc('Подключается через ACP; доступ зависит от вашего плана GitHub.'),
     url: 'https://docs.github.com/en/copilot/concepts/agents/copilot-cli/acp',
   },
   {
@@ -105,7 +111,7 @@ export const CATALOG = [
     executable: 'kimi',
     args: ['acp'],
     tags: ['code', 'tools'],
-    description: 'Установленный Kimi CLI подключается через ACP.',
+    description: loc('Установленный Kimi CLI подключается через ACP.'),
     url: 'https://moonshotai.github.io/kimi-cli/en/customization/acp.html',
   },
   {
@@ -115,7 +121,7 @@ export const CATALOG = [
     executable: '',
     args: [],
     tags: ['code', 'tools'],
-    description: 'Нужен установленный CLI с поддержкой ACP и настроенный провайдер.',
+    description: loc('Нужен установленный CLI с поддержкой ACP и настроенный провайдер.'),
     url: 'https://docs.cline.bot/',
   },
   {
@@ -125,27 +131,27 @@ export const CATALOG = [
     executable: 'amp-acp',
     args: [],
     tags: ['code', 'tools'],
-    description: 'Нужны официальный CLI, аккаунт и совместимый ACP-адаптер.',
+    description: loc('Нужны официальный CLI, аккаунт и совместимый ACP-адаптер.'),
     url: 'https://ampcode.com/',
   },
   {
     id: 'openai-compatible',
-    name: 'Свой API / LM Studio',
+    name: loc('Свой API / LM Studio'),
     kind: 'api',
     provider: 'openai-compatible',
     tags: ['writing', 'local'],
-    description: 'OpenAI-совместимый сервер, свой endpoint и список моделей от сервера.',
+    description: loc('OpenAI-совместимый сервер, свой endpoint и список моделей от сервера.'),
   },
 ];
 export const TAG_NAMES = {
-  code: 'Код',
-  reasoning: 'Сложные задачи',
-  tools: 'Инструменты',
-  writing: 'Тексты',
-  multimodal: 'Изображения',
-  simple: 'Простые задачи',
-  local: 'Локально',
-  review: 'Проверка',
+  code: loc('Код'),
+  reasoning: loc('Сложные задачи'),
+  tools: loc('Инструменты'),
+  writing: loc('Тексты'),
+  multimodal: loc('Изображения'),
+  simple: loc('Простые задачи'),
+  local: loc('Локально'),
+  review: loc('Проверка'),
 };
 export function classifyTask(
   text = '',
@@ -179,22 +185,22 @@ export function classifyTask(
   return {
     kind: hasImages ? 'visual' : code ? 'code' : complex ? 'reasoning' : 'simple',
     taskType: hasImages
-      ? 'Анализ изображений'
+      ? loc('Анализ изображений')
       : webdev
-        ? 'Веб-разработка'
+        ? loc('Веб-разработка')
         : translation
-          ? 'Перевод'
+          ? loc('Перевод')
           : editing
-            ? 'Редактура'
+            ? loc('Редактура')
             : extraction
-              ? 'Извлечение данных'
+              ? loc('Извлечение данных')
               : repair
-                ? 'Исправление кода'
+                ? loc('Исправление кода')
                 : code
-                  ? 'Разработка кода'
+                  ? loc('Разработка кода')
                   : complex
-                    ? 'Рассуждения'
-                    : 'Тексты',
+                    ? loc('Рассуждения')
+                    : loc('Тексты'),
     complex,
     webdev,
     extraction,
@@ -214,16 +220,16 @@ export function classifyTask(
       !projectInspection &&
       text.trim().length < 160,
     reason: projectInspection
-      ? 'Нужен агент с доступом к файлам проекта.'
+      ? loc('Нужен агент с доступом к файлам проекта.')
       : hasImages
-        ? 'Нужен адаптер с передачей изображений.'
+        ? loc('Нужен адаптер с передачей изображений.')
         : hasFiles
-          ? 'Нужен доступ к приложенным файлам.'
+          ? loc('Нужен доступ к приложенным файлам.')
           : executionMode === 'execute' || executionMode === 'auto'
-            ? 'Нужен агент с инструментами выполнения.'
+            ? loc('Нужен агент с инструментами выполнения.')
             : complex
-              ? 'Запрос содержит несколько этапов.'
-              : 'Текстовое обсуждение.',
+              ? loc('Запрос содержит несколько этапов.')
+              : loc('Текстовое обсуждение.'),
   };
 }
 // Mirror of the backend `complexity()` → effort rule used when depth is «Авто»,
@@ -255,16 +261,16 @@ export function modelCapabilities(model, connections = []) {
 export function incompatibleReason(model, task, reasoningMode = 'auto', connections = []) {
   if (model.unavailable) return model.unavailable;
   if (connections.some(c => c.id === model.provider && c.ready === false))
-    return 'Подключение не готово; обновите проверку';
+    return loc('Подключение не готово; обновите проверку');
   const c = modelCapabilities(model, connections);
-  if (!c.text) return 'Для этой модели нужен отдельный адаптер; текстовый чат не поддерживается';
-  if (task.needsTools && !c.tools) return 'Нет инструментов выполнения';
-  if (task.hasFiles && !c.files) return 'Адаптер не передаёт файлы';
+  if (!c.text) return loc('Для этой модели нужен отдельный адаптер; текстовый чат не поддерживается');
+  if (task.needsTools && !c.tools) return loc('Нет инструментов выполнения');
+  if (task.hasFiles && !c.files) return loc('Адаптер не передаёт файлы');
   if (task.hasImages && c.images !== true)
     return c.images === false
-      ? 'Адаптер не передаёт изображения'
-      : 'Поддержка изображений не подтверждена; переподключите ACP';
-  if (reasoningMode !== 'auto' && !c.reasoning) return 'Ручная глубина недоступна; выберите «Авто»';
+      ? loc('Адаптер не передаёт изображения')
+      : loc('Поддержка изображений не подтверждена; переподключите ACP');
+  if (reasoningMode !== 'auto' && !c.reasoning) return loc('Ручная глубина недоступна; выберите «Авто»');
   return '';
 }
 // On some Claude plans Fable runs on usage credits bought separately from the subscription,
@@ -305,7 +311,7 @@ export function routingAdvice(
     const manual = models.find(m => m.id === selection);
     const error = manual
       ? incompatibleReason(manual, task, reasoningMode, connections)
-      : 'Выбранная модель недоступна';
+      : loc('Выбранная модель недоступна');
     return {...task, choice: error ? null : manual.id, error, offer: false};
   }
   const eligible = scoped.filter(
@@ -319,8 +325,9 @@ export function routingAdvice(
       ...task,
       choice: null,
       offer: false,
-      error:
-        'Для пользовательского ACP подтверждён только протокол. Выберите модель агента вручную; автовыбор отключён.',
+      error: loc(
+        'Для пользовательского ACP подтверждён только протокол. Выберите модель агента вручную; автовыбор отключён.'
+      ),
     };
   const preferred =
     task.kind === 'simple' && !task.needsTools
@@ -350,7 +357,12 @@ export function routingAdvice(
       comparison: measured.comparison,
       coverage: measured.coverage,
       reason:
-        task.reason + ' ' + measured.reason + ' Покрытие: ' + measured.coverage + ' совместимых моделей.',
+        task.reason +
+        ' ' +
+        measured.reason +
+        loc(' Покрытие: ') +
+        measured.coverage +
+        loc(' совместимых моделей.'),
     };
   const chosen = preferredModel(eligible.filter(match)) || preferredModel(eligible);
   if (chosen)
@@ -359,31 +371,39 @@ export function routingAdvice(
       preferred,
       choice: chosen.id,
       offer: false,
-      coverage: 'Недостаточно сопоставимых данных',
+      coverage: loc('Недостаточно сопоставимых данных'),
       comparison: [chosen, ...eligible.filter(m => m.id !== chosen.id).slice(0, 2)].map(m => ({
         id: m.id,
         label: m.label || m.model,
-        quality: 'Нет достаточного сравнения для этого режима',
+        quality: loc('Нет достаточного сравнения для этого режима'),
         cost: null,
         minutes: null,
         note:
-          m.id === chosen.id ? 'Резервный выбор по совместимости' : 'Совместимая альтернатива без рейтинга',
+          m.id === chosen.id
+            ? loc('Резервный выбор по совместимости')
+            : loc('Совместимая альтернатива без рейтинга'),
       })),
       reason:
         task.reason +
         (task.trivial && priority !== 'quality'
-          ? ' Короткий простой запрос: рейтинги не применяются, выбор по совместимости без самой дорогой модели. '
-          : ' Недостаточно сопоставимых свежих данных для этого режима; резервный выбор по совместимости. ') +
+          ? loc(
+              ' Короткий простой запрос: рейтинги не применяются, выбор по совместимости без самой дорогой модели. '
+            )
+          : loc(
+              ' Недостаточно сопоставимых свежих данных для этого режима; резервный выбор по совместимости. '
+            )) +
         (chosen.isDefault
-          ? 'Выбрана модель по умолчанию.'
-          : 'Выбран совместимый вариант; рейтинг качества не измерен.'),
+          ? loc('Выбрана модель по умолчанию.')
+          : loc('Выбран совместимый вариант; рейтинг качества не измерен.')),
     };
   return {
     ...task,
     preferred,
     offer: selection === 'auto',
-    error: selection === 'auto' ? '' : 'У выбранного агента нет совместимой модели. ' + task.reason,
-    warning: 'Нет совместимого подключения для этих требований. Подключите агента или измените параметры.',
+    error: selection === 'auto' ? '' : loc('У выбранного агента нет совместимой модели. ') + task.reason,
+    warning: loc(
+      'Нет совместимого подключения для этих требований. Подключите агента или измените параметры.'
+    ),
     fallback: null,
   };
 }

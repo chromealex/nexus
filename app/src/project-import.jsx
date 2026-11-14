@@ -4,16 +4,17 @@ import {X, Search} from 'lucide-react';
 import {AgentIcon} from './agent-icon.jsx';
 import {countLabel} from './locale-format.js';
 import {notify} from './toasts.js';
+import {appLocale, loc} from './i18n.js';
 
 const SOURCE = {claude: 'Claude Code', codex: 'Codex'};
 
 function ago(seconds) {
   if (!seconds) return '';
   const days = Math.floor((Date.now() / 1000 - seconds) / 86400);
-  if (days <= 0) return 'сегодня';
-  if (days === 1) return 'вчера';
-  if (days < 30) return countLabel(days, 'день', 'дня', 'дней') + ' назад';
-  return new Date(seconds * 1000).toLocaleDateString('ru-RU', {
+  if (days <= 0) return loc('сегодня');
+  if (days === 1) return loc('вчера');
+  if (days < 30) return countLabel(days, loc('день'), loc('дня'), loc('дней')) + loc(' назад');
+  return new Date(seconds * 1000).toLocaleDateString(appLocale(), {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -69,9 +70,9 @@ export function ProjectImport({onClose, onImported}) {
       const added = result.added.length,
         skipped = result.skipped.length;
       notify(
-        countLabel(added, 'проект добавлен', 'проекта добавлено', 'проектов добавлено') +
+        countLabel(added, loc('проект добавлен'), loc('проекта добавлено'), loc('проектов добавлено')) +
           (skipped
-            ? ` · ${countLabel(skipped, 'пропущен', 'пропущено', 'пропущено')}: ${result.skipped[0].reason}`
+            ? ` · ${countLabel(skipped, loc('пропущен'), loc('пропущено'), loc('пропущено'))}: ${result.skipped[0].reason}`
             : ''),
         {tone: added ? 'success' : 'warn'}
       );
@@ -88,17 +89,18 @@ export function ProjectImport({onClose, onImported}) {
         className="project-settings project-import"
         role="dialog"
         aria-modal="true"
-        aria-label="Импорт проектов"
+        aria-label={loc('Импорт проектов')}
       >
         <div className="settings-header">
           <div>
-            <h2>Импорт из Claude Code и Codex</h2>
+            <h2>{loc('Импорт из Claude Code и Codex')}</h2>
             <small>
-              Папки, в которых эти агенты уже работали на этом Mac. Переписка и настройки агентов не
-              переносятся.
+              {loc(
+                'Папки, в которых эти агенты уже работали на этом Mac. Переписка и настройки агентов не переносятся.'
+              )}
             </small>
           </div>
-          <button type="button" disabled={busy} aria-label="Закрыть" onClick={onClose}>
+          <button type="button" disabled={busy} aria-label={loc('Закрыть')} onClick={onClose}>
             <X size={19} />
           </button>
         </div>
@@ -108,16 +110,17 @@ export function ProjectImport({onClose, onImported}) {
             <input
               value={query}
               onChange={e => setQuery(e.target.value)}
-              placeholder="Поиск по названию или пути"
-              aria-label="Поиск папок"
+              placeholder={loc('Поиск по названию или пути')}
+              aria-label={loc('Поиск папок')}
             />
           </label>
           {rows === null ? (
-            <p className="project-import-empty">Ищу проекты…</p>
+            <p className="project-import-empty">{loc('Ищу проекты…')}</p>
           ) : !rows.length ? (
             <p className="project-import-empty">
-              Не нашлось папок из Claude Code или Codex. Проекты появятся здесь после того, как вы поработаете
-              в них этими агентами.
+              {loc(
+                'Не нашлось папок из Claude Code или Codex. Проекты появятся здесь после того, как вы поработаете в них этими агентами.'
+              )}
             </p>
           ) : (
             <ul className="project-import-list">
@@ -140,7 +143,7 @@ export function ProjectImport({onClose, onImported}) {
                           <AgentIcon provider={s} />
                         </span>
                       ))}
-                      <small>{r.added ? 'уже в Nexus' : ago(r.lastUsed)}</small>
+                      <small>{r.added ? loc('уже в Nexus') : ago(r.lastUsed)}</small>
                     </span>
                   </label>
                 </li>
@@ -150,14 +153,15 @@ export function ProjectImport({onClose, onImported}) {
         </div>
         <div className="settings-actions">
           <button type="button" disabled={busy} onClick={onClose}>
-            Отмена
+            {loc('Отмена')}
           </button>
           <button type="button" className="primary" disabled={busy || !picked.size} onClick={run}>
             {busy
-              ? 'Добавляю…'
+              ? loc('Добавляю…')
               : picked.size
-                ? 'Импортировать ' + countLabel(picked.size, 'проект', 'проекта', 'проектов')
-                : 'Выберите проекты'}
+                ? loc('Импортировать ') +
+                  countLabel(picked.size, loc('проект'), loc('проекта'), loc('проектов'))
+                : loc('Выберите проекты')}
           </button>
         </div>
       </section>

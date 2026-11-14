@@ -1,22 +1,25 @@
 import React from 'react';
 import {quotaView, apiLimitsView} from './quota-format.js';
-const number = new Intl.NumberFormat('ru-RU', {maximumFractionDigits: 1});
+import {appLocale, loc} from './i18n.js';
+const number = new Intl.NumberFormat(appLocale(), {maximumFractionDigits: 1});
 export function Quota({quota, statusline, expanded = false, unsupported}) {
   const view = quotaView(quota, statusline);
   return (
     <div className={'connection-quota quota-overview' + (view.stale || view.error ? ' is-stale' : '')}>
       <div className="quota-overview-heading">
-        <strong>Лимиты</strong>
-        {view.checking && <small>Обновляем…</small>}
-        {view.error && view.windows.length > 0 && <small>Не удалось обновить · последние данные</small>}
-        {view.stale && !view.error && <small>Последние данные · требуют обновления</small>}
+        <strong>{loc('Лимиты')}</strong>
+        {view.checking && <small>{loc('Обновляем…')}</small>}
+        {view.error && view.windows.length > 0 && (
+          <small>{loc('Не удалось обновить · последние данные')}</small>
+        )}
+        {view.stale && !view.error && <small>{loc('Последние данные · требуют обновления')}</small>}
       </div>
       {view.credits && (
         <p className="quota-unknown">
           {view.credits.unlimited
-            ? 'Кредиты: без ограничения'
-            : `Кредиты: ${number.format(view.credits.balance)}`}
-          {view.plan ? ` · тариф ${view.plan}` : ''}
+            ? loc('Кредиты: без ограничения')
+            : loc('Кредиты: {0}', number.format(view.credits.balance))}
+          {view.plan ? loc(' · тариф {0}', view.plan) : ''}
         </p>
       )}
       {view.windows.length > 0 ? (
@@ -25,7 +28,10 @@ export function Quota({quota, statusline, expanded = false, unsupported}) {
             <div className="quota-window" key={window.id}>
               <div className="quota-window-label">
                 <span>{window.label}</span>
-                <strong>{number.format(window.used)}% использовано</strong>
+                <strong>
+                  {number.format(window.used)}
+                  {loc('% использовано')}
+                </strong>
               </div>
               <progress
                 className={
@@ -34,15 +40,21 @@ export function Quota({quota, statusline, expanded = false, unsupported}) {
                 }
                 max="100"
                 value={window.used}
-                aria-label={window.label + ' · использовано'}
-                aria-valuetext={`${number.format(window.used)}% использовано, ${number.format(window.left)}% осталось`}
+                aria-label={window.label + loc(' · использовано')}
+                aria-valuetext={loc(
+                  '{0}% использовано, {1}% осталось',
+                  number.format(window.used),
+                  number.format(window.left)
+                )}
               />
               <div className="quota-window-note">
-                <span>Осталось {number.format(window.left)}%</span>
+                <span>
+                  {loc('Осталось')} {number.format(window.left)}%
+                </span>
                 {window.resetAt && (
                   <time dateTime={window.resetAt.toISOString()}>
-                    Восстановление:{' '}
-                    {window.resetAt.toLocaleString('ru-RU', {
+                    {loc('Восстановление:')}{' '}
+                    {window.resetAt.toLocaleString(appLocale(), {
                       day: 'numeric',
                       month: 'short',
                       hour: '2-digit',
@@ -57,15 +69,15 @@ export function Quota({quota, statusline, expanded = false, unsupported}) {
       ) : view.credits ? null : (
         <p className="quota-unknown">
           {view.checking
-            ? 'Получаем данные от провайдера…'
-            : unsupported || 'Нет данных · провайдер не передал подтверждённые лимиты'}
+            ? loc('Получаем данные от провайдера…')
+            : unsupported || loc('Нет данных · провайдер не передал подтверждённые лимиты')}
         </p>
       )}
       {expanded && (
         <div className="quota-source">
           <small>
-            Источник: {view.source || 'Не предоставлен'}
-            {view.checkedAt ? ' · ' + view.checkedAt.toLocaleString('ru-RU') : ''}
+            {loc('Источник:')} {view.source || loc('Не предоставлен')}
+            {view.checkedAt ? ' · ' + view.checkedAt.toLocaleString(appLocale()) : ''}
           </small>
           {quota?.detail && <small>{quota.detail}</small>}
         </div>
@@ -73,17 +85,21 @@ export function Quota({quota, statusline, expanded = false, unsupported}) {
     </div>
   );
 }
-const money = new Intl.NumberFormat('ru-RU', {style: 'currency', currency: 'USD', maximumFractionDigits: 2});
+const money = new Intl.NumberFormat(appLocale(), {
+  style: 'currency',
+  currency: 'USD',
+  maximumFractionDigits: 2,
+});
 export function ApiLimits({limits, expanded = false}) {
   const view = apiLimitsView(limits);
   return (
     <div className={'connection-quota quota-overview' + (view.stale || view.error ? ' is-stale' : '')}>
       <div className="quota-overview-heading">
-        <strong>Лимиты API-ключа</strong>
-        {view.checking && <small>Обновляем…</small>}
-        {view.error && <small>Не удалось обновить</small>}
-        {view.limited && <small>Провайдер ограничил запросы</small>}
-        {view.blocked && <small>Ключ или команда заблокированы</small>}
+        <strong>{loc('Лимиты API-ключа')}</strong>
+        {view.checking && <small>{loc('Обновляем…')}</small>}
+        {view.error && <small>{loc('Не удалось обновить')}</small>}
+        {view.limited && <small>{loc('Провайдер ограничил запросы')}</small>}
+        {view.blocked && <small>{loc('Ключ или команда заблокированы')}</small>}
       </div>
       {view.windows.length > 0 && (
         <div className="quota-windows">
@@ -91,7 +107,10 @@ export function ApiLimits({limits, expanded = false}) {
             <div className="quota-window" key={w.id}>
               <div className="quota-window-label">
                 <span>{w.label}</span>
-                <strong>{number.format(w.used)}% использовано</strong>
+                <strong>
+                  {number.format(w.used)}
+                  {loc('% использовано')}
+                </strong>
               </div>
               <progress
                 className={
@@ -99,14 +118,23 @@ export function ApiLimits({limits, expanded = false}) {
                 }
                 max="100"
                 value={w.used}
-                aria-label={w.label + ' · использовано'}
-                aria-valuetext={`${number.format(w.used)}% использовано, осталось ${number.format(w.remaining)} из ${number.format(w.limit)}`}
+                aria-label={w.label + loc(' · использовано')}
+                aria-valuetext={loc(
+                  '{0}% использовано, осталось {1} из {2}',
+                  number.format(w.used),
+                  number.format(w.remaining),
+                  number.format(w.limit)
+                )}
               />
               <div className="quota-window-note">
                 <span>
-                  Осталось {number.format(w.remaining)} из {number.format(w.limit)}
+                  {loc('Осталось')} {number.format(w.remaining)} {loc('из')} {number.format(w.limit)}
                 </span>
-                {w.reset && <span>Сброс: {w.reset}</span>}
+                {w.reset && (
+                  <span>
+                    {loc('Сброс:')} {w.reset}
+                  </span>
+                )}
               </div>
             </div>
           ))}
@@ -114,27 +142,29 @@ export function ApiLimits({limits, expanded = false}) {
       )}
       {view.credits && (
         <p className="quota-unknown">
-          Баланс API: {money.format(view.credits.remaining)}
-          {view.credits.total !== null ? ` из ${money.format(view.credits.total)}` : ''}
+          {loc('Баланс API:')} {money.format(view.credits.remaining)}
+          {view.credits.total !== null ? loc(' из {0}', money.format(view.credits.total)) : ''}
         </p>
       )}
       {!view.windows.length && !view.credits && (
         <p className="quota-unknown">
           {view.checking
-            ? 'Получаем данные от xAI…'
+            ? loc('Получаем данные от xAI…')
             : view.error
               ? view.detail
-              : 'Нет данных · xAI не передал лимиты в ответе'}
+              : loc('Нет данных · xAI не передал лимиты в ответе')}
         </p>
       )}
       {expanded && (
         <div className="quota-source">
           <small>
-            Источник: {view.source || 'xAI API'}
-            {view.checkedAt ? ' · ' + view.checkedAt.toLocaleString('ru-RU') : ''}
+            {loc('Источник:')} {view.source || 'xAI API'}
+            {view.checkedAt ? ' · ' + view.checkedAt.toLocaleString(appLocale()) : ''}
           </small>
           <small>
-            Лимиты подписки SuperGrok/X Premium через API недоступны: подписка и API оплачиваются отдельно.
+            {loc(
+              'Лимиты подписки SuperGrok/X Premium через API недоступны: подписка и API оплачиваются отдельно.'
+            )}
           </small>
         </div>
       )}

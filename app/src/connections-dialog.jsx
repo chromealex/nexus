@@ -20,15 +20,16 @@ import {AgentIcon} from './agent-icon.jsx';
 import {useToastOn} from './toaster.jsx';
 import {PathPick} from './path-pick.jsx';
 import {CATALOG, TAG_NAMES, connectionState} from './agent-catalog.js';
+import {loc} from './i18n.js';
 const active = phase => ['queued', 'checking', 'installing', 'verifying'].includes(phase);
 const phaseLabel = {
-  queued: 'В очереди',
-  checking: 'Проверка',
-  installing: 'Установка',
-  verifying: 'Проверка установки',
-  installed: 'Установлен',
-  failed: 'Ошибка установки',
-  cancelled: 'Отменено',
+  queued: loc('В очереди'),
+  checking: loc('Проверка'),
+  installing: loc('Установка'),
+  verifying: loc('Проверка установки'),
+  installed: loc('Установлен'),
+  failed: loc('Ошибка установки'),
+  cancelled: loc('Отменено'),
 };
 const redact = s =>
   String(s || '')
@@ -143,7 +144,9 @@ export function ConnectionsDialog({
       live = true;
     listen('local-model-progress', e =>
       setLocalProgress(
-        e.payload.percent != null ? `Загрузка Qwen: ${Math.round(e.payload.percent)}%` : 'Подготовка модели…'
+        e.payload.percent != null
+          ? loc('Загрузка Qwen: {0}%', Math.round(e.payload.percent))
+          : loc('Подготовка модели…')
       )
     ).then(f => {
       if (live) off = f;
@@ -246,8 +249,8 @@ export function ConnectionsDialog({
           a = await invoke('add_account', {
             provider: item.id,
             name: accounts.some(a => a.provider === item.id)
-              ? `Аккаунт ${accounts.filter(a => a.provider === item.id).length + 1}`
-              : 'Личный',
+              ? loc('Аккаунт {0}', accounts.filter(a => a.provider === item.id).length + 1)
+              : loc('Личный'),
           });
           await onRefreshAccounts();
         }
@@ -267,7 +270,9 @@ export function ConnectionsDialog({
     }
     if (item.kind === 'external') {
       setNotice(
-        'Для этого агента ещё нет адаптера чата. Можно установить CLI или добавить совместимый ACP-адаптер.'
+        loc(
+          'Для этого агента ещё нет адаптера чата. Можно установить CLI или добавить совместимый ACP-адаптер.'
+        )
       );
       return;
     }
@@ -280,7 +285,7 @@ export function ConnectionsDialog({
           authMethod: item.authMethod || null,
         },
       });
-      setNotice(`${agent.manifest.name}: сессия ACP подтверждена`);
+      setNotice(loc('{0}: сессия ACP подтверждена', agent.manifest.name));
       await changed();
     });
   }
@@ -288,7 +293,7 @@ export function ConnectionsDialog({
     if (['qwen', 'goose'].includes(item.id) && !(await invoke('local_qwen_status').catch(() => false))) {
       setAfterLocal(item);
       edit(CATALOG.find(a => a.id === 'qwen-local'));
-      setNotice(`Для ${item.name} нужен локальный Qwen. После настройки Nexus продолжит подключение.`);
+      setNotice(loc('Для {0} нужен локальный Qwen. После настройки Nexus продолжит подключение.', item.name));
       return;
     }
     const installed = agents.some(a => a.id === item.id && a.installed) || jobs[item.id]?.success === true;
@@ -306,7 +311,7 @@ export function ConnectionsDialog({
       connect(item);
     } else if (job?.success === false) {
       setPendingInstall(null);
-      setError(`Установка ${pendingInstall.name} не завершена. Раскройте журнал и повторите.`);
+      setError(loc('Установка {0} не завершена. Раскройте журнал и повторите.', pendingInstall.name));
     }
   }, [jobs, pendingInstall]);
   useEffect(() => {
@@ -327,7 +332,7 @@ export function ConnectionsDialog({
           apiKey: key,
         });
         setKey('');
-        setNotice(`${row.name}: API подтвердил доступ, моделей: ${row.models.length}`);
+        setNotice(loc('{0}: API подтвердил доступ, моделей: {1}', row.name, row.models.length));
         if (form.provider === 'local' && afterLocal) {
           setResumeAgent(afterLocal);
           setAfterLocal(null);
@@ -337,14 +342,14 @@ export function ConnectionsDialog({
         try {
           parsed = JSON.parse(args);
         } catch {
-          throw Error('Аргументы указываются массивом JSON, например ["--acp"]');
+          throw Error(loc('Аргументы указываются массивом JSON, например ["--acp"]'));
         }
         if (!Array.isArray(parsed) || parsed.some(a => typeof a !== 'string'))
-          throw Error('Аргументы должны быть массивом строк');
+          throw Error(loc('Аргументы должны быть массивом строк'));
         await invoke('connect_agent_manifest', {
           manifest: {name, executable, args: parsed, npmPackage: pkg || null, authMethod: auth || null},
         });
-        setNotice('Сессия ACP подтверждена; агент добавлен в выбор моделей.');
+        setNotice(loc('Сессия ACP подтверждена; агент добавлен в выбор моделей.'));
       }
       setForm(null);
       await changed();
@@ -397,14 +402,14 @@ export function ConnectionsDialog({
         ref={dialog}
         role="dialog"
         aria-modal="true"
-        aria-label="Агенты и подключения"
+        aria-label={loc('Агенты и подключения')}
       >
         <div className="connections-heading">
           <div>
-            <h2>Агенты и подключения</h2>
-            <p>Установите агента, подтвердите вход — продолжайте в чате.</p>
+            <h2>{loc('Агенты и подключения')}</h2>
+            <p>{loc('Установите агента, подтвердите вход — продолжайте в чате.')}</p>
           </div>
-          <button aria-label="Закрыть подключения" onClick={onClose}>
+          <button aria-label={loc('Закрыть подключения')} onClick={onClose}>
             <X size={19} />
           </button>
         </div>
@@ -417,7 +422,7 @@ export function ConnectionsDialog({
               setKey('');
             }}
           >
-            Каталог
+            {loc('Каталог')}
           </button>
           <button
             className={tab === 'accounts' ? 'active' : ''}
@@ -427,8 +432,14 @@ export function ConnectionsDialog({
               setKey('');
             }}
           >
-            Аккаунты{' '}
-            <span title={`Вход подтверждён: ${total} из ${accounts.length + apis.length + custom.length}`}>
+            {loc('Аккаунты')}{' '}
+            <span
+              title={loc(
+                'Вход подтверждён: {0} из {1}',
+                total,
+                accounts.length + apis.length + custom.length
+              )}
+            >
               {accounts.length + apis.length + custom.length > total
                 ? `${total}/${accounts.length + apis.length + custom.length}`
                 : total}
@@ -442,11 +453,11 @@ export function ConnectionsDialog({
               setKey('');
             }}
           >
-            Каналы
+            {loc('Каналы')}
           </button>
           <button onClick={() => edit({name: '', kind: 'custom'})}>
             <Plus size={15} />
-            Свой агент
+            {loc('Свой агент')}
           </button>
         </div>
         <div className="connections-content">
@@ -461,24 +472,27 @@ export function ConnectionsDialog({
                   setKey('');
                 }}
               >
-                <ChevronLeft size={15} />К списку
+                <ChevronLeft size={15} />
+                {loc('К списку')}
               </button>
-              <h3>{form.kind === 'api' ? `Подключить ${form.name}` : 'Добавить ACP-агента'}</h3>
+              <h3>{form.kind === 'api' ? loc('Подключить {0}', form.name) : loc('Добавить ACP-агента')}</h3>
               <label>
-                Название
+                {loc('Название')}
                 <input
                   required
                   value={name}
                   maxLength={80}
                   onChange={e => setName(e.target.value)}
-                  placeholder="Название агента или аккаунта"
+                  placeholder={loc('Название агента или аккаунта')}
                 />
               </label>
               {form.kind === 'api' ? (
                 <>
                   {form.provider === 'local' ? (
                     <div className="local-setup">
-                      <p>Ollama должен работать на этом Mac. Nexus проверит модели на 127.0.0.1:11434.</p>
+                      <p>
+                        {loc('Ollama должен работать на этом Mac. Nexus проверит модели на 127.0.0.1:11434.')}
+                      </p>
                       <div>
                         <button
                           type="button"
@@ -492,14 +506,14 @@ export function ConnectionsDialog({
                                 setResumeAgent(afterLocal);
                                 setAfterLocal(null);
                               }
-                              setNotice('Локальный Qwen подключён');
+                              setNotice(loc('Локальный Qwen подключён'));
                             })
                           }
                         >
-                          Установить и подключить Qwen · несколько ГБ
+                          {loc('Установить и подключить Qwen · несколько ГБ')}
                         </button>
                         <a href="https://ollama.com/download/mac" target="_blank" rel="noreferrer">
-                          Установить Ollama <ExternalLink size={12} />
+                          {loc('Установить Ollama')} <ExternalLink size={12} />
                         </a>
                         <button
                           type="button"
@@ -507,43 +521,44 @@ export function ConnectionsDialog({
                           onClick={() =>
                             work('pull', async () => {
                               await invoke('pull_local_qwen');
-                              setNotice('qwen3:4b загружен. Нажмите «Проверить и подключить».');
+                              setNotice(loc('qwen3:4b загружен. Нажмите «Проверить и подключить».'));
                             })
                           }
                         >
                           <Download size={14} />
-                          Загрузить Qwen 4B · несколько ГБ
+                          {loc('Загрузить Qwen 4B · несколько ГБ')}
                         </button>
                       </div>
                       {busy === 'pull' && (
                         <p role="status">
-                          {localProgress || 'Подготовка Ollama и загрузки…'}{' '}
+                          {localProgress || loc('Подготовка Ollama и загрузки…')}{' '}
                           <button type="button" onClick={() => invoke('cancel_local_qwen')}>
-                            Отменить
+                            {loc('Отменить')}
                           </button>
                         </p>
                       )}
                       <small>
-                        Загрузка требует свободного места и может занять несколько минут. Проверка текста
-                        моделью не заменяет запуск тестов.
+                        {loc(
+                          'Загрузка требует свободного места и может занять несколько минут. Проверка текста моделью не заменяет запуск тестов.'
+                        )}
                       </small>
                     </div>
                   ) : (
                     <label>
-                      API-ключ
+                      {loc('API-ключ')}
                       <input
                         type="password"
                         autoComplete="off"
                         required
                         value={key}
                         onChange={e => setKey(e.target.value)}
-                        placeholder="Ключ хранится в связке ключей macOS"
+                        placeholder={loc('Ключ хранится в связке ключей macOS')}
                       />
                     </label>
                   )}
                   {form.provider === 'openai-compatible' && (
                     <label>
-                      Адрес API
+                      {loc('Адрес API')}
                       <input
                         required
                         type="url"
@@ -554,27 +569,32 @@ export function ConnectionsDialog({
                     </label>
                   )}
                   <p className="connection-hint">
-                    Текстовый API загружает список моделей с сервера. Терминал, локальные файлы и лимиты
-                    подписки через него недоступны.
+                    {loc(
+                      'Текстовый API загружает список моделей с сервера. Терминал, локальные файлы и лимиты подписки через него недоступны.'
+                    )}
                   </p>
                 </>
               ) : (
                 <>
                   <label>
-                    Исполняемый файл
+                    {loc('Исполняемый файл')}
                     <span className="path-field">
                       <input
                         required
                         value={executable}
                         maxLength={500}
                         onChange={e => setExecutable(e.target.value)}
-                        placeholder="my-agent или /полный/путь/к/агенту"
+                        placeholder={loc('my-agent или /полный/путь/к/агенту')}
                       />
-                      <PathPick kind="executable" prompt="Исполняемый файл агента" onPick={setExecutable} />
+                      <PathPick
+                        kind="executable"
+                        prompt={loc('Исполняемый файл агента')}
+                        onPick={setExecutable}
+                      />
                     </span>
                   </label>
                   <label>
-                    Аргументы · JSON
+                    {loc('Аргументы · JSON')}
                     <input
                       required
                       value={args}
@@ -583,9 +603,9 @@ export function ConnectionsDialog({
                     />
                   </label>
                   <details>
-                    <summary>Установка и авторизация</summary>
+                    <summary>{loc('Установка и авторизация')}</summary>
                     <label>
-                      Официальный npm-пакет · необязательно
+                      {loc('Официальный npm-пакет · необязательно')}
                       <input
                         value={pkg}
                         onChange={e => setPkg(e.target.value)}
@@ -593,27 +613,32 @@ export function ConnectionsDialog({
                       />
                     </label>
                     <label>
-                      Метод входа ACP · необязательно
+                      {loc('Метод входа ACP · необязательно')}
                       <input
                         value={auth}
                         onChange={e => setAuth(e.target.value)}
-                        placeholder="ID из документации агента"
+                        placeholder={loc('ID из документации агента')}
                       />
                     </label>
                   </details>
                   <p className="connection-hint">
-                    Агент запускается на вашем компьютере. Указывайте доверенную команду и официальный пакет.
-                    Nexus проверит ACP и создание сессии. Для другого протокола нужен адаптер.
+                    {loc(
+                      'Агент запускается на вашем компьютере. Указывайте доверенную команду и официальный пакет. Nexus проверит ACP и создание сессии. Для другого протокола нужен адаптер.'
+                    )}
                   </p>
                 </>
               )}
               {busy && busy !== 'pull' && form.kind !== 'api' && (
                 <button type="button" onClick={() => invoke('cancel_agent_connection')}>
-                  Отменить подключение
+                  {loc('Отменить подключение')}
                 </button>
               )}
               <button className="connection-primary" disabled={!!busy}>
-                {busy === 'pull' ? 'Загрузка модели…' : busy ? 'Подключаю…' : 'Проверить и подключить'}
+                {busy === 'pull'
+                  ? loc('Загрузка модели…')
+                  : busy
+                    ? loc('Подключаю…')
+                    : loc('Проверить и подключить')}
               </button>
             </form>
           ) : tab === 'channels' ? (
@@ -624,20 +649,20 @@ export function ConnectionsDialog({
                 <label>
                   <Search size={15} />
                   <input
-                    aria-label="Найти агента"
-                    placeholder="Найти агента"
+                    aria-label={loc('Найти агента')}
+                    placeholder={loc('Найти агента')}
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                   />
                 </label>
                 <CustomSelect
-                  aria-label="Фильтр агентов"
+                  aria-label={loc('Фильтр агентов')}
                   value={filter}
                   onChange={e => setFilter(e.target.value)}
                 >
-                  <option value="all">Все агенты</option>
-                  <option value="ready">Подключённые</option>
-                  <option value="local">Локальные</option>
+                  <option value="all">{loc('Все агенты')}</option>
+                  <option value="ready">{loc('Подключённые')}</option>
+                  <option value="local">{loc('Локальные')}</option>
                 </CustomSelect>
               </div>
               <div className="connections-catalog">
@@ -664,14 +689,14 @@ export function ConnectionsDialog({
                           <h3>{item.name}</h3>
                           <span className={ready ? 'connection-ready' : ''}>
                             {ready
-                              ? 'Подключён'
+                              ? loc('Подключён')
                               : active(job?.phase)
                                 ? phaseLabel[job.phase]
                                 : installed
-                                  ? 'Установлен'
+                                  ? loc('Установлен')
                                   : item.kind === 'api'
-                                    ? 'Подключение API'
-                                    : 'Не подключён'}
+                                    ? loc('Подключение API')
+                                    : loc('Не подключён')}
                           </span>
                         </div>
                         <button
@@ -682,16 +707,16 @@ export function ConnectionsDialog({
                           {active(job?.phase)
                             ? phaseLabel[job.phase] + '…'
                             : busy === item.id
-                              ? 'Подключаю…'
+                              ? loc('Подключаю…')
                               : ready
-                                ? 'Аккаунты'
+                                ? loc('Аккаунты')
                                 : !installed && installable
                                   ? item.kind === 'external'
-                                    ? 'Установить CLI'
-                                    : 'Установить и подключить'
+                                    ? loc('Установить CLI')
+                                    : loc('Установить и подключить')
                                   : item.kind === 'external'
-                                    ? 'Подробнее'
-                                    : 'Подключить'}
+                                    ? loc('Подробнее')
+                                    : loc('Подключить')}
                         </button>
                       </div>
                       <p>{item.description}</p>
@@ -703,7 +728,10 @@ export function ConnectionsDialog({
                             work(item.id, async () => {
                               const a = await invoke('add_account', {
                                 provider: item.id,
-                                name: `Аккаунт ${accounts.filter(a => a.provider === item.id).length + 1}`,
+                                name: loc(
+                                  'Аккаунт {0}',
+                                  accounts.filter(a => a.provider === item.id).length + 1
+                                ),
                               });
                               await onRefreshAccounts();
                               setTab('accounts');
@@ -713,7 +741,7 @@ export function ConnectionsDialog({
                           }
                         >
                           <Plus size={12} />
-                          Ещё аккаунт
+                          {loc('Ещё аккаунт')}
                         </button>
                       )}
                       <div className="catalog-tags">
@@ -726,13 +754,15 @@ export function ConnectionsDialog({
                           className="connection-link"
                           onClick={() => primary(CATALOG.find(a => a.id === 'antigravity'))}
                         >
-                          Войти с Google через Antigravity
+                          {loc('Войти с Google через Antigravity')}
                         </button>
                       )}
                       {job && (
                         <details className="connection-install-log">
-                          <summary>{phaseLabel[job.phase] || job.phase} · журнал установки</summary>
-                          <pre>{logs[item.id] || 'Ожидаем установщик…'}</pre>
+                          <summary>
+                            {phaseLabel[job.phase] || job.phase} {loc('· журнал установки')}
+                          </summary>
+                          <pre>{logs[item.id] || loc('Ожидаем установщик…')}</pre>
                           {active(job.phase) && (
                             <button
                               onClick={() => {
@@ -740,7 +770,7 @@ export function ConnectionsDialog({
                                 onCancelInstall(item.id);
                               }}
                             >
-                              Отменить установку
+                              {loc('Отменить установку')}
                             </button>
                           )}
                         </details>
@@ -752,10 +782,10 @@ export function ConnectionsDialog({
               <div className="registry-catalog">
                 <button disabled={registryBusy} onClick={loadRegistry}>
                   {registryBusy
-                    ? 'Загружаю каталог ACP…'
+                    ? loc('Загружаю каталог ACP…')
                     : registry.length
-                      ? 'Обновить каталог ACP'
-                      : 'Все агенты из реестра ACP'}
+                      ? loc('Обновить каталог ACP')
+                      : loc('Все агенты из реестра ACP')}
                 </button>
                 {registry
                   .filter(a => (a.name + ' ' + a.description).toLowerCase().includes(search.toLowerCase()))
@@ -778,14 +808,14 @@ export function ConnectionsDialog({
                           })
                         }
                       >
-                        Настроить
+                        {loc('Настроить')}
                       </button>
                       {a.website && (
                         <a
                           href={a.website}
                           target="_blank"
                           rel="noreferrer"
-                          aria-label={'Документация ' + a.name}
+                          aria-label={loc('Документация ') + a.name}
                         >
                           <ExternalLink size={13} />
                         </a>
@@ -794,14 +824,15 @@ export function ConnectionsDialog({
                   ))}
               </div>
               <p className="connection-hint">
-                Каталог расширяется. Совместимого агента можно добавить через «Свой агент». Установка CLI,
-                вход, поддержка чата и квота — разные проверки.
+                {loc(
+                  'Каталог расширяется. Совместимого агента можно добавить через «Свой агент». Установка CLI, вход, поддержка чата и квота — разные проверки.'
+                )}
               </p>
             </>
           ) : (
             <div className="connections-accounts">
               <div className="connection-add-row">
-                <strong>Аккаунты и профили</strong>
+                <strong>{loc('Аккаунты и профили')}</strong>
                 <button
                   onClick={() => {
                     setTab('catalog');
@@ -810,7 +841,7 @@ export function ConnectionsDialog({
                   }}
                 >
                   <Plus size={14} />
-                  Добавить аккаунт
+                  {loc('Добавить аккаунт')}
                 </button>
               </div>
               {accounts.map(a => {
@@ -833,11 +864,11 @@ export function ConnectionsDialog({
                         <span className={ready ? 'connection-ready' : ''}>
                           {
                             {
-                              ready: 'Вход подтверждён',
-                              waiting: 'Ожидаем входа в браузере',
-                              checking: 'Проверяем вход…',
-                              error: 'Ошибка проверки',
-                              login_required: 'Требуется вход',
+                              ready: loc('Вход подтверждён'),
+                              waiting: loc('Ожидаем входа в браузере'),
+                              checking: loc('Проверяем вход…'),
+                              error: loc('Ошибка проверки'),
+                              login_required: loc('Требуется вход'),
                             }[state]
                           }
                         </span>
@@ -846,13 +877,13 @@ export function ConnectionsDialog({
                         className={confirmRemove === a.id ? 'connection-remove confirm' : 'connection-remove'}
                         title={
                           confirmRemove === a.id
-                            ? 'Нажмите ещё раз, чтобы удалить профиль'
-                            : 'Удалить аккаунт из Nexus'
+                            ? loc('Нажмите ещё раз, чтобы удалить профиль')
+                            : loc('Удалить аккаунт из Nexus')
                         }
                         aria-label={
                           confirmRemove === a.id
-                            ? 'Подтвердить удаление аккаунта ' + a.name
-                            : 'Удалить аккаунт ' + a.name
+                            ? loc('Подтвердить удаление аккаунта ') + a.name
+                            : loc('Удалить аккаунт ') + a.name
                         }
                         disabled={waiting || !!busy}
                         onBlur={() => setConfirmRemove(v => (v === a.id ? null : v))}
@@ -875,14 +906,14 @@ export function ConnectionsDialog({
                         }}
                       >
                         <Trash2 size={15} />
-                        {confirmRemove === a.id && 'Удалить?'}
+                        {confirmRemove === a.id && loc('Удалить?')}
                       </button>
                     </div>
                     {a.provider === 'gemini' && !ready && state !== 'checking' ? (
                       <p className="connection-hint">
-                        Google закрыл личный вход через Gemini CLI. Подключите Gemini через Antigravity (вход
-                        Google) или по ключу Gemini API. Вход в этот профиль доступен только для корпоративных
-                        аккаунтов Google с Gemini Code Assist — в «Лимиты и детали».
+                        {loc(
+                          'Google закрыл личный вход через Gemini CLI. Подключите Gemini через Antigravity (вход Google) или по ключу Gemini API. Вход в этот профиль доступен только для корпоративных аккаунтов Google с Gemini Code Assist — в «Лимиты и детали».'
+                        )}
                       </p>
                     ) : (
                       <Quota
@@ -891,7 +922,7 @@ export function ConnectionsDialog({
                         expanded={isOpen}
                         unsupported={
                           a.provider === 'claude'
-                            ? 'Нет данных · Claude Code пока не передал лимиты'
+                            ? loc('Нет данных · Claude Code пока не передал лимиты')
                             : undefined
                         }
                       />
@@ -904,13 +935,13 @@ export function ConnectionsDialog({
                             disabled={!!busy}
                             onClick={() => primary(CATALOG.find(c => c.id === 'antigravity'))}
                           >
-                            Войти через Antigravity
+                            {loc('Войти через Antigravity')}
                           </button>
                           <button
                             disabled={!!busy}
                             onClick={() => connect(CATALOG.find(c => c.id === 'gemini'))}
                           >
-                            Gemini API по ключу
+                            {loc('Gemini API по ключу')}
                           </button>
                         </>
                       )}
@@ -924,15 +955,15 @@ export function ConnectionsDialog({
                           }}
                         >
                           {waiting
-                            ? 'Ожидаем подтверждения…'
+                            ? loc('Ожидаем подтверждения…')
                             : a.provider === 'codex'
-                              ? 'Войти с ChatGPT'
+                              ? loc('Войти с ChatGPT')
                               : a.provider === 'gemini'
-                                ? 'Войти с Google'
-                                : 'Войти'}
+                                ? loc('Войти с Google')
+                                : loc('Войти')}
                         </button>
                       )}
-                      {waiting && <button onClick={() => onCancelLogin(a.id)}>Отменить вход</button>}
+                      {waiting && <button onClick={() => onCancelLogin(a.id)}>{loc('Отменить вход')}</button>}
                       <button
                         onClick={() => {
                           onCheck(a.id);
@@ -940,27 +971,29 @@ export function ConnectionsDialog({
                         }}
                       >
                         <RefreshCw size={13} />
-                        Обновить
+                        {loc('Обновить')}
                       </button>
                       <button aria-expanded={isOpen} onClick={() => setExpanded(isOpen ? null : a.id)}>
-                        Лимиты и детали
+                        {loc('Лимиты и детали')}
                       </button>
                     </div>
                     {waiting && a.provider === 'codex' && (
                       <div className="connection-device">
-                        <strong>{code || 'Получаем код…'}</strong>
+                        <strong>{code || loc('Получаем код…')}</strong>
                         <button
                           disabled={!code}
                           onClick={() => invoke('open_codex_device_page').catch(e => setError(String(e)))}
                         >
-                          Открыть вход ChatGPT
+                          {loc('Открыть вход ChatGPT')}
                         </button>
                       </div>
                     )}
                     {job?.phase === 'error' && (
                       <p className="connection-error">
                         {job.log?.includes('no longer supported')
-                          ? 'Google отклонил вход: для личных аккаунтов он закрыт. Используйте Antigravity или Gemini API.'
+                          ? loc(
+                              'Google отклонил вход: для личных аккаунтов он закрыт. Используйте Antigravity или Gemini API.'
+                            )
                           : redact(job.log)}
                       </p>
                     )}
@@ -969,10 +1002,12 @@ export function ConnectionsDialog({
                         {a.provider === 'gemini' && !ready && !waiting && (
                           <button
                             disabled={!!busy}
-                            title="Работает только для корпоративных аккаунтов Google с Gemini Code Assist"
+                            title={loc(
+                              'Работает только для корпоративных аккаунтов Google с Gemini Code Assist'
+                            )}
                             onClick={() => onLogin(a.id)}
                           >
-                            Корпоративный аккаунт Google (Code Assist)
+                            {loc('Корпоративный аккаунт Google (Code Assist)')}
                           </button>
                         )}
                         {a.provider === 'claude' && (
@@ -983,21 +1018,24 @@ export function ConnectionsDialog({
                                 await invoke('claude_statusline_install', {id: a.id});
                                 await onQuota(a.id);
                                 setNotice(
-                                  'Источник statusLine настроен для терминальных сессий Claude Code. В чате Nexus лимиты приходят и без него.'
+                                  loc(
+                                    'Источник statusLine настроен для терминальных сессий Claude Code. В чате Nexus лимиты приходят и без него.'
+                                  )
                                 );
                               })
                             }
                           >
-                            Дополнительно: лимиты из терминальной сессии
+                            {loc('Дополнительно: лимиты из терминальной сессии')}
                           </button>
                         )}
                         <p className="connection-hint">
-                          Отдельный каталог профиля. Разные профили могут быть авторизованы одним аккаунтом.
-                          Удаление убирает профиль из Nexus, сохраняя данные официального CLI.
+                          {loc(
+                            'Отдельный каталог профиля. Разные профили могут быть авторизованы одним аккаунтом. Удаление убирает профиль из Nexus, сохраняя данные официального CLI.'
+                          )}
                         </p>
                         <details>
-                          <summary>Диагностика входа</summary>
-                          <pre>{redact(job?.log || checks[a.id]?.detail || 'Нет данных')}</pre>
+                          <summary>{loc('Диагностика входа')}</summary>
+                          <pre>{redact(job?.log || checks[a.id]?.detail || loc('Нет данных'))}</pre>
                         </details>
                       </>
                     )}
@@ -1015,11 +1053,12 @@ export function ConnectionsDialog({
                     <div>
                       <h3>{a.name}</h3>
                       <span className={a.ready ? 'connection-ready' : ''}>
-                        {a.ready ? 'API проверен' : 'API недоступен'} · моделей: {a.models.length}
+                        {a.ready ? loc('API проверен') : loc('API недоступен')} {loc('· моделей:')}{' '}
+                        {a.models.length}
                       </span>
                     </div>
                     <button
-                      aria-label={'Удалить подключение ' + a.name}
+                      aria-label={loc('Удалить подключение ') + a.name}
                       disabled={!!busy}
                       onClick={() => removeApi(a.id)}
                     >
@@ -1029,18 +1068,20 @@ export function ConnectionsDialog({
                   {a.provider === 'grok' ? (
                     <ApiLimits limits={apiLimits[a.id]} expanded />
                   ) : (
-                    <Quota unsupported="Нет данных · этот API не возвращает лимиты подписки" />
+                    <Quota unsupported={loc('Нет данных · этот API не возвращает лимиты подписки')} />
                   )}
                   <details>
-                    <summary>Модели и возможности</summary>
+                    <summary>{loc('Модели и возможности')}</summary>
                     <p>{a.models.join(', ')}</p>
                     <p>
-                      Текстовый чат · без файлов и терминала.{' '}
+                      {loc('Текстовый чат · без файлов и терминала.')}{' '}
                       {a.provider === 'grok'
-                        ? 'Показаны лимиты API-ключа; квота подписки Grok через API не передаётся.'
-                        : 'Квота подписки не предоставляется этим API.'}
+                        ? loc('Показаны лимиты API-ключа; квота подписки Grok через API не передаётся.')
+                        : loc('Квота подписки не предоставляется этим API.')}
                     </p>
-                    <small>Последняя проверка: {new Date(a.checkedAt * 1000).toLocaleString()}</small>
+                    <small>
+                      {loc('Последняя проверка:')} {new Date(a.checkedAt * 1000).toLocaleString()}
+                    </small>
                   </details>
                   <button
                     disabled={!!busy}
@@ -1052,7 +1093,7 @@ export function ConnectionsDialog({
                       })
                     }
                   >
-                    Проверить подключение
+                    {loc('Проверить подключение')}
                   </button>
                 </article>
               ))}
@@ -1074,30 +1115,32 @@ export function ConnectionsDialog({
                       />
                       <div>
                         <h3>{a.manifest.name}</h3>
-                        <span className="connection-ready">Сессия ACP подтверждена</span>
+                        <span className="connection-ready">{loc('Сессия ACP подтверждена')}</span>
                       </div>
                       <button
                         disabled={!!busy}
-                        aria-label={'Отключить ' + a.manifest.name}
+                        aria-label={loc('Отключить ') + a.manifest.name}
                         onClick={() => disconnect(a.id)}
                       >
                         <Trash2 size={15} />
                       </button>
                     </div>
                     <small>
-                      Лимиты не предоставлены адаптером. Глубина рассуждений и модель — по настройкам агента.
+                      {loc(
+                        'Лимиты не предоставлены адаптером. Глубина рассуждений и модель — по настройкам агента.'
+                      )}
                     </small>
                   </article>
                 ))}
               {!accounts.length && !apis.length && !custom.some(a => a.verified) && (
                 <p className="connection-hint">
-                  Выберите агента в каталоге — Nexus предложит доступный способ входа.
+                  {loc('Выберите агента в каталоге — Nexus предложит доступный способ входа.')}
                 </p>
               )}
             </div>
           )}
         </div>
-        <footer>Подтверждённый вход и доступность лимитов проверяются отдельно.</footer>
+        <footer>{loc('Подтверждённый вход и доступность лимитов проверяются отдельно.')}</footer>
       </section>
     </div>
   );

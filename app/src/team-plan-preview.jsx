@@ -1,4 +1,5 @@
 import React from 'react';
+import {loc} from './i18n.js';
 export function TeamPlanPreview({plan, integrator}) {
   if (!plan) return null;
   return (
@@ -6,9 +7,17 @@ export function TeamPlanPreview({plan, integrator}) {
       <summary>
         {plan.steps.length
           ? plan.autoPlan
-            ? `${plan.mode === 'auto' ? 'Авто' : 'Команда'} · разбиение по контексту на ${plan.steps.length} типа работ`
-            : `${plan.mode === 'auto' ? 'Авто' : 'Команда'} · ${plan.steps.length} подзадачи + итог`
-          : 'Команда · один исполнитель'}
+            ? loc(
+                '{0} · разбиение по контексту на {1} типа работ',
+                plan.mode === 'auto' ? loc('Авто') : loc('Команда'),
+                plan.steps.length
+              )
+            : loc(
+                '{0} · {1} подзадачи + итог',
+                plan.mode === 'auto' ? loc('Авто') : loc('Команда'),
+                plan.steps.length
+              )
+          : loc('Команда · один исполнитель')}
       </summary>
       <p>{plan.reason}</p>
       {plan.error && <p role="alert">{plan.error}</p>}
@@ -17,16 +26,19 @@ export function TeamPlanPreview({plan, integrator}) {
           <li key={step.id}>
             <strong>{step.title}</strong>
             <p>
-              {step.label || 'Нет исполнителя'}
+              {step.label || loc('Нет исполнителя')}
               {step.effort
-                ? ` · глубина ${{low: 'низкая', medium: 'средняя', high: 'высокая'}[step.effort]}`
+                ? loc(
+                    ' · глубина {0}',
+                    {low: loc('низкая'), medium: loc('средняя'), high: loc('высокая')}[step.effort]
+                  )
                 : ''}{' '}
               ·{' '}
               {plan.autoPlan
-                ? 'для этапов этого типа'
+                ? loc('для этапов этого типа')
                 : step.dependsOn.length
-                  ? `после этапа ${step.dependsOn.join(', ')}`
-                  : 'независимый этап'}
+                  ? loc('после этапа {0}', step.dependsOn.join(', '))
+                  : loc('независимый этап')}
             </p>
             <small>{step.reason}</small>
           </li>
@@ -34,8 +46,8 @@ export function TeamPlanPreview({plan, integrator}) {
       </ol>
       {plan.steps.length > 0 && (
         <p>
-          Объединение и проверка: {integrator}. Дополнительные вызовы расходуют квоту; стоимость подписочных
-          запросов неизвестна.
+          {loc('Объединение и проверка:')} {integrator}
+          {loc('. Дополнительные вызовы расходуют квоту; стоимость подписочных запросов неизвестна.')}
         </p>
       )}
     </details>

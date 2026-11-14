@@ -2,6 +2,7 @@ import React from 'react';
 import {Globe, Download, ExternalLink} from 'lucide-react';
 import {CustomSelect} from './custom-select.jsx';
 import {BROWSER_MODES, browserHint, normalizeMode} from './browser-mode.js';
+import {loc} from './i18n.js';
 
 // «Параметры → Браузер»: choose the browser for this chat and finish its one-time setup.
 export function BrowserParam({
@@ -21,11 +22,11 @@ export function BrowserParam({
     <div className={'composer-param-row browser-param' + (compact ? ' is-compact' : '')}>
       <span className="composer-param-label">
         <Globe size={12} aria-hidden="true" />
-        Браузер агентов
+        {loc('Браузер агентов')}
       </span>
       <CustomSelect
         className="reasoning-mode"
-        aria-label="Браузер агентов"
+        aria-label={loc('Браузер агентов')}
         value={mode}
         disabled={disabled || busy || !status}
         onChange={e => onMode(e.target.value)}
@@ -41,14 +42,14 @@ export function BrowserParam({
         <span className="browser-actions">
           <button type="button" disabled={busy} onClick={onInstall}>
             <Download size={12} aria-hidden="true" />
-            Установить
+            {loc('Установить')}
           </button>
         </span>
       )}
       {status?.installing && (
         <span className="browser-actions">
           <button type="button" onClick={onCancel}>
-            Отменить
+            {loc('Отменить')}
           </button>
         </span>
       )}
@@ -56,7 +57,7 @@ export function BrowserParam({
         <span className="browser-actions">
           <button type="button" onClick={onExtension}>
             <ExternalLink size={12} aria-hidden="true" />
-            Расширение для Chrome
+            {loc('Расширение для Chrome')}
           </button>
         </span>
       )}

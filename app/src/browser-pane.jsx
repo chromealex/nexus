@@ -5,6 +5,7 @@ import {ArrowLeft, ArrowRight, RotateCw, Plus, X, Globe, Maximize2} from 'lucide
 import {BrowserParam} from './browser-param.jsx';
 import {keyAction, normalizeMode, pageCoords, previewVisible, tabTitle} from './browser-mode.js';
 import {notify} from './toasts.js';
+import {loc} from './i18n.js';
 
 // Last picture of every chat browser in this window session, so switching chats or closing the pane
 // keeps something to show while the next frame arrives.
@@ -116,7 +117,7 @@ function Viewport({frame, input, running}) {
     return (
       <div className="browser-viewport is-empty">
         <Globe size={28} aria-hidden="true" />
-        <span>{running ? 'Загружаю страницу…' : 'Запускаю браузер чата…'}</span>
+        <span>{running ? loc('Загружаю страницу…') : loc('Запускаю браузер чата…')}</span>
       </div>
     );
   return (
@@ -124,7 +125,7 @@ function Viewport({frame, input, running}) {
       className="browser-viewport"
       tabIndex={0}
       role="application"
-      aria-label="Страница во встроенном браузере. Клики и ввод передаются странице."
+      aria-label={loc('Страница во встроенном браузере. Клики и ввод передаются странице.')}
       onKeyDown={e => {
         if (e.metaKey && e.key.toLowerCase() === 'v') {
           e.preventDefault();
@@ -220,7 +221,7 @@ export function BrowserView({browser, chatId, settings}) {
   const recent = activity && Date.now() - activity.at < 6000;
   return (
     <div className="browser-view">
-      <div className="browser-tabs" role="tablist" aria-label="Вкладки">
+      <div className="browser-tabs" role="tablist" aria-label={loc('Вкладки')}>
         {(ready ? tabs.tabs || [] : []).map(tab => (
           <div
             key={tab.id}
@@ -234,7 +235,7 @@ export function BrowserView({browser, chatId, settings}) {
             <button
               type="button"
               className="browser-tab-close"
-              aria-label={'Закрыть вкладку ' + tabTitle(tab)}
+              aria-label={loc('Закрыть вкладку ') + tabTitle(tab)}
               onClick={() => input({type: 'closeTab', id: tab.id})}
             >
               <X size={11} />
@@ -245,7 +246,7 @@ export function BrowserView({browser, chatId, settings}) {
           <button
             type="button"
             className="browser-tab-new"
-            aria-label="Новая вкладка"
+            aria-label={loc('Новая вкладка')}
             onClick={() => input({type: 'newTab'})}
           >
             <Plus size={13} />
@@ -261,19 +262,19 @@ export function BrowserView({browser, chatId, settings}) {
             if (address.trim()) input({type: 'navigate', url: address.trim()});
           }}
         >
-          <button type="button" aria-label="Назад" onClick={() => input({type: 'back'})}>
+          <button type="button" aria-label={loc('Назад')} onClick={() => input({type: 'back'})}>
             <ArrowLeft size={14} />
           </button>
-          <button type="button" aria-label="Вперёд" onClick={() => input({type: 'forward'})}>
+          <button type="button" aria-label={loc('Вперёд')} onClick={() => input({type: 'forward'})}>
             <ArrowRight size={14} />
           </button>
-          <button type="button" aria-label="Обновить" onClick={() => input({type: 'reload'})}>
+          <button type="button" aria-label={loc('Обновить')} onClick={() => input({type: 'reload'})}>
             <RotateCw size={13} />
           </button>
           <input
             value={address}
-            aria-label="Адрес или поиск"
-            placeholder="Адрес или поиск"
+            aria-label={loc('Адрес или поиск')}
+            placeholder={loc('Адрес или поиск')}
             spellCheck={false}
             onFocus={e => {
               setEditing(true);
@@ -292,12 +293,12 @@ export function BrowserView({browser, chatId, settings}) {
             <Globe size={26} aria-hidden="true" />
             <strong>
               {!chatId
-                ? 'Откройте чат'
+                ? loc('Откройте чат')
                 : mode === 'off'
-                  ? 'Браузер выключен в этом чате'
+                  ? loc('Браузер выключен в этом чате')
                   : mode === 'chrome'
-                    ? 'Агент работает в вашем Chrome'
-                    : 'Браузер чата'}
+                    ? loc('Агент работает в вашем Chrome')
+                    : loc('Браузер чата')}
             </strong>
             {error && <p role="alert">{error}</p>}
             {chatId && settings}
@@ -306,7 +307,7 @@ export function BrowserView({browser, chatId, settings}) {
         {recent && (
           <div className={'browser-activity' + (activity.asks ? ' is-asking' : '')} role="status">
             <span className="browser-activity-dot" aria-hidden="true" />
-            Агент: {activity.text}
+            {loc('Агент:')} {activity.text}
           </div>
         )}
         {notice && (
@@ -324,7 +325,12 @@ export function BrowserPreview({browser, onOpen}) {
   const {frame, activity, tabs} = browser;
   const active = tabs.tabs?.find(t => t.id === tabs.active);
   return (
-    <button type="button" className="browser-preview" onClick={onOpen} aria-label="Открыть браузер чата">
+    <button
+      type="button"
+      className="browser-preview"
+      onClick={onOpen}
+      aria-label={loc('Открыть браузер чата')}
+    >
       {frame ? (
         <img src={'data:image/jpeg;base64,' + frame.data} alt="" draggable={false} />
       ) : (
@@ -334,7 +340,9 @@ export function BrowserPreview({browser, onOpen}) {
       )}
       <span className="browser-preview-caption">
         <span className="browser-activity-dot" aria-hidden="true" />
-        <span>{activity?.text ? 'Агент: ' + activity.text : tabTitle(active) || 'Агент в браузере'}</span>
+        <span>
+          {activity?.text ? loc('Агент: ') + activity.text : tabTitle(active) || loc('Агент в браузере')}
+        </span>
         <Maximize2 size={12} aria-hidden="true" />
       </span>
     </button>

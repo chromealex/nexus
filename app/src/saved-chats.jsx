@@ -3,6 +3,7 @@ import {useToastOn} from './toaster.jsx';
 import {invoke} from '@tauri-apps/api/core';
 import {X, RotateCcw, MessageSquare, Archive, Trash2} from 'lucide-react';
 import {FadeLabel} from './fade-label.jsx';
+import {loc} from './i18n.js';
 export function SavedChats({kind, projects, onClose, onRestore}) {
   const [rows, setRows] = useState([]),
     [error, setError] = useState(''),
@@ -67,18 +68,18 @@ export function SavedChats({kind, projects, onClose, onRestore}) {
         ref={dialog}
         role="dialog"
         aria-modal="true"
-        aria-label={kind === 'archive' ? 'Архив чатов' : 'Корзина чатов'}
+        aria-label={kind === 'archive' ? loc('Архив чатов') : loc('Корзина чатов')}
       >
         <div className="settings-header">
           <div>
-            <h2>{kind === 'archive' ? 'Архив' : 'Корзина'}</h2>
+            <h2>{kind === 'archive' ? loc('Архив') : loc('Корзина')}</h2>
             <p>
               {kind === 'archive'
-                ? 'Архивные чаты скрыты из дерева.'
-                : 'Удалённые чаты и их сообщения можно восстановить.'}
+                ? loc('Архивные чаты скрыты из дерева.')
+                : loc('Удалённые чаты и их сообщения можно восстановить.')}
             </p>
           </div>
-          <button aria-label="Закрыть список чатов" onClick={onClose}>
+          <button aria-label={loc('Закрыть список чатов')} onClick={onClose}>
             <X size={18} />
           </button>
         </div>
@@ -91,13 +92,13 @@ export function SavedChats({kind, projects, onClose, onRestore}) {
                 <div>
                   <FadeLabel>{c.title}</FadeLabel>
                   <small>
-                    {projects.find(p => p.id === c.projectId)?.name || 'Проект'}
-                    {rows.some(x => x.parentChatId === c.id) ? ' · с подчатами' : ''}
+                    {projects.find(p => p.id === c.projectId)?.name || loc('Проект')}
+                    {rows.some(x => x.parentChatId === c.id) ? loc(' · с подчатами') : ''}
                   </small>
                 </div>
                 <button disabled={!!busy} onClick={() => restore(c)}>
                   <RotateCcw size={14} />
-                  {busy === c.id ? 'Восстанавливаю…' : 'Восстановить'}
+                  {busy === c.id ? loc('Восстанавливаю…') : loc('Восстановить')}
                 </button>
               </article>
             ))}
@@ -108,11 +109,15 @@ export function SavedChats({kind, projects, onClose, onRestore}) {
               ) : (
                 <Trash2 size={26} aria-hidden="true" />
               )}
-              <strong>{kind === 'archive' ? 'В архиве пока нет чатов' : 'Корзина пуста'}</strong>
+              <strong>{kind === 'archive' ? loc('В архиве пока нет чатов') : loc('Корзина пуста')}</strong>
               <p>
                 {kind === 'archive'
-                  ? 'Чтобы убрать чат из дерева, не удаляя его, откройте меню «…» у чата и выберите «Архивировать». Отсюда его можно вернуть в любой момент.'
-                  : 'Сюда попадают чаты, удалённые через меню «…». Сообщения сохраняются, чат можно восстановить вместе с подчатами.'}
+                  ? loc(
+                      'Чтобы убрать чат из дерева, не удаляя его, откройте меню «…» у чата и выберите «Архивировать». Отсюда его можно вернуть в любой момент.'
+                    )
+                  : loc(
+                      'Сюда попадают чаты, удалённые через меню «…». Сообщения сохраняются, чат можно восстановить вместе с подчатами.'
+                    )}
               </p>
             </div>
           )}

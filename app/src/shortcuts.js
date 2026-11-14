@@ -1,20 +1,21 @@
+import {loc} from './i18n.js';
 // Keyboard shortcuts shared by the app shell and the hints shown next to controls.
 // NEXUS is a macOS app; the browser UI preview on other systems uses Ctrl instead of ⌘.
 export const IS_MAC =
   typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '');
 
 export const SHORTCUTS = {
-  newChat: {key: 'n', label: 'Новый чат'},
-  search: {key: 'k', label: 'Поиск и переход к чату'},
-  connections: {key: ',', label: 'Агенты и подключения'},
-  model: {key: '/', label: 'Выбор модели'},
-  previous: {key: '[', label: 'Предыдущий чат'},
-  next: {key: ']', label: 'Следующий чат'},
-  sidebar: {key: '\\', label: 'Показать или скрыть проекты'},
-  find: {key: 'f', label: 'Найти в чате'},
-  textBigger: {key: '=', label: 'Крупнее текст'},
-  textSmaller: {key: '-', label: 'Мельче текст'},
-  textReset: {key: '0', label: 'Обычный размер текста'},
+  newChat: {key: 'n', label: loc('Новый чат')},
+  search: {key: 'k', label: loc('Поиск и переход к чату')},
+  connections: {key: ',', label: loc('Агенты и подключения')},
+  model: {key: '/', label: loc('Выбор модели')},
+  previous: {key: '[', label: loc('Предыдущий чат')},
+  next: {key: ']', label: loc('Следующий чат')},
+  sidebar: {key: '\\', label: loc('Показать или скрыть проекты')},
+  find: {key: 'f', label: loc('Найти в чате')},
+  textBigger: {key: '=', label: loc('Крупнее текст')},
+  textSmaller: {key: '-', label: loc('Мельче текст')},
+  textReset: {key: '0', label: loc('Обычный размер текста')},
 };
 
 export const shortcutText = name => {

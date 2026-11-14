@@ -1,3 +1,4 @@
+import {loc} from './i18n.js';
 // Chat search for the sidebar filter and the ⌘K quick switcher.
 // Pure functions: no DOM, no Tauri. Matching is case- and ё/е-insensitive.
 
@@ -72,7 +73,7 @@ export function searchChats(query, {chats = [], folders = [], projects = []} = {
     const project = projects.find(p => p.id === chat.projectId);
     const parent = chat.parentChatId ? chats.find(c => c.id === chat.parentChatId) : null;
     const path = [
-      project?.name || 'Проект',
+      project?.name || loc('Проект'),
       ...folderPath(
         folders.filter(f => f.projectId === chat.projectId),
         chat.folderId

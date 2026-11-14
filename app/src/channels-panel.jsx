@@ -18,6 +18,7 @@ import {
 } from './channels-format.js';
 import './channels-panel.css';
 import {useToastOn} from './toaster.jsx';
+import {loc} from './i18n.js';
 
 const ICONS = {github: GitBranch, linear: GitBranch, api: Mic, push: Bell};
 // Remote tasks: messengers, email, iMessage, issue trackers and a local API feed regular Nexus chats; push reports back.
@@ -106,8 +107,8 @@ export function ChannelsPanel() {
   const copy = (text, what) =>
     navigator.clipboard
       ?.writeText(text)
-      .then(() => setNotice(`${what} скопирован`))
-      .catch(() => setError('Не удалось скопировать'));
+      .then(() => setNotice(loc('{0} скопирован', what)))
+      .catch(() => setError(loc('Не удалось скопировать')));
   const toggle = (k, label, hint) => (
     <label className="channel-toggle">
       <input type="checkbox" checked={!!draft[k]} onChange={e => set(k, e.target.checked)} />
@@ -117,7 +118,9 @@ export function ChannelsPanel() {
       </span>
     </label>
   );
-  const baseUrl = draft ? `http://${draft.lan ? 'имя-mac.local' : '127.0.0.1'}:${draft.port || 4719}` : '';
+  const baseUrl = draft
+    ? `http://${draft.lan ? loc('имя-mac.local') : '127.0.0.1'}:${draft.port || 4719}`
+    : '';
   if (edit && draft) {
     const source = !!CHANNELS[edit];
     return (
@@ -131,12 +134,13 @@ export function ChannelsPanel() {
             setSecret('');
             await refresh();
             setEdit(null);
-            setNotice(`${meta.name}: настройки сохранены`);
+            setNotice(loc('{0}: настройки сохранены', meta.name));
           });
         }}
       >
         <button type="button" className="connection-back" disabled={!!busy} onClick={() => setEdit(null)}>
-          <ChevronLeft size={15} />К каналам
+          <ChevronLeft size={15} />
+          {loc('К каналам')}
         </button>
         <h3>{meta.name}</h3>
         <ol className="channel-steps">
@@ -164,7 +168,7 @@ export function ChannelsPanel() {
                         }}
                       >
                         {a.toggle && draft?.[a.toggle]
-                          ? '✓ ' + a.label.replace(/^Включить /, '') + ' включён'
+                          ? '✓ ' + a.label.replace(/^Включить /, '') + loc(' включён')
                           : a.label}
                       </button>
                     ))}
@@ -184,8 +188,8 @@ export function ChannelsPanel() {
               onChange={e => setSecret(e.target.value)}
               placeholder={
                 view?.hasSecret
-                  ? 'Сохранён в связке ключей macOS · оставьте пустым, чтобы не менять'
-                  : 'Хранится только в связке ключей macOS'
+                  ? loc('Сохранён в связке ключей macOS · оставьте пустым, чтобы не менять')
+                  : loc('Хранится только в связке ключей macOS')
               }
             />
             <small>{meta.secretHint}</small>
@@ -205,7 +209,7 @@ export function ChannelsPanel() {
         {edit === 'github' && (
           <div className="channel-grid wide">
             <label>
-              Репозиторий
+              {loc('Репозиторий')}
               <input
                 value={draft.repo}
                 onChange={e => set('repo', e.target.value.trim())}
@@ -213,23 +217,23 @@ export function ChannelsPanel() {
               />
             </label>
             <label>
-              Метка задач
+              {loc('Метка задач')}
               <input value={draft.label} onChange={e => set('label', e.target.value)} placeholder="nexus" />
             </label>
           </div>
         )}
         {edit === 'linear' && (
           <label>
-            Метка задач
+            {loc('Метка задач')}
             <input value={draft.label} onChange={e => set('label', e.target.value)} placeholder="nexus" />
-            <small>Учитываются issues, созданные после включения канала.</small>
+            <small>{loc('Учитываются issues, созданные после включения канала.')}</small>
           </label>
         )}
         {edit === 'email' && (
           <>
             <div className="channel-grid">
               <label>
-                Сервер IMAP
+                {loc('Сервер IMAP')}
                 <input
                   value={draft.imapHost}
                   onChange={e => set('imapHost', e.target.value)}
@@ -237,7 +241,7 @@ export function ChannelsPanel() {
                 />
               </label>
               <label>
-                Порт
+                {loc('Порт')}
                 <input
                   inputMode="numeric"
                   value={draft.imapPort || 993}
@@ -245,7 +249,7 @@ export function ChannelsPanel() {
                 />
               </label>
               <label>
-                Сервер SMTP
+                {loc('Сервер SMTP')}
                 <input
                   value={draft.smtpHost}
                   onChange={e => set('smtpHost', e.target.value)}
@@ -253,7 +257,7 @@ export function ChannelsPanel() {
                 />
               </label>
               <label>
-                Порт
+                {loc('Порт')}
                 <input
                   inputMode="numeric"
                   value={draft.smtpPort || 465}
@@ -263,7 +267,7 @@ export function ChannelsPanel() {
             </div>
             <div className="channel-grid wide">
               <label>
-                Логин
+                {loc('Логин')}
                 <input
                   value={draft.username}
                   onChange={e => set('username', e.target.value)}
@@ -272,11 +276,11 @@ export function ChannelsPanel() {
                 />
               </label>
               <label>
-                Адрес отправителя · необязательно
+                {loc('Адрес отправителя · необязательно')}
                 <input
                   value={draft.fromAddress}
                   onChange={e => set('fromAddress', e.target.value)}
-                  placeholder="как логин"
+                  placeholder={loc('как логин')}
                 />
               </label>
             </div>
@@ -286,11 +290,11 @@ export function ChannelsPanel() {
           <>
             <div className="channel-grid">
               <label>
-                Адрес
+                {loc('Адрес')}
                 <input readOnly value={baseUrl + '/v1/message'} />
               </label>
               <label>
-                Порт
+                {loc('Порт')}
                 <input
                   inputMode="numeric"
                   value={draft.port || 4719}
@@ -299,11 +303,11 @@ export function ChannelsPanel() {
               </label>
             </div>
             <div className="channel-secret">
-              <span>Токен</span>
+              <span>{loc('Токен')}</span>
               <code>{generated ? generated.slice(0, 6) + '…' + generated.slice(-4) : '—'}</code>
-              <button type="button" disabled={!generated} onClick={() => copy(generated, 'Токен')}>
+              <button type="button" disabled={!generated} onClick={() => copy(generated, loc('Токен'))}>
                 <Copy size={13} />
-                Копировать
+                {loc('Копировать')}
               </button>
               <button
                 type="button"
@@ -311,24 +315,25 @@ export function ChannelsPanel() {
                 onClick={() =>
                   work('regen', async () => {
                     setGenerated(await invoke('channels_secret', {kind: 'api', regenerate: true}));
-                    setNotice('Новый токен создан — обновите его в «Командах»');
+                    setNotice(loc('Новый токен создан — обновите его в «Командах»'));
                   })
                 }
               >
-                Новый токен
+                {loc('Новый токен')}
               </button>
             </div>
             <details className="channel-commands">
-              <summary>Тело запроса и проверка</summary>
+              <summary>{loc('Тело запроса и проверка')}</summary>
               <p>
-                JSON: <code>{shortcutBody()}</code>. <code>wait</code> — сколько секунд ждать ответа (до 55);
-                без ожидания придёт «Принято», итог — в <code>GET /v1/messages?after=cursor</code> и в
-                уведомлении. <code>?format=text</code> вернёт простой текст для «Произнести».
+                JSON: <code>{shortcutBody()}</code>. <code>wait</code>{' '}
+                {loc('— сколько секунд ждать ответа (до 55); без ожидания придёт «Принято», итог — в')}{' '}
+                <code>GET /v1/messages?after=cursor</code> {loc('и в уведомлении.')} <code>?format=text</code>{' '}
+                {loc('вернёт простой текст для «Произнести».')}
               </p>
               {generated && (
-                <button type="button" onClick={() => copy(curlExample(baseUrl, generated), 'Пример')}>
+                <button type="button" onClick={() => copy(curlExample(baseUrl, generated), loc('Пример'))}>
                   <Copy size={13} />
-                  Скопировать пример curl
+                  {loc('Скопировать пример curl')}
                 </button>
               )}
             </details>
@@ -337,20 +342,20 @@ export function ChannelsPanel() {
         {edit === 'push' && (
           <>
             <label>
-              Сервер ntfy
+              {loc('Сервер ntfy')}
               <input
                 value={draft.pushServer}
                 onChange={e => set('pushServer', e.target.value)}
                 placeholder="https://ntfy.sh"
               />
-              <small>Можно указать свой сервер ntfy. Нужен HTTPS.</small>
+              <small>{loc('Можно указать свой сервер ntfy. Нужен HTTPS.')}</small>
             </label>
             <div className="channel-secret">
-              <span>Тема</span>
+              <span>{loc('Тема')}</span>
               <code>{generated || '—'}</code>
-              <button type="button" disabled={!generated} onClick={() => copy(generated, 'Тема')}>
+              <button type="button" disabled={!generated} onClick={() => copy(generated, loc('Тема'))}>
                 <Copy size={13} />
-                Копировать
+                {loc('Копировать')}
               </button>
               <button
                 type="button"
@@ -358,25 +363,26 @@ export function ChannelsPanel() {
                 onClick={() =>
                   work('regen', async () => {
                     setGenerated(await invoke('channels_secret', {kind: 'push', regenerate: true}));
-                    setNotice('Новая тема создана — переподпишитесь в ntfy');
+                    setNotice(loc('Новая тема создана — переподпишитесь в ntfy'));
                   })
                 }
               >
-                Новая тема
+                {loc('Новая тема')}
               </button>
             </div>
             <label>
-              Какие задачи
+              {loc('Какие задачи')}
               <CustomSelect
                 value={draft.pushScope || 'remote'}
                 onChange={e => set('pushScope', e.target.value)}
               >
-                <option value="remote">Только поставленные из каналов</option>
-                <option value="all">Все задачи Nexus</option>
+                <option value="remote">{loc('Только поставленные из каналов')}</option>
+                <option value="all">{loc('Все задачи Nexus')}</option>
               </CustomSelect>
               <small>
-                Уведомление приходит при завершении задачи и когда агент ждёт разрешения. Текст ответа
-                обрезается до 300 символов.
+                {loc(
+                  'Уведомление приходит при завершении задачи и когда агент ждёт разрешения. Текст ответа обрезается до 300 символов.'
+                )}
               </small>
             </label>
           </>
@@ -389,66 +395,78 @@ export function ChannelsPanel() {
               rows={3}
               value={allowed}
               onChange={e => setAllowed(e.target.value)}
-              placeholder="По одному в строке"
+              placeholder={loc('По одному в строке')}
             />
-            <small>{meta.allowedHint} Сообщения остальных игнорируются.</small>
+            <small>
+              {meta.allowedHint} {loc('Сообщения остальных игнорируются.')}
+            </small>
           </label>
         )}
         {edit !== 'push' && (
           <label>
-            Проект для новых задач
+            {loc('Проект для новых задач')}
             <CustomSelect value={draft.projectId} onChange={e => set('projectId', e.target.value)}>
-              {!projects.length && <option value="">Нет проектов</option>}
+              {!projects.length && <option value="">{loc('Нет проектов')}</option>}
               {projects.map(p => (
                 <option key={p.id} value={p.id}>
                   {p.name}
                 </option>
               ))}
             </CustomSelect>
-            <small>Из канала можно переключиться командой /project.</small>
+            <small>{loc('Из канала можно переключиться командой /project.')}</small>
           </label>
         )}
         <div className="channel-toggles">
           {source &&
             toggle(
               'notifyProgress',
-              'Сообщать о ходе выполнения',
-              'Этапы: выбор агента, инструменты, проверки — не чаще раза в 20 секунд.'
+              loc('Сообщать о ходе выполнения'),
+              loc('Этапы: выбор агента, инструменты, проверки — не чаще раза в 20 секунд.')
             )}
           {edit !== 'push' &&
             toggle(
               'allowExecute',
-              'Разрешить режим «Выполнение»',
-              'По умолчанию задачи идут в «Обсуждение». С этим флагом команда /mode execute даёт агенту менять файлы; каждый запрос разрешения подтверждается однократно через /allow КОД.'
+              loc('Разрешить режим «Выполнение»'),
+              loc(
+                'По умолчанию задачи идут в «Обсуждение». С этим флагом команда /mode execute даёт агенту менять файлы; каждый запрос разрешения подтверждается однократно через /allow КОД.'
+              )
             )}
           {edit === 'imessage' &&
             toggle(
               'selfChat',
-              'Чат с собой',
-              'Принимать задачи, которые вы пишете на собственный номер/Apple ID из списка выше.'
+              loc('Чат с собой'),
+              loc('Принимать задачи, которые вы пишете на собственный номер/Apple ID из списка выше.')
             )}
           {edit === 'email' &&
             toggle(
               'allowUnsigned',
-              'Принимать письма без DKIM/DMARC',
-              'Небезопасно: адрес отправителя легко подделать. Включайте только для собственного почтового сервера.'
+              loc('Принимать письма без DKIM/DMARC'),
+              loc(
+                'Небезопасно: адрес отправителя легко подделать. Включайте только для собственного почтового сервера.'
+              )
             )}
           {edit === 'api' &&
             toggle(
               'lan',
-              'Доступ из локальной сети',
-              'Нужен для iPhone в той же Wi-Fi. Запросы идут по HTTP без шифрования — включайте только в доверенной сети. Задачи из сети всегда выполняются в режиме «Обсуждение». Без флага API доступен только на этом Mac.'
+              loc('Доступ из локальной сети'),
+              loc(
+                'Нужен для iPhone в той же Wi-Fi. Запросы идут по HTTP без шифрования — включайте только в доверенной сети. Задачи из сети всегда выполняются в режиме «Обсуждение». Без флага API доступен только на этом Mac.'
+              )
             )}
           {edit === 'push' &&
             toggle(
               'macNotify',
-              'Уведомления macOS при скрытом окне',
-              'Системное уведомление на этом Mac, когда окно Nexus закрыто или свёрнуто.'
+              loc('Уведомления macOS при скрытом окне'),
+              loc('Системное уведомление на этом Mac, когда окно Nexus закрыто или свёрнуто.')
             )}
           {toggle(
             'enabled',
-            edit === 'push' ? 'Уведомления включены' : edit === 'api' ? 'API включён' : 'Канал включён',
-            source ? 'После включения старые сообщения пропускаются — задачами станут только новые.' : ''
+            edit === 'push'
+              ? loc('Уведомления включены')
+              : edit === 'api'
+                ? loc('API включён')
+                : loc('Канал включён'),
+            source ? loc('После включения старые сообщения пропускаются — задачами станут только новые.') : ''
           )}
         </div>
         {problems.length > 0 && (
@@ -466,23 +484,27 @@ export function ChannelsPanel() {
               )
             }
           >
-            {busy === 'test' ? 'Проверяю…' : edit === 'push' ? 'Отправить тест' : 'Проверить подключение'}
+            {busy === 'test'
+              ? loc('Проверяю…')
+              : edit === 'push'
+                ? loc('Отправить тест')
+                : loc('Проверить подключение')}
           </button>
           <button className="connection-primary" disabled={!!busy}>
-            {busy === 'save' ? 'Сохраняю…' : 'Сохранить'}
+            {busy === 'save' ? loc('Сохраняю…') : loc('Сохранить')}
           </button>
           {view && ((view.hasSecret && meta.secret) || view.config.enabled) && (
             <button
               type="button"
-              title="Удалить канал и ключ"
-              aria-label={'Удалить ' + meta.name}
+              title={loc('Удалить канал и ключ')}
+              aria-label={loc('Удалить ') + meta.name}
               disabled={!!busy}
               onClick={() =>
                 work('remove', async () => {
                   await invoke('channels_remove', {kind: edit});
                   await refresh();
                   setEdit(null);
-                  setNotice(`${meta.name}: удалено`);
+                  setNotice(loc('{0}: удалено', meta.name));
                 })
               }
             >
@@ -512,11 +534,11 @@ export function ChannelsPanel() {
               {kind === 'push'
                 ? v?.config.enabled
                   ? v.config.pushScope === 'all'
-                    ? 'Все задачи'
-                    : 'Задачи из каналов'
-                  : 'Выключены'
+                    ? loc('Все задачи')
+                    : loc('Задачи из каналов')
+                  : loc('Выключены')
                 : stateLabel(v)}
-              {v?.config.enabled && v.config.allowExecute ? ' · выполнение разрешено' : ''}
+              {v?.config.enabled && v.config.allowExecute ? loc(' · выполнение разрешено') : ''}
             </span>
           </div>
           <button
@@ -524,7 +546,7 @@ export function ChannelsPanel() {
             disabled={!v}
             onClick={() => open(v)}
           >
-            {v?.config.enabled ? 'Настроить' : 'Подключить'}
+            {v?.config.enabled ? loc('Настроить') : loc('Подключить')}
           </button>
         </div>
         {state === 'error' && v?.status?.detail && <p className="connection-error">{v.status.detail}</p>}
@@ -534,11 +556,12 @@ export function ChannelsPanel() {
   return (
     <div className="channels-panel">
       <p className="connection-hint">
-        Ставьте задачи агентам из мессенджеров, почты, трекеров и голосом, следите за выполнением. Каждая
-        задача — обычный чат Nexus.
+        {loc(
+          'Ставьте задачи агентам из мессенджеров, почты, трекеров и голосом, следите за выполнением. Каждая задача — обычный чат Nexus.'
+        )}
       </p>
       {bg && (
-        <section className="channel-background" aria-label="Работа в фоне">
+        <section className="channel-background" aria-label={loc('Работа в фоне')}>
           <label className="channel-toggle">
             <input
               type="checkbox"
@@ -556,11 +579,14 @@ export function ChannelsPanel() {
               }
             />
             <span>
-              <strong>Работать при закрытом окне</strong>
+              <strong>{loc('Работать при закрытом окне')}</strong>
               <small>
                 {bg.activeChannels
-                  ? `Закрытие окна скроет Nexus, каналы продолжат работу (${bg.activeChannels}). Открыть — значок в Dock, выйти — ⌘Q.`
-                  : 'Сработает, когда включён хотя бы один канал.'}
+                  ? loc(
+                      'Закрытие окна скроет Nexus, каналы продолжат работу ({0}). Открыть — значок в Dock, выйти — ⌘Q.',
+                      bg.activeChannels
+                    )
+                  : loc('Сработает, когда включён хотя бы один канал.')}
               </small>
             </span>
           </label>
@@ -581,52 +607,53 @@ export function ChannelsPanel() {
               }
             />
             <span>
-              <strong>Запускать при входе в систему</strong>
+              <strong>{loc('Запускать при входе в систему')}</strong>
               <small>{bg.loginStatus}</small>
             </span>
           </label>
         </section>
       )}
-      <h4 className="channel-group">Мессенджеры и почта</h4>
+      <h4 className="channel-group">{loc('Мессенджеры и почта')}</h4>
       {ORDER.filter(k => !['github', 'linear'].includes(k)).map(card)}
-      <h4 className="channel-group">Трекеры задач</h4>
+      <h4 className="channel-group">{loc('Трекеры задач')}</h4>
       {['github', 'linear'].map(card)}
-      <h4 className="channel-group">Голос и уведомления</h4>
+      <h4 className="channel-group">{loc('Голос и уведомления')}</h4>
       {['api', 'push'].map(card)}
       <details className="channel-commands">
-        <summary>Команды в чате</summary>
+        <summary>{loc('Команды в чате')}</summary>
         <ul>
           <li>
-            <code>текст задачи</code> — новая задача в выбранном проекте
+            <code>{loc('текст задачи')}</code> {loc('— новая задача в выбранном проекте')}
           </li>
           <li>
-            <code>/status</code> — текущий этап и последние задачи проекта
+            <code>/status</code> {loc('— текущий этап и последние задачи проекта')}
           </li>
           <li>
-            <code>/stop</code>, <code>/continue</code> — остановить или дописать ответ
+            <code>/stop</code>, <code>/continue</code> {loc('— остановить или дописать ответ')}
           </li>
           <li>
-            <code>/projects</code>, <code>/project 2</code> — выбрать проект
+            <code>/projects</code>, <code>/project 2</code> {loc('— выбрать проект')}
           </li>
           <li>
-            <code>/agent</code>, <code>/agent auto</code> — выбрать агента или автовыбор
+            <code>/agent</code>, <code>/agent auto</code> {loc('— выбрать агента или автовыбор')}
           </li>
           <li>
-            <code>/mode discuss</code>, <code>/mode execute</code> — обсуждение или выполнение
+            <code>/mode discuss</code>, <code>/mode execute</code> {loc('— обсуждение или выполнение')}
           </li>
           <li>
-            <code>/allow КОД</code>, <code>/deny КОД</code> — ответ на запрос разрешения агента
+            <code>{loc('/allow КОД')}</code>, <code>{loc('/deny КОД')}</code>{' '}
+            {loc('— ответ на запрос разрешения агента')}
           </li>
           <li>
-            <code>/new</code> — следующая задача в новом чате
+            <code>/new</code> {loc('— следующая задача в новом чате')}
           </li>
         </ul>
-        <p>В GitHub и Linear задача — новое issue с меткой, команды — комментарии в нём.</p>
+        <p>{loc('В GitHub и Linear задача — новое issue с меткой, команды — комментарии в нём.')}</p>
       </details>
       <details className="channel-log">
         <summary>
           <RefreshCw size={12} />
-          Журнал каналов · {events.length}
+          {loc('Журнал каналов ·')} {events.length}
         </summary>
         {events.length ? (
           <ul>
@@ -637,7 +664,7 @@ export function ChannelsPanel() {
             ))}
           </ul>
         ) : (
-          <p>Событий пока нет.</p>
+          <p>{loc('Событий пока нет.')}</p>
         )}
       </details>
     </div>

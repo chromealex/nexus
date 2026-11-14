@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {X, Plus, ArrowRight} from 'lucide-react';
 import {countLabel} from './locale-format.js';
 import {Quota} from './quota-view.jsx';
+import {loc} from './i18n.js';
 const names = {claude: 'Claude Code', codex: 'OpenAI Codex', gemini: 'Gemini CLI'};
 export function WelcomeScreen({
   accounts = [],
@@ -16,19 +17,19 @@ export function WelcomeScreen({
   return (
     <div className="nexus-welcome cinematic-welcome">
       {show ? (
-        <section className="welcome-connections" aria-label="Подключения">
+        <section className="welcome-connections" aria-label={loc('Подключения')}>
           <div className="welcome-connections-heading">
-            <h2>Подключения</h2>
-            <button aria-label="Скрыть карточку подключений" onClick={() => setShow(false)}>
+            <h2>{loc('Подключения')}</h2>
+            <button aria-label={loc('Скрыть карточку подключений')} onClick={() => setShow(false)}>
               <X size={17} />
             </button>
           </div>
           <p className="welcome-connections-lead">
             {loading
-              ? 'Проверяем аккаунты…'
+              ? loc('Проверяем аккаунты…')
               : accounts.length
-                ? 'Аккаунты и остаток лимитов'
-                : 'Агентов пока нет'}
+                ? loc('Аккаунты и остаток лимитов')
+                : loc('Агентов пока нет')}
           </p>
           <div className="welcome-account-list">
             {rows.map(a => (
@@ -46,10 +47,10 @@ export function WelcomeScreen({
                     <small>
                       {a.name} ·{' '}
                       {checks[a.id]?.status === 'ready'
-                        ? 'Вход подтверждён'
+                        ? loc('Вход подтверждён')
                         : checks[a.id]?.status === 'checking'
-                          ? 'Проверяем вход'
-                          : 'Требуется проверка'}
+                          ? loc('Проверяем вход')
+                          : loc('Требуется проверка')}
                     </small>
                   </div>
                 </div>
@@ -63,22 +64,23 @@ export function WelcomeScreen({
                 <span />
               </div>
             )}
-            {!loading && !rows.length && <p>Подключите первого агента, чтобы начать работу.</p>}
+            {!loading && !rows.length && <p>{loc('Подключите первого агента, чтобы начать работу.')}</p>}
             {accounts.length > rows.length && (
               <button className="welcome-more-accounts" onClick={onConnections}>
-                Ещё {countLabel(accounts.length - rows.length, 'аккаунт', 'аккаунта', 'аккаунтов')}
+                {loc('Ещё')}{' '}
+                {countLabel(accounts.length - rows.length, loc('аккаунт'), loc('аккаунта'), loc('аккаунтов'))}
                 <ArrowRight size={13} />
               </button>
             )}
           </div>
           <button className="welcome-connect-action" onClick={onConnections}>
             <Plus size={15} />
-            Подключить агента
+            {loc('Подключить агента')}
           </button>
         </section>
       ) : (
         <button className="welcome-show-connections" onClick={() => setShow(true)}>
-          Подключения
+          {loc('Подключения')}
         </button>
       )}
     </div>

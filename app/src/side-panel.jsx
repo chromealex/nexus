@@ -1,5 +1,6 @@
 import React from 'react';
 import {Globe, X, PanelRightClose, FileText} from 'lucide-react';
+import {loc} from './i18n.js';
 
 // Right-hand panel of the chat: the chat browser and opened files, each as a tab.
 // It appears when an agent starts using the browser or when a file is opened, never by default.
@@ -27,12 +28,12 @@ export function SidePanel({
     window.addEventListener('pointerup', up);
   };
   return (
-    <aside className="browser-pane side-panel" aria-label="Боковая панель">
+    <aside className="browser-pane side-panel" aria-label={loc('Боковая панель')}>
       <div
         className="browser-pane-resize"
         role="separator"
         aria-orientation="vertical"
-        aria-label="Ширина панели"
+        aria-label={loc('Ширина панели')}
         tabIndex={0}
         onPointerDown={drag}
         onKeyDown={e => {
@@ -40,7 +41,7 @@ export function SidePanel({
           if (e.key === 'ArrowRight') onResize(width - 24);
         }}
       />
-      <div className="side-panel-bar" role="tablist" aria-label="Содержимое панели">
+      <div className="side-panel-bar" role="tablist" aria-label={loc('Содержимое панели')}>
         {browserTab && (
           <button
             type="button"
@@ -50,7 +51,7 @@ export function SidePanel({
             onClick={() => onView('browser')}
           >
             <Globe size={13} aria-hidden="true" />
-            Браузер
+            {loc('Браузер')}
           </button>
         )}
         {files.map(file => (
@@ -68,7 +69,7 @@ export function SidePanel({
             <button
               type="button"
               className="side-panel-tab-close"
-              aria-label={'Закрыть ' + file.name}
+              aria-label={loc('Закрыть ') + file.name}
               onClick={() => onCloseFile(file.key)}
             >
               <X size={11} />
@@ -78,8 +79,8 @@ export function SidePanel({
         <button
           type="button"
           className="browser-pane-close"
-          aria-label="Скрыть панель"
-          title="Скрыть панель"
+          aria-label={loc('Скрыть панель')}
+          title={loc('Скрыть панель')}
           onClick={onClose}
         >
           <PanelRightClose size={15} />

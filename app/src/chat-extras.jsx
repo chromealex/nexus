@@ -4,6 +4,7 @@ export {normalizeQuestions} from './chat-files.js';
 import React, {useEffect, useState} from 'react';
 import {invoke} from '@tauri-apps/api/core';
 import {File, X, Download, Image as ImageIcon} from 'lucide-react';
+import {loc} from './i18n.js';
 function useFile(file, enabled) {
   const [state, setState] = useState({});
   useEffect(() => {
@@ -47,7 +48,7 @@ export function FileTile({file, onOpen, onRemove}) {
         type="button"
         className="file-open"
         onClick={() => onOpen(file)}
-        title={'Предпросмотр: ' + file.name}
+        title={loc('Предпросмотр: ') + file.name}
       >
         {preview.url ? (
           <img src={preview.url} alt="" />
@@ -59,8 +60,8 @@ export function FileTile({file, onOpen, onRemove}) {
         <span>
           <strong>{file.name}</strong>
           <small>
-            {Math.max(1, Math.round(file.size / 1024))} КБ ·{' '}
-            {file.name.split('.').pop()?.toUpperCase() || 'Файл'}
+            {Math.max(1, Math.round(file.size / 1024))} {loc('КБ ·')}{' '}
+            {file.name.split('.').pop()?.toUpperCase() || loc('Файл')}
           </small>
         </span>
       </button>
@@ -68,7 +69,7 @@ export function FileTile({file, onOpen, onRemove}) {
         <button
           type="button"
           className="remove-attachment"
-          aria-label={'Убрать ' + file.name}
+          aria-label={loc('Убрать ') + file.name}
           onClick={onRemove}
         >
           <X size={14} />
@@ -122,17 +123,19 @@ export function FilePreview({file, onClose}) {
         <header>
           <div>
             <strong>{file.name}</strong>
-            <small>{Math.max(1, Math.round(file.size / 1024))} КБ</small>
+            <small>
+              {Math.max(1, Math.round(file.size / 1024))} {loc('КБ')}
+            </small>
           </div>
           {state.url && (
-            <a href={state.url} download={file.name} title="Скачать файл">
+            <a href={state.url} download={file.name} title={loc('Скачать файл')}>
               <Download size={18} />
             </a>
           )}
           <button
             type="button"
             className="file-preview-close"
-            aria-label="Закрыть предпросмотр"
+            aria-label={loc('Закрыть предпросмотр')}
             onClick={onClose}
           >
             <X size={20} />
@@ -140,7 +143,7 @@ export function FilePreview({file, onClose}) {
         </header>
         <div className={'file-preview-content ' + kind}>
           {state.loading ? (
-            'Загрузка предпросмотра…'
+            loc('Загрузка предпросмотра…')
           ) : state.error ? (
             <p role="alert">{state.error}</p>
           ) : state.url ? (
@@ -156,14 +159,16 @@ export function FilePreview({file, onClose}) {
               ) : kind === 'text' ? (
                 <>
                   <pre>{state.text}</pre>
-                  {state.truncated && <p>Показаны первые 200 КБ. Полный файл доступен для скачивания.</p>}
+                  {state.truncated && (
+                    <p>{loc('Показаны первые 200 КБ. Полный файл доступен для скачивания.')}</p>
+                  )}
                 </>
               ) : (
                 <div className="file-no-preview">
                   <File size={52} />
-                  <p>Для этого формата встроенный предпросмотр недоступен.</p>
+                  <p>{loc('Для этого формата встроенный предпросмотр недоступен.')}</p>
                   <a href={state.url} download={file.name}>
-                    Скачать {file.name}
+                    {loc('Скачать')} {file.name}
                   </a>
                 </div>
               )}
@@ -249,7 +254,7 @@ export function QuestionCard({questions, onSubmit, disabled = false, onCancel, s
         <fieldset key={q.id} disabled={disabled || busy}>
           <legend>
             {q.question}
-            {q.multiple && <small className="multiple-hint">Можно выбрать несколько</small>}
+            {q.multiple && <small className="multiple-hint">{loc('Можно выбрать несколько')}</small>}
           </legend>
           <div
             className="question-options"
@@ -283,16 +288,16 @@ export function QuestionCard({questions, onSubmit, disabled = false, onCancel, s
                   if (!q.multiple) setAnswers(v => ({...v, [q.id]: []}));
                 }}
               >
-                Свой вариант
+                {loc('Свой вариант')}
               </button>
             )}
           </div>
           {(own[q.id] || !q.options.length) && (
             <input
               autoFocus
-              aria-label={'Свой ответ: ' + q.question}
+              aria-label={loc('Свой ответ: ') + q.question}
               type={q.isSecret ? 'password' : 'text'}
-              placeholder="Ваш ответ"
+              placeholder={loc('Ваш ответ')}
               maxLength={2000}
               value={custom[q.id] || ''}
               onChange={e => {
@@ -314,17 +319,17 @@ export function QuestionCard({questions, onSubmit, disabled = false, onCancel, s
             Object.values(own).some(Boolean) ||
             rows.some(q => !q.options.length)) && (
             <button type="submit" disabled={disabled || busy || rows.some(q => !valuesFor(q).length)}>
-              {disabled ? 'Отправлено' : busy ? 'Отправляю…' : 'Продолжить'}
+              {disabled ? loc('Отправлено') : busy ? loc('Отправляю…') : loc('Продолжить')}
             </button>
           )}
           {onCancel && (
             <button type="button" disabled={busy} onClick={onCancel}>
-              Отмена
+              {loc('Отмена')}
             </button>
           )}
         </div>
       )}
-      {busy && !disabled && <small>Отправляю…</small>}
+      {busy && !disabled && <small>{loc('Отправляю…')}</small>}
     </form>
   );
 }

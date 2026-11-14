@@ -1,3 +1,4 @@
+import {loc} from './i18n.js';
 // Audited public evidence, not Nexus trials. A CLI alias is matched only through the exact
 // version the backend resolved from the official alias table (model.resolved).
 export const BENCHMARK_DATE = '2026-11-14';
@@ -8,53 +9,59 @@ export const COHORTS = {
     date: '2026-11-14',
     source: AA + 'agents/coding-agents',
     scale: 'points',
-    limit:
-      'Модель вместе с агентом (Claude Code или Codex): изменения в реальных репозиториях, терминал и вопросы по коду. Переносится только на тот же агент.',
+    limit: loc(
+      'Модель вместе с агентом (Claude Code или Codex): изменения в реальных репозиториях, терминал и вопросы по коду. Переносится только на тот же агент.'
+    ),
   },
   intelligence: {
     name: 'AA Intelligence Index v5.0.1',
     date: '2026-11-14',
     source: AA + 'methodology/intelligence-benchmarking',
     scale: 'points',
-    limit:
-      'Смешанный набор из 9 агентных и научных оценок, включая код; не отдельная оценка архитектуры или исправления ошибок.',
+    limit: loc(
+      'Смешанный набор из 9 агентных и научных оценок, включая код; не отдельная оценка архитектуры или исправления ошибок.'
+    ),
   },
   automation: {
     name: 'AutomationBench-AA',
     date: '2026-11-10',
     source: AA + 'articles/announcing-zapier-automationbench-aa',
     scale: 'percent',
-    limit:
-      'Бизнес-сценарии через API приложений (Zapier): доля целей, выполненных без нарушения ограничений. Не проверяет инструменты и разрешения Nexus.',
+    limit: loc(
+      'Бизнес-сценарии через API приложений (Zapier): доля целей, выполненных без нарушения ограничений. Не проверяет инструменты и разрешения Nexus.'
+    ),
   },
   gdppdf: {
-    name: 'GDP.pdf (прогон AA)',
+    name: loc('GDP.pdf (прогон AA)'),
     date: '2026-11-03',
     source: 'https://surgehq.ai/benchmarks/gdp-pdf',
     scale: 'percent',
-    limit:
-      'Ответы по сложным профессиональным PDF (таблицы, формы, отчёты); засчитывается только полностью верный ответ. Не проверяет извлечение из баз данных или веб-страниц.',
+    limit: loc(
+      'Ответы по сложным профессиональным PDF (таблицы, формы, отчёты); засчитывается только полностью верный ответ. Не проверяет извлечение из баз данных или веб-страниц.'
+    ),
   },
   webdev: {
     name: 'Arena WebDev',
     date: '2026-11-10',
     source: 'https://arena.ai/leaderboard/code/webdev',
     scale: 'elo',
-    limit: 'Предпочтения в веб-разработке; не доля пройденных тестов и не оценка любого кода.',
+    limit: loc('Предпочтения в веб-разработке; не доля пройденных тестов и не оценка любого кода.'),
   },
   text: {
     name: 'Arena Text Overall',
     date: '2026-11-09',
     source: 'https://arena.ai/leaderboard/chat/text',
     scale: 'elo',
-    limit: 'Общие предпочтения пользователей; не отдельный тест перевода, русского языка или фактологии.',
+    limit: loc(
+      'Общие предпочтения пользователей; не отдельный тест перевода, русского языка или фактологии.'
+    ),
   },
   vision: {
     name: 'Arena Vision Overall',
     date: '2026-11-08',
     source: 'https://arena.ai/leaderboard/chat/vision',
     scale: 'elo',
-    limit: 'Понимание изображений, не генерация изображений.',
+    limit: loc('Понимание изображений, не генерация изображений.'),
   },
 };
 export const BENCHMARKS = [];
@@ -240,21 +247,30 @@ arena('vision', [
   ['claude-sonnet-5-5', 'xhigh', 1263, 10],
 ]);
 
-const ALIAS_GAP =
-  'Плавающий алиас: точная версия не подтверждена (переопределение в настройках или другой провайдер).';
+const ALIAS_GAP = loc(
+  'Плавающий алиас: точная версия не подтверждена (переопределение в настройках или другой провайдер).'
+);
 export const EVIDENCE_GAPS = {
   haiku: ALIAS_GAP,
   sonnet: ALIAS_GAP,
   opus: ALIAS_GAP,
-  'gpt-reserve': 'В проверенных публичных источниках нет сопоставимых результатов этой модели.',
-  'codex-auto-review': 'Служебная модель; не участник сравнения чата.',
-  'grok-4.20-0309-reasoning': 'AA публикует 0309 v2; соответствие этой версии каталогу не подтверждено.',
-  'grok-4.20-0309-non-reasoning': 'AA публикует 0309 v2; соответствие этой версии каталогу не подтверждено.',
-  'grok-4.20-multi-agent-0309': 'Многоагентный режим требует отдельного адаптера и отдельного сравнения.',
-  'grok-4.3': 'Найденные старые результаты AA v4.3 не смешиваются с v5.0.1.',
-  'grok-build-0.1': 'Есть спецификация производителя; сопоставимый тест точной версии не подтверждён.',
-  'gemini-3.1-flash-lite': 'Страница AA относится к preview; соответствие стабильной версии не подтверждено.',
-  'qwen3:4b': 'Есть model card Qwen3-4B; квантование Ollama и скорость на этом Mac отдельно не измерены.',
+  'gpt-reserve': loc('В проверенных публичных источниках нет сопоставимых результатов этой модели.'),
+  'codex-auto-review': loc('Служебная модель; не участник сравнения чата.'),
+  'grok-4.20-0309-reasoning': loc('AA публикует 0309 v2; соответствие этой версии каталогу не подтверждено.'),
+  'grok-4.20-0309-non-reasoning': loc(
+    'AA публикует 0309 v2; соответствие этой версии каталогу не подтверждено.'
+  ),
+  'grok-4.20-multi-agent-0309': loc(
+    'Многоагентный режим требует отдельного адаптера и отдельного сравнения.'
+  ),
+  'grok-4.3': loc('Найденные старые результаты AA v4.3 не смешиваются с v5.0.1.'),
+  'grok-build-0.1': loc('Есть спецификация производителя; сопоставимый тест точной версии не подтверждён.'),
+  'gemini-3.1-flash-lite': loc(
+    'Страница AA относится к preview; соответствие стабильной версии не подтверждено.'
+  ),
+  'qwen3:4b': loc(
+    'Есть model card Qwen3-4B; квантование Ollama и скорость на этом Mac отдельно не измерены.'
+  ),
 };
 // Exact ID used for evidence: the backend-resolved version of an alias, else the model ID itself.
 export function benchmarkModel(model) {
@@ -271,8 +287,8 @@ export function evidenceGap(model) {
   return (
     EVIDENCE_GAPS[id] ||
     (/imagine/.test(id)
-      ? 'Медиа-модель: нет адаптера Nexus; оценки генерации не смешиваются с пониманием изображений.'
-      : 'Сопоставимых данных для этой задачи пока нет.')
+      ? loc('Медиа-модель: нет адаптера Nexus; оценки генерации не смешиваются с пониманием изображений.')
+      : loc('Сопоставимых данных для этой задачи пока нет.'))
   );
 }
 export const HARNESS = {claude: 'Claude Code', codex: 'Codex', 'grok-build': 'Grok Build'};
@@ -280,14 +296,14 @@ export function evidenceText(r) {
   const unit = COHORTS[r.cohort].scale === 'percent' ? '%' : '';
   const score =
     r.score == null
-      ? 'оценка неизвестна'
+      ? loc('оценка неизвестна')
       : `${r.score}${unit}${r.interval != null ? ' ± ' + r.interval : ''}`;
   return [
     `${COHORTS[r.cohort].name}: ${score}`,
-    r.harness && 'в ' + HARNESS[r.harness],
-    r.effort === 'unspecified' ? 'режим не указан' : r.effort,
-    r.fallback && 'с резервной моделью Anthropic по умолчанию',
-    r.mirror && 'по зеркалу результатов',
+    r.harness && loc('в ') + HARNESS[r.harness],
+    r.effort === 'unspecified' ? loc('режим не указан') : r.effort,
+    r.fallback && loc('с резервной моделью Anthropic по умолчанию'),
+    r.mirror && loc('по зеркалу результатов'),
     r.date,
   ]
     .filter(Boolean)
@@ -296,10 +312,10 @@ export function evidenceText(r) {
 
 // Public results are a prior, not a promise about the current runtime/effort.
 export const ROUTING_PRIORITIES = {
-  balanced: 'Баланс',
-  quality: 'Качество',
-  economy: 'Экономия',
-  speed: 'Скорость',
+  balanced: loc('Баланс'),
+  quality: loc('Качество'),
+  economy: loc('Экономия'),
+  speed: loc('Скорость'),
 };
 // Which public test answers which kind of request. The first test that covers at least two
 // compatible exact versions decides; the rest are fallbacks.
@@ -366,11 +382,14 @@ export function benchmarkChoice(
     }
   if (!cohort) return null;
   const depthNote = effort
-    ? `Сравнение только при выбранной глубине (${effort}). `
+    ? loc('Сравнение только при выбранной глубине ({0}). ', effort)
     : usedEffort
-      ? `Сравнение при той глубине, с которой будет выполнен запрос (${usedEffort}). `
+      ? loc('Сравнение при той глубине, с которой будет выполнен запрос ({0}). ', usedEffort)
       : preferEffort
-        ? `Для глубины ${preferEffort} сопоставимых данных нет; сравнены лучшие опубликованные режимы. `
+        ? loc(
+            'Для глубины {0} сопоставимых данных нет; сравнены лучшие опубликованные режимы. ',
+            preferEffort
+          )
         : '';
   const elo = COHORTS[cohort].scale === 'elo';
   candidates.sort((a, b) => b.evidence.score - a.evidence.score || a.model.id.localeCompare(b.model.id));
@@ -396,31 +415,33 @@ export function benchmarkChoice(
   const time = c => c.evidence.minutes ?? null;
   let pool = close,
     metric = null,
-    explanation =
-      'Близкие оценки не доказывают превосходство; при отсутствии сопоставимой цены и скорости используется стабильный ID.';
+    explanation = loc(
+      'Близкие оценки не доказывают превосходство; при отсутствии сопоставимой цены и скорости используется стабильный ID.'
+    );
   const complete = (rows, fn) => rows.every(c => Number.isFinite(fn(c)));
   if (priority === 'economy' && complete(candidates, cost)) {
     pool = candidates;
     metric = cost;
-    explanation = 'Минимальный известный API-расход среди оценённых моделей; качество может быть ниже.';
+    explanation = loc('Минимальный известный API-расход среди оценённых моделей; качество может быть ниже.');
   } else if (priority === 'speed' && complete(candidates, time)) {
     pool = candidates;
     metric = time;
-    explanation = 'Минимальное время задачи в том же тесте; качество может быть ниже.';
+    explanation = loc('Минимальное время задачи в том же тесте; качество может быть ниже.');
   } else if (close.length === 1) {
-    explanation = 'Лучший результат в этом тесте с отрывом больше допуска.';
+    explanation = loc('Лучший результат в этом тесте с отрывом больше допуска.');
   } else if (complete(close, cost)) {
     metric = cost;
-    explanation = 'Среди близких по качеству вариантов выбран меньший API-расход.';
+    explanation = loc('Среди близких по качеству вариантов выбран меньший API-расход.');
   } else if (complete(close, time)) {
     metric = time;
-    explanation = 'Среди близких по качеству вариантов выбрано меньшее время задачи в тесте.';
+    explanation = loc('Среди близких по качеству вариантов выбрано меньшее время задачи в тесте.');
   }
   if (
     (priority === 'economy' && !complete(candidates, cost)) ||
     (priority === 'speed' && !complete(candidates, time))
   )
-    explanation = 'Приоритет не удалось полностью применить: сопоставимые данные неполны. ' + explanation;
+    explanation =
+      loc('Приоритет не удалось полностью применить: сопоставимые данные неполны. ') + explanation;
   pool = [...pool].sort(
     (a, b) => (metric ? metric(a) - metric(b) : 0) || a.model.id.localeCompare(b.model.id)
   );
@@ -431,14 +452,16 @@ export function benchmarkChoice(
     quality: evidenceText(c.evidence),
     cost: cost(c),
     costLabel:
-      cohort === 'intelligence' ? 'API $/задачу AA' : 'API $ за 10 тыс. входных + 2 тыс. выходных токенов',
+      cohort === 'intelligence'
+        ? loc('API $/задачу AA')
+        : loc('API $ за 10 тыс. входных + 2 тыс. выходных токенов'),
     minutes: time(c),
     note:
       c === chosen
-        ? 'Выбрана'
+        ? loc('Выбрана')
         : close.includes(c)
-          ? 'Близкая оценка; превосходство не установлено'
-          : 'Вне группы близких оценок',
+          ? loc('Близкая оценка; превосходство не установлено')
+          : loc('Вне группы близких оценок'),
   });
   const alternatives = candidates
     .filter(c => c.model.id !== chosen.model.id)
@@ -450,7 +473,7 @@ export function benchmarkChoice(
       alternatives.push({
         id: model.id,
         label: model.label || model.model,
-        quality: 'Нет сопоставимой оценки',
+        quality: loc('Нет сопоставимой оценки'),
         cost: null,
         minutes: null,
         note: evidenceGap(model),
@@ -458,17 +481,33 @@ export function benchmarkChoice(
   }
   const tolerance =
     !elo && priority !== 'quality'
-      ? `Допуск баланса — 3 ${COHORTS[cohort].scale === 'percent' ? 'п.п.' : 'балла'}: правило продукта, не статистическая погрешность. `
+      ? loc(
+          'Допуск баланса — 3 {0}: правило продукта, не статистическая погрешность. ',
+          COHORTS[cohort].scale === 'percent' ? loc('п.п.') : loc('балла')
+        )
       : '';
   const alias = chosen.model.resolved
-    ? `«${chosen.model.model}» сопоставлен с ${chosen.model.resolved}. `
+    ? loc('«{0}» сопоставлен с {1}. ', chosen.model.model, chosen.model.resolved)
     : '';
   return {
     ...chosen,
     cohort,
     effort: usedEffort,
     comparison: [describe(chosen), ...alternatives],
-    coverage: `${new Set(candidates.map(c => benchmarkModel(c.model))).size} из ${new Set(models.map(benchmarkModel)).size}`,
-    reason: `${ROUTING_PRIORITIES[priority]}. ${explanation} ${depthNote}Ориентир: ${evidenceText(chosen.evidence)}. ${alias}${COHORTS[cohort].limit} ${tolerance} Стоимость подписки неизвестна; API-цена не равна цене успешного запроса.`,
+    coverage: loc(
+      '{0} из {1}',
+      new Set(candidates.map(c => benchmarkModel(c.model))).size,
+      new Set(models.map(benchmarkModel)).size
+    ),
+    reason: loc(
+      '{0}. {1} {2}Ориентир: {3}. {4}{5} {6} Стоимость подписки неизвестна; API-цена не равна цене успешного запроса.',
+      ROUTING_PRIORITIES[priority],
+      explanation,
+      depthNote,
+      evidenceText(chosen.evidence),
+      alias,
+      COHORTS[cohort].limit,
+      tolerance
+    ),
   };
 }

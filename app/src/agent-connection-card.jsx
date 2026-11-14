@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {useToastOn} from './toaster.jsx';
 import {invoke} from '@tauri-apps/api/core';
 import {Plug, Check} from 'lucide-react';
+import {loc} from './i18n.js';
 export function AgentConnectionCard({manifest, context}) {
   const [busy, setBusy] = useState(false),
     [connected, setConnected] = useState(false),
@@ -66,7 +67,7 @@ export function AgentConnectionCard({manifest, context}) {
     typeof manifest.executable !== 'string' ||
     !Array.isArray(manifest.args)
   )
-    return <p>Не удалось прочитать параметры подключения агента.</p>;
+    return <p>{loc('Не удалось прочитать параметры подключения агента.')}</p>;
   return (
     <section className="agent-connect-card">
       <div className="agent-connect-title">
@@ -76,35 +77,37 @@ export function AgentConnectionCard({manifest, context}) {
       </div>
       <p>
         {manifest.npmPackage
-          ? 'Nexus установит указанный пакет npm и проверит подключение.'
-          : 'Nexus проверит подключение установленного агента.'}
+          ? loc('Nexus установит указанный пакет npm и проверит подключение.')
+          : loc('Nexus проверит подключение установленного агента.')}
       </p>
       {manifest.npmPackage && (
         <div className="agent-connect-package">
-          Пакет: <code>{manifest.npmPackage}</code>
+          {loc('Пакет:')} <code>{manifest.npmPackage}</code>
         </div>
       )}
       <details>
-        <summary>Параметры подключения</summary>
+        <summary>{loc('Параметры подключения')}</summary>
         <pre>{JSON.stringify(manifest, null, 2)}</pre>
       </details>
-      <small>Агент запускается локально. Проверьте команду и источник пакета перед подключением.</small>
+      <small>
+        {loc('Агент запускается локально. Проверьте команду и источник пакета перед подключением.')}
+      </small>
       <button type="button" disabled={busy || !context?.enabled} onClick={connected ? disconnect : connect}>
         {connected ? (
           <>
             <Check size={15} />
-            Подключён · отключить
+            {loc('Подключён · отключить')}
           </>
         ) : busy ? (
-          'Подключаю…'
+          loc('Подключаю…')
         ) : manifest.npmPackage ? (
-          'Установить и подключить'
+          loc('Установить и подключить')
         ) : (
-          'Подключить агента'
+          loc('Подключить агента')
         )}
       </button>
       {!context?.enabled && !connected && (
-        <small>Подключение доступно в проекте Nexus после завершения ответа.</small>
+        <small>{loc('Подключение доступно в проекте Nexus после завершения ответа.')}</small>
       )}
     </section>
   );

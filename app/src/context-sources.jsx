@@ -12,6 +12,7 @@ import {
   Pencil,
 } from 'lucide-react';
 import {countLabel} from './locale-format.js';
+import {loc} from './i18n.js';
 
 export const MAX_CONTEXT_SOURCES = 200;
 export const MAX_DOCUMENT_BYTES = 20000000;
@@ -19,8 +20,8 @@ const IMAGE = /\.(png|jpe?g|gif|webp|heic|heif|bmp|tiff?|svg)$/i;
 const isImage = s => s.pendingFile?.type?.startsWith('image/') || IMAGE.test(s.name || '');
 const size = bytes =>
   bytes >= 1e6
-    ? (bytes / 1e6).toFixed(1).replace('.', ',') + ' МБ'
-    : Math.max(1, Math.round(bytes / 1e3)) + ' КБ';
+    ? (bytes / 1e6).toFixed(1).replace('.', ',') + loc(' МБ')
+    : Math.max(1, Math.round(bytes / 1e3)) + loc(' КБ');
 // Several links pasted at once become separate sources.
 export const splitLinks = text =>
   String(text || '')
@@ -29,10 +30,10 @@ export const splitLinks = text =>
     .filter(v => /^https?:\/\/\S+$/i.test(v));
 
 const KINDS = [
-  ['directory', 'Папка', Folder, 'Абсолютный путь к папке, например /Users/you/Projects/app'],
-  ['file', 'Файл по пути', FileText, 'Абсолютный путь к файлу на компьютере'],
-  ['url', 'Ссылка', Link, 'https://… — можно вставить несколько ссылок сразу'],
-  ['note', 'Заметка', StickyNote, 'Правила, описание задачи, важные сведения…'],
+  ['directory', loc('Папка'), Folder, loc('Абсолютный путь к папке, например /Users/you/Projects/app')],
+  ['file', loc('Файл по пути'), FileText, loc('Абсолютный путь к файлу на компьютере')],
+  ['url', loc('Ссылка'), Link, loc('https://… — можно вставить несколько ссылок сразу')],
+  ['note', loc('Заметка'), StickyNote, loc('Правила, описание задачи, важные сведения…')],
 ];
 
 function Thumb({source}) {
@@ -124,8 +125,10 @@ export function ContextSources({contexts, setContexts, onFiles, busy, pendingNot
               <Thumb source={s} />
               <label className="context-name">
                 <input
-                  aria-label={'Название источника ' + (i + 1)}
-                  placeholder={s.kind === 'attachment' ? s.name || 'Документ' : 'Название (необязательно)'}
+                  aria-label={loc('Название источника ') + (i + 1)}
+                  placeholder={
+                    s.kind === 'attachment' ? s.name || loc('Документ') : loc('Название (необязательно)')
+                  }
                   value={s.name}
                   maxLength={120}
                   onChange={e => patch(i, {name: e.target.value})}
@@ -135,8 +138,8 @@ export function ContextSources({contexts, setContexts, onFiles, busy, pendingNot
               <button
                 type="button"
                 disabled={busy}
-                aria-label={'Убрать источник ' + (i + 1)}
-                title="Убрать источник"
+                aria-label={loc('Убрать источник ') + (i + 1)}
+                title={loc('Убрать источник')}
                 onClick={() => setContexts(v => v.filter((_, n) => n !== i))}
               >
                 <Trash2 size={14} />
@@ -144,11 +147,13 @@ export function ContextSources({contexts, setContexts, onFiles, busy, pendingNot
             </div>
             {s.kind === 'attachment' ? (
               <small className="context-meta">
-                {s.pendingFile ? `${size(s.pendingFile.size)} · ${pendingNote}` : 'Документ сохранён в Nexus'}
+                {s.pendingFile
+                  ? `${size(s.pendingFile.size)} · ${pendingNote}`
+                  : loc('Документ сохранён в Nexus')}
               </small>
             ) : (
               <textarea
-                aria-label={'Содержимое источника ' + (i + 1)}
+                aria-label={loc('Содержимое источника ') + (i + 1)}
                 placeholder={KINDS.find(k => k[0] === s.kind)?.[3]}
                 value={s.value}
                 rows={s.kind === 'note' ? 4 : 1}
@@ -159,7 +164,7 @@ export function ContextSources({contexts, setContexts, onFiles, busy, pendingNot
             {(s.kind === 'directory' || s.kind === 'file') && (
               <PathPick
                 kind={s.kind === 'directory' ? 'folder' : 'file'}
-                prompt={s.kind === 'directory' ? 'Папка для контекста' : 'Файл для контекста'}
+                prompt={s.kind === 'directory' ? loc('Папка для контекста') : loc('Файл для контекста')}
                 onPick={path => patch(i, {value: path})}
               />
             )}
@@ -174,9 +179,9 @@ export function ContextSources({contexts, setContexts, onFiles, busy, pendingNot
       >
         <Upload size={18} aria-hidden="true" />
         <span>
-          <strong>Файлы и картинки</strong>
+          <strong>{loc('Файлы и картинки')}</strong>
           <small>
-            Перетащите сюда, вставьте из буфера (⌘V) или нажмите, чтобы выбрать. До 20 МБ на файл.
+            {loc('Перетащите сюда, вставьте из буфера (⌘V) или нажмите, чтобы выбрать. До 20 МБ на файл.')}
           </small>
         </span>
       </button>
@@ -201,9 +206,9 @@ export function ContextSources({contexts, setContexts, onFiles, busy, pendingNot
       </div>
       <p className="context-count">
         {contexts.length
-          ? countLabel(contexts.length, 'источник', 'источника', 'источников')
-          : 'Источников пока нет'}
-        {full ? ` · достигнут предел ${MAX_CONTEXT_SOURCES}` : ''}
+          ? countLabel(contexts.length, loc('источник'), loc('источника'), loc('источников'))
+          : loc('Источников пока нет')}
+        {full ? loc(' · достигнут предел {0}', MAX_CONTEXT_SOURCES) : ''}
       </p>
     </div>
   );

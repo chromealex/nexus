@@ -15,6 +15,7 @@ import {languageOf, tokenize, tableToTsv} from './code-highlight.js';
 import {normalizeSearch} from './chat-search.js';
 import {QUICK_REPLIES, clock, stageLabel} from './chat-local.js';
 import {countLabel} from './locale-format.js';
+import {loc} from './i18n.js';
 
 const textOf = node =>
   typeof node === 'string' || typeof node === 'number'
@@ -54,15 +55,15 @@ export function CodeBlock({className, children}) {
   return (
     <div className="code-block">
       <div className="code-block-head">
-        <span>{raw || 'текст'}</span>
+        <span>{raw || loc('текст')}</span>
         <button
           type="button"
           onClick={copy}
-          aria-label={copied ? 'Код скопирован' : 'Копировать код'}
-          title={copied ? 'Скопировано' : 'Копировать код'}
+          aria-label={copied ? loc('Код скопирован') : loc('Копировать код')}
+          title={copied ? loc('Скопировано') : loc('Копировать код')}
         >
           {copied ? <Check size={13} /> : <Copy size={13} />}
-          {copied ? 'Скопировано' : 'Копировать'}
+          {copied ? loc('Скопировано') : loc('Копировать')}
         </button>
       </div>
       <pre>
@@ -104,10 +105,10 @@ export function TableBlock({children, ...props}) {
         type="button"
         className="table-copy"
         onClick={copy}
-        title="Копировать таблицу — вставляется в Numbers, Excel и Google Таблицы"
+        title={loc('Копировать таблицу — вставляется в Numbers, Excel и Google Таблицы')}
       >
         {copied ? <Check size={13} /> : <Table2 size={13} />}
-        {copied ? 'Скопировано' : 'Копировать таблицу'}
+        {copied ? loc('Скопировано') : loc('Копировать таблицу')}
       </button>
     </div>
   );
@@ -128,12 +129,12 @@ export function CollapsibleMessage({long, children}) {
         {open ? (
           <>
             <ChevronUp size={14} />
-            Свернуть
+            {loc('Свернуть')}
           </>
         ) : (
           <>
             <ChevronDown size={14} />
-            Показать полностью
+            {loc('Показать полностью')}
           </>
         )}
       </button>
@@ -146,12 +147,12 @@ export function VariantSwitcher({message, disabled, onSelect}) {
   if (total < 2) return null;
   const index = Math.min(message.variant || 0, total - 1);
   return (
-    <span className="variant-switcher" role="group" aria-label="Варианты ответа">
+    <span className="variant-switcher" role="group" aria-label={loc('Варианты ответа')}>
       <button
         type="button"
         disabled={disabled || index === 0}
-        aria-label="Предыдущий вариант"
-        title="Предыдущий вариант"
+        aria-label={loc('Предыдущий вариант')}
+        title={loc('Предыдущий вариант')}
         onClick={() => onSelect(index - 1)}
       >
         <ChevronLeft size={14} />
@@ -162,8 +163,8 @@ export function VariantSwitcher({message, disabled, onSelect}) {
       <button
         type="button"
         disabled={disabled || index >= total - 1}
-        aria-label="Следующий вариант"
-        title="Следующий вариант"
+        aria-label={loc('Следующий вариант')}
+        title={loc('Следующий вариант')}
         onClick={() => onSelect(index + 1)}
       >
         <ChevronRight size={14} />
@@ -173,7 +174,7 @@ export function VariantSwitcher({message, disabled, onSelect}) {
 }
 
 export function GenerationStatus({startedAt, now, trace, streaming, regenerating}) {
-  const verb = regenerating ? 'Повторяю ответ' : streaming ? 'Пишу ответ' : 'Готовлю ответ';
+  const verb = regenerating ? loc('Повторяю ответ') : streaming ? loc('Пишу ответ') : loc('Готовлю ответ');
   const stage = stageLabel(trace);
   return (
     <span className="generation-status">
@@ -260,8 +261,8 @@ export function ChatFind({chatId, loadAll, onJump, onClose, containerSelector}) 
       <input
         ref={input}
         type="search"
-        aria-label="Найти в чате"
-        placeholder="Найти в чате"
+        aria-label={loc('Найти в чате')}
+        placeholder={loc('Найти в чате')}
         value={query}
         onChange={e => setQuery(e.target.value)}
         onKeyDown={key}
@@ -269,20 +270,24 @@ export function ChatFind({chatId, loadAll, onJump, onClose, containerSelector}) 
       />
       <span className="chat-find-count" role="status">
         {error
-          ? 'Ошибка поиска'
+          ? loc('Ошибка поиска')
           : !all
-            ? 'Загружаю…'
+            ? loc('Загружаю…')
             : needle
               ? matches.length
-                ? `${index + 1} из ${countLabel(matches.length, 'сообщения', 'сообщений', 'сообщений')}`
-                : 'Нет совпадений'
+                ? loc(
+                    '{0} из {1}',
+                    index + 1,
+                    countLabel(matches.length, loc('сообщения'), loc('сообщений'), loc('сообщений'))
+                  )
+                : loc('Нет совпадений')
               : ''}
       </span>
       <button
         type="button"
         disabled={!matches.length}
-        aria-label="Предыдущее совпадение"
-        title="Предыдущее (Shift+Enter)"
+        aria-label={loc('Предыдущее совпадение')}
+        title={loc('Предыдущее (Shift+Enter)')}
         onClick={() => setIndex(i => (i - 1 + matches.length) % matches.length)}
       >
         <ChevronUp size={14} />
@@ -290,13 +295,18 @@ export function ChatFind({chatId, loadAll, onJump, onClose, containerSelector}) 
       <button
         type="button"
         disabled={!matches.length}
-        aria-label="Следующее совпадение"
-        title="Следующее (Enter)"
+        aria-label={loc('Следующее совпадение')}
+        title={loc('Следующее (Enter)')}
         onClick={() => setIndex(i => (i + 1) % matches.length)}
       >
         <ChevronDown size={14} />
       </button>
-      <button type="button" aria-label="Закрыть поиск" title="Закрыть (Escape)" onClick={onClose}>
+      <button
+        type="button"
+        aria-label={loc('Закрыть поиск')}
+        title={loc('Закрыть (Escape)')}
+        onClick={onClose}
+      >
         <X size={14} />
       </button>
     </div>
@@ -305,7 +315,7 @@ export function ChatFind({chatId, loadAll, onJump, onClose, containerSelector}) 
 
 export function QuickReplies({onPick, disabled}) {
   return (
-    <div className="quick-replies" role="group" aria-label="Быстрые ответы">
+    <div className="quick-replies" role="group" aria-label={loc('Быстрые ответы')}>
       {QUICK_REPLIES.map(([label, text]) => (
         <button type="button" key={label} disabled={disabled} title={text} onClick={() => onPick(text)}>
           {label}
@@ -319,8 +329,8 @@ export function DropOverlay({active}) {
   return active ? (
     <div className="chat-drop-overlay" aria-hidden="true">
       <Paperclip size={22} />
-      <strong>Отпустите, чтобы прикрепить</strong>
-      <small>До 8 файлов, до 20 МБ каждый</small>
+      <strong>{loc('Отпустите, чтобы прикрепить')}</strong>
+      <small>{loc('До 8 файлов, до 20 МБ каждый')}</small>
     </div>
   ) : null;
 }

@@ -1,3 +1,4 @@
+import {appLocale, loc} from './i18n.js';
 // Per-chat state kept on this Mac only (localStorage): drafts, bookmarks, chat preferences,
 // plus the Markdown export builder. Every function takes the storage explicitly so it can be tested.
 
@@ -75,20 +76,20 @@ export const isLongMessage = text => {
 
 export function chatToMarkdown({title, project, messages, exportedAt = new Date()}) {
   const lines = [
-    `# ${title || 'Чат Nexus'}`,
+    `# ${title || loc('Чат Nexus')}`,
     '',
-    `Проект: ${project || '—'} · экспорт ${exportedAt.toLocaleString('ru-RU')}`,
+    loc('Проект: {0} · экспорт {1}', project || '—', exportedAt.toLocaleString(appLocale())),
     '',
   ];
   for (const m of messages || []) {
     if (m.role === 'system') continue;
-    const who = m.role === 'user' ? 'Вы' : 'Nexus';
+    const who = m.role === 'user' ? loc('Вы') : 'Nexus';
     const date =
       m.createdAt && !Number.isNaN(new Date(m.createdAt).getTime())
-        ? ' · ' + new Date(m.createdAt).toLocaleString('ru-RU')
+        ? ' · ' + new Date(m.createdAt).toLocaleString(appLocale())
         : '';
     lines.push(`## ${who}${date}`, '', String(m.content || '').trim(), '');
-    if (m.attachments?.length) lines.push('Файлы: ' + m.attachments.map(f => f.name).join(', '), '');
+    if (m.attachments?.length) lines.push(loc('Файлы: ') + m.attachments.map(f => f.name).join(', '), '');
   }
   return (
     lines
@@ -100,10 +101,10 @@ export function chatToMarkdown({title, project, messages, exportedAt = new Date(
 
 // Prompts behind quick replies. Kept short and explicit so the agent knows what is asked.
 export const QUICK_REPLIES = [
-  ['Продолжи', 'Продолжи.'],
-  ['Короче', 'Сократи предыдущий ответ до главного.'],
-  ['Подробнее', 'Объясни подробнее, с примерами.'],
-  ['Покажи код', 'Покажи код для этого решения.'],
+  [loc('Продолжи'), loc('Продолжи.')],
+  [loc('Короче'), loc('Сократи предыдущий ответ до главного.')],
+  [loc('Подробнее'), loc('Объясни подробнее, с примерами.')],
+  [loc('Покажи код'), loc('Покажи код для этого решения.')],
 ];
 
 export const clock = ms => {
@@ -113,9 +114,9 @@ export const clock = ms => {
 // Readable stage from backend progress strings (some arrive in English).
 export function stageLabel(trace = '') {
   const t = String(trace || '');
-  if (/Selecting an available agent/i.test(t)) return 'выбираю агента';
-  if (/Checking available accounts/i.test(t)) return 'проверяю аккаунты и лимиты';
+  if (/Selecting an available agent/i.test(t)) return loc('выбираю агента');
+  if (/Checking available accounts/i.test(t)) return loc('проверяю аккаунты и лимиты');
   const selected = t.match(/^Selected\s+([^\s/]+)\s*\/\s*([^·]+?)\s*·\s*([^.]+)\.\s*Waiting/i);
-  if (selected) return `${selected[1]} · ${selected[2].trim()} · жду ответ`;
+  if (selected) return loc('{0} · {1} · жду ответ', selected[1], selected[2].trim());
   return t.length > 70 ? t.slice(0, 69) + '…' : t;
 }

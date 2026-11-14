@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {invoke} from '@tauri-apps/api/core';
 import {Folder, ImagePlus, Search, Ban} from 'lucide-react';
 import {useToastOn} from './toaster.jsx';
+import {loc} from './i18n.js';
 
 const EVENT = 'nexus-project-icon';
 
@@ -74,36 +75,36 @@ export function ProjectIconSettings({projectId}) {
   }
   const caption =
     icon?.mode === 'none'
-      ? 'Без иконки — показывается папка'
+      ? loc('Без иконки — показывается папка')
       : icon?.mode === 'custom'
-        ? 'Своя иконка'
+        ? loc('Своя иконка')
         : icon?.url
-          ? 'Найдена в папке проекта: ' + icon.source
-          : 'В папке проекта иконка не найдена';
+          ? loc('Найдена в папке проекта: ') + icon.source
+          : loc('В папке проекта иконка не найдена');
   return (
     <div className="project-icon-settings">
       <div className="context-heading">
-        <h3>Иконка</h3>
-        <small>Показывается рядом с проектом в списке</small>
+        <h3>{loc('Иконка')}</h3>
+        <small>{loc('Показывается рядом с проектом в списке')}</small>
       </div>
       <div className="project-icon-row">
         <span className="project-icon-preview">
           <ProjectIcon icon={icon} size={32} />
         </span>
-        <small>{icon ? caption : 'Загрузка…'}</small>
+        <small>{icon ? caption : loc('Загрузка…')}</small>
       </div>
       <div className="project-icon-actions">
         <button type="button" disabled={busy || icon?.mode === 'auto'} onClick={() => save('auto')}>
           <Search size={13} aria-hidden="true" />
-          Искать в папке проекта
+          {loc('Искать в папке проекта')}
         </button>
         <button type="button" disabled={busy} onClick={() => input.current?.click()}>
           <ImagePlus size={13} aria-hidden="true" />
-          Выбрать картинку…
+          {loc('Выбрать картинку…')}
         </button>
         <button type="button" disabled={busy || icon?.mode === 'none'} onClick={() => save('none')}>
           <Ban size={13} aria-hidden="true" />
-          Без иконки
+          {loc('Без иконки')}
         </button>
         <input
           ref={input}
