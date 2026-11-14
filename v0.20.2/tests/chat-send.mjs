@@ -6,15 +6,16 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 const source=readFileSync(new URL('../src/main.jsx',import.meta.url),'utf8');
-const handler=source.slice(source.indexOf('async function sendChat(override,continueMessageId){'),source.indexOf('async function addProject(){'));
+const handler=source.slice(source.indexOf('async function sendChat(override,continueMessageId,regenerateAnswer=false){'),source.indexOf('async function addProject(){'));
 function fixture({chat='',fail=false}={}){
  const calls=[],state={messages:[],draft:'Hello',error:'',sending:false};
  let release;const gate=new Promise(r=>release=r);
- const ctx={teamPlan,teamEnabled:false,chatErrorMessage,routingAdvice,modelSaving:false,routeOptions:{models:[{id:'codex/default',provider:'codex',model:'default',isDefault:true}]},window:{dispatchEvent:()=>{}},Event:class Event{},mergeLatestMessages,routeApproval:{current:null},setRouteOffer:()=>{},executionMode:'discuss',modelChoice:'auto',modelChoices:[],setContinuingId:()=>{},reasoningMode:'normal',activeRunRef:{current:null},stopRequestedRef:{current:false},setStopping:()=>{},draftFiles:[],filesBusy:false,setDraftFiles:()=>{},setAgentQuestion:()=>{},replyTo:null,setReplyTo:()=>{},chatsReady:true,activeProject:'project',activeChat:chat,chatDraft:'Hello',sendingRef:{current:false},viewRef:{current:{project:'project',chat}},Date,
+ const ctx={teamPlan,teamEnabled:false,chatErrorMessage,routingAdvice,modelSaving:false,routeOptions:{models:[{id:'codex/default',provider:'codex',model:'default',isDefault:true}]},window:{dispatchEvent:()=>{}},Event:class Event{},mergeLatestMessages,routeApproval:{current:null},setRouteOffer:()=>{},executionMode:'discuss',modelChoice:'auto',modelChoices:[],setContinuingId:()=>{},setContinuingMode:()=>{},setRunStartedAt:()=>{},notifyReady:()=>{},saveDraft:()=>{},draftKey:()=>'k',localStorage:{},reasoningMode:'normal',activeRunRef:{current:null},stopRequestedRef:{current:false},setStopping:()=>{},draftFiles:[],filesBusy:false,setDraftFiles:()=>{},setAgentQuestion:()=>{},replyTo:null,setReplyTo:()=>{},chatsReady:true,activeProject:'project',activeChat:chat,chatDraft:'Hello',sendingRef:{current:false},viewRef:{current:{project:'project',chat}},Date,
   setStreamText:()=>{},setChatSending:v=>state.sending=v,setProjectError:v=>state.error=v,setChatTrace:()=>{},setChatDraft:v=>state.draft=typeof v==='function'?v(state.draft):v,
   setChats:()=>{},setActiveChat:()=>{},setChatMessages:v=>state.messages=typeof v==='function'?v(state.messages):v,
   invoke:async(name,args)=>{calls.push({name,args});
    if(name==='create_project_chat'){assert.equal(args.projectIdValue,'project');return {id:'created'}}
+   if(name==='regenerate_chat_answer'){return {message:{id:args.messageId,role:'assistant',content:'Other reply',variants:[{content:'Reply'},{content:'Other reply'}],variant:1},route:'Codex',tier:'balanced'}}
    if(name==='unified_chat_send'){await gate;if(fail)throw Error('Account unavailable');return {message:{id:'answer',role:'assistant',content:'Reply'},route:'Codex',tier:'balanced'}}
    if(name==='chat_message_page')return {messages:fail?[{id:'user',role:'user',content:'Hello'}]:[{id:'user',role:'user',content:'Hello'},{id:'answer',role:'assistant',content:'Reply'}],hasMore:false,beforeId:'user'};
    return [];
@@ -82,3 +83,14 @@ console.log('Manual model: selected model forwarded and unavailable selection is
  assert.equal(f.calls.find(c=>c.name==='unified_chat_send').args.teamSteps,null);
 }
 console.log('Team send: plan reaches backend; continuation does not replay specialists.');
+{
+ // Regenerate: separate command, no new user message, the draft is left alone.
+ const f=fixture({chat:'chat'});f.state.draft='Unsent draft';f.state.messages=[{id:'user',role:'user',content:'Hello'},{id:'answer',role:'assistant',content:'Reply'}];
+ await f.ctx.sendChat('Hello','answer',true);
+ const call=f.calls.find(c=>c.name==='regenerate_chat_answer');
+ assert.ok(call,'regenerate command used');assert.equal(call.args.messageId,'answer');
+ assert.ok(!f.calls.some(c=>c.name==='unified_chat_send'),'no ordinary send');
+ assert.equal(f.state.draft,'Unsent draft','draft untouched');
+ assert.ok(!f.state.messages.some(m=>String(m.id).startsWith('pending-')),'no pending user message');
+ console.log('Chat regenerate: separate command, draft and history preserved passed.');
+}

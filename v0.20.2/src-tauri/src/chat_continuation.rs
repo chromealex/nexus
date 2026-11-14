@@ -1,11 +1,17 @@
 use super::{NexusMessage,ProjectStore,PROJECTS_LOCK,load_project_store,save_project_store};
-pub struct Continuation{pub id:String,pub prefix:String,pub request:String,pub attachments:Vec<super::attachments::Attachment>}
+// `regenerate`: produce a new answer for the same request; the previous answer is kept as a variant.
+pub struct Continuation{pub id:String,pub prefix:String,pub request:String,pub attachments:Vec<super::attachments::Attachment>,pub regenerate:bool}
 pub fn prepare(db:&ProjectStore,chat:&str,id:&str)->Result<Continuation,String>{
  let index=db.messages.iter().position(|m|m.id==id&&m.chat_id==chat&&m.role=="assistant"&&m.stopped).ok_or("Остановленный ответ не найден в этом чате")?;
  let message=&db.messages[index];
  let user=db.messages[..index].iter().rev().find(|m|m.chat_id==chat&&m.role=="user").ok_or("Исходный запрос не найден")?;
  let prefix=if message.content=="Генерация остановлена."{String::new()}else{message.content.clone()};
- Ok(Continuation{id:message.id.clone(),prefix,request:user.content.clone(),attachments:user.attachments.clone()})
+ Ok(Continuation{id:message.id.clone(),prefix,request:user.content.clone(),attachments:user.attachments.clone(),regenerate:false})
+}
+pub fn prepare_regenerate(db:&ProjectStore,chat:&str,id:&str)->Result<Continuation,String>{
+ let (index,message)=super::chat_variants::regenerate_target(db,chat,id)?;
+ let user=db.messages[..index].iter().rev().find(|m|m.chat_id==chat&&m.role=="user").ok_or("Исходный запрос не найден")?;
+ Ok(Continuation{id:message.id.clone(),prefix:String::new(),request:user.content.clone(),attachments:user.attachments.clone(),regenerate:true})
 }
 pub fn merge(prefix:&str,suffix:&str)->String{
  if prefix.is_empty(){return suffix.into()}
@@ -24,7 +30,11 @@ pub fn merge(prefix:&str,suffix:&str)->String{
 pub fn save(chat:&str,target:&Continuation,suffix:&str,details:String,stopped:bool)->Result<NexusMessage,String>{
  let _guard=PROJECTS_LOCK.lock().map_err(|_|"Project storage lock failed")?;let mut db=load_project_store()?;
  let message=db.messages.iter_mut().find(|m|m.id==target.id&&m.chat_id==chat&&m.role=="assistant").ok_or("Ответ был удалён")?;
- update(message,target,suffix,details,stopped)?;
+ if target.regenerate{
+  let content=if suffix.trim().is_empty(){"Генерация остановлена.".to_string()}else{suffix.to_string()};
+  if content.len()>200000{return Err("Ответ превышает размер сообщения".into())}
+  super::chat_variants::push_regenerated(message,content,details,stopped,super::now_string());
+ }else{update(message,target,suffix,details,stopped)?;}
  let updated=message.clone();if let Some(c)=db.chats.iter_mut().find(|c|c.id==chat){c.unread=true;}save_project_store(&db)?;Ok(updated)
 }
 fn update(message:&mut NexusMessage,target:&Continuation,suffix:&str,details:String,stopped:bool)->Result<(),String>{
@@ -47,6 +57,10 @@ pub fn effort(mode:&str,weight:u32)->Result<&'static str,String>{match mode{"fas
  #[test]fn continuation_is_chat_scoped_and_requires_stopped(){
   let mut db:ProjectStore=serde_json::from_value(serde_json::json!({"projects":[],"chats":[],"messages":[{"id":"u","chatId":"c","role":"user","content":"Task","createdAt":"t"},{"id":"a","chatId":"c","role":"assistant","content":"Prefix","stopped":true,"createdAt":"t"}]})).unwrap();
   assert_eq!(prepare(&db,"c","a").unwrap().request,"Task");assert!(prepare(&db,"other","a").is_err());db.messages[1].stopped=false;assert!(prepare(&db,"c","a").is_err());
+ }
+ #[test]fn regenerate_uses_the_preceding_request(){
+  let db:ProjectStore=serde_json::from_value(serde_json::json!({"projects":[],"chats":[],"messages":[{"id":"u","chatId":"c","role":"user","content":"Task","createdAt":"t"},{"id":"a","chatId":"c","role":"assistant","content":"Answer","createdAt":"t"}]})).unwrap();
+  let r=prepare_regenerate(&db,"c","a").unwrap();assert!(r.regenerate);assert_eq!(r.request,"Task");assert!(r.prefix.is_empty());assert!(!prepare(&db,"c","a").is_ok(),"a finished answer is not a continuation target");
  }
  #[test]fn repeated_stop_then_complete_keeps_one_prefix(){
   let mut db:ProjectStore=serde_json::from_value(serde_json::json!({"projects":[],"chats":[],"messages":[{"id":"u","chatId":"c","role":"user","content":"Task","createdAt":"t"},{"id":"a","chatId":"c","role":"assistant","content":"Начало. ","stopped":true,"createdAt":"t"}]})).unwrap();
