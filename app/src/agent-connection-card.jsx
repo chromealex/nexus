@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import {useToastOn} from './toaster.jsx';
 import {invoke} from '@tauri-apps/api/core';
 import {Plug, Check} from 'lucide-react';
 export function AgentConnectionCard({manifest, context}) {
@@ -6,6 +7,7 @@ export function AgentConnectionCard({manifest, context}) {
     [connected, setConnected] = useState(false),
     [agentId, setAgentId] = useState(null),
     [error, setError] = useState('');
+  useToastOn(error, () => setError(''), 'error');
   useEffect(() => {
     let live = true;
     invoke('list_custom_agents')
@@ -104,7 +106,6 @@ export function AgentConnectionCard({manifest, context}) {
       {!context?.enabled && !connected && (
         <small>Подключение доступно в проекте Nexus после завершения ответа.</small>
       )}
-      {error && <p role="alert">{error}</p>}
     </section>
   );
 }

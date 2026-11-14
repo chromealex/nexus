@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import {toastTimeout, cleanMessage, pushToast, notify, onToast} from '../src/toasts.js';
+
+assert.ok(toastTimeout('x', 'error') > toastTimeout('x', 'info'));
+assert.ok(toastTimeout('x'.repeat(1000), 'error') <= 15000);
+assert.equal(cleanMessage('Error: boom'), 'boom');
+assert.equal(cleanMessage('NEXUS_BROWSER_SETUP: Нужно установить'), 'Нужно установить');
+let list = pushToast([], {id: 1, text: 'a', tone: 'error'});
+list = pushToast(list, {id: 2, text: 'a', tone: 'error'});
+assert.equal(list.length, 1);
+assert.equal(list[0].count, 2);
+assert.equal(list[0].id, 2);
+for (let i = 3; i < 10; i++) list = pushToast(list, {id: i, text: 't' + i, tone: 'info'});
+assert.equal(list.length, 4);
+const seen = [];
+const off = onToast(t => seen.push(t));
+assert.equal(notify(''), null);
+notify('Готово', {tone: 'success'});
+off();
+notify('после отписки');
+assert.equal(seen.length, 1);
+assert.equal(seen[0].tone, 'success');
+console.log('Toasts: timeouts, cleaning, merging, limits and subscription passed.');

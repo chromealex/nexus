@@ -17,6 +17,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import {AgentIcon} from './agent-icon.jsx';
+import {useToastOn} from './toaster.jsx';
 import {CATALOG, TAG_NAMES, connectionState} from './agent-catalog.js';
 const active = phase => ['queued', 'checking', 'installing', 'verifying'].includes(phase);
 const phaseLabel = {
@@ -82,6 +83,8 @@ export function ConnectionsDialog({
     [resumeAgent, setResumeAgent] = useState(null),
     [confirmRemove, setConfirmRemove] = useState(null),
     [apiLimits, setApiLimits] = useState({});
+  useToastOn(error, () => setError(''), 'error');
+  useToastOn(notice, () => setNotice(''), 'info');
   async function loadApiLimits(rows) {
     await Promise.all(
       rows
@@ -446,16 +449,6 @@ export function ConnectionsDialog({
           </button>
         </div>
         <div className="connections-content">
-          {error && (
-            <p className="connection-error" role="alert">
-              {error}
-            </p>
-          )}
-          {notice && (
-            <p className="connection-notice" role="status">
-              {notice}
-            </p>
-          )}
           {form ? (
             <form className="connection-form" onSubmit={submit}>
               <button

@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import {useToastOn} from './toaster.jsx';
 import {invoke} from '@tauri-apps/api/core';
 
 // «Настройки проекта → Разрешения»: rules remembered with «Разрешать всегда», revocable one by one or all.
@@ -7,6 +8,7 @@ export function ProjectPermissions({projectId}) {
     [busy, setBusy] = useState(false),
     [confirmAll, setConfirmAll] = useState(false),
     [message, setMessage] = useState('');
+  useToastOn(message, () => setMessage(''), 'info');
   async function load() {
     try {
       setRows(await invoke('list_project_permissions', {projectId}));
@@ -103,7 +105,6 @@ export function ProjectPermissions({projectId}) {
             Отозвать все
           </button>
         ))}
-      {message && <small role="status">{message}</small>}
       <small className="project-permissions-note">
         Разрешения macOS (доступ к файлам, автоматизация) настраиваются в системе отдельно.
       </small>

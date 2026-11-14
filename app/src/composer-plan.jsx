@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import {useToastOn} from './toaster.jsx';
 import {invoke} from '@tauri-apps/api/core';
 import {X} from 'lucide-react';
 
@@ -14,6 +15,7 @@ export function ComposerPlan({task, workspace, onUse, onClose}) {
     [busy, setBusy] = useState(''),
     [error, setError] = useState(''),
     [planned, setPlanned] = useState('');
+  useToastOn(error, () => setError(''), 'error');
   useEffect(() => {
     if (planned && task.trim() !== planned) setPlan(null);
   }, [task, planned]);
@@ -57,7 +59,6 @@ export function ComposerPlan({task, workspace, onUse, onClose}) {
           </button>
         </div>
       )}
-      {error && <p role="alert">{error}</p>}
       {plan && (
         <>
           {plan.warnings?.map((w, i) => (

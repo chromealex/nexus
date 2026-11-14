@@ -1,4 +1,5 @@
 import {CustomSelect} from './custom-select.jsx';
+import {useToastOn} from './toaster.jsx';
 import {ProjectPermissions} from './project-permissions.jsx';
 import {folderChatCount, projectChatCount} from './navigation-counts.js';
 import {countLabel} from './locale-format.js';
@@ -68,6 +69,7 @@ export function ProjectNavigation({
         return false;
       }
     });
+  useToastOn(error, () => setError(''), 'error');
   const searchRef = useRef(null),
     newChatRef = useRef(null);
   const nav = useRef(null),
@@ -587,11 +589,6 @@ export function ProjectNavigation({
             ))
           )}
         </div>
-        {error && (
-          <p className="nav-error" role="alert">
-            {error}
-          </p>
-        )}
         <div className="nav-footer">
           <UndoToast key={toast?.id} toast={toast} onUndo={undoChange} onClose={() => setToast(null)} />
           <div className="nav-saved-links">
@@ -662,6 +659,7 @@ function ProjectEditor({editor, project, folders, chats, onClose, onSaved}) {
     [parentChat, setParentChat] = useState(item?.parentChatId || ''),
     [busy, setBusy] = useState(false),
     [error, setError] = useState('');
+  useToastOn(error, () => setError(''), 'error');
   const dialog = useRef(null),
     files = useRef(null),
     lastFocus = useRef(document.activeElement);
@@ -943,11 +941,6 @@ function ProjectEditor({editor, project, folders, chats, onClose, onSaved}) {
               </>
             )}
             {type === 'project' && <ProjectPermissions projectId={item.id} />}
-            {error && (
-              <p className="nav-error" role="alert">
-                {error}
-              </p>
-            )}
           </div>
           <div className="settings-actions">
             <button type="button" disabled={busy} onClick={onClose}>

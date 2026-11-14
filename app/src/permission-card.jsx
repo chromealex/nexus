@@ -1,10 +1,12 @@
 import React, {useState} from 'react';
+import {useToastOn} from './toaster.jsx';
 import {ShieldCheck, Globe} from 'lucide-react';
 import {browserRequest} from './browser-mode.js';
 export function PermissionCard({request, onAnswer}) {
   const [remember, setRemember] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState('');
+  useToastOn(error, () => setError(''), 'error');
   const raw = request.details || {},
     p = {...raw, ...raw.input, ...raw.toolCall};
   const browser = request.kind === 'browser' ? browserRequest(raw) : null;
@@ -100,7 +102,6 @@ export function PermissionCard({request, onAnswer}) {
           Разрешить
         </button>
       </div>
-      {error && <p role="alert">{error}</p>}
     </section>
   );
 }

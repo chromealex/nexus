@@ -251,7 +251,8 @@ const messages = [
     chatId: 'history',
     role: 'assistant',
     createdAt: day(0),
-    content: 'Обычный ответ агента без обрамляющей карточки.\n\n- Сохранён текст\n- Детали свёрнуты',
+    content:
+      'Обычный ответ агента без обрамляющей карточки.\n\n- Сохранён текст\n- Детали свёрнуты\n\nИзменения в `src/report.rs:3`, описание в `docs/README.md`, данные — `data/sales.csv`.',
     details: 'Route: codex / fixture\nModel: fixture-model\nEffort: low',
   },
   {
@@ -359,6 +360,31 @@ window.__TAURI_INTERNALS__ = {
       return;
     }
     if (cmd === 'browser_pane_input') return;
+    if (cmd === 'read_project_file') {
+      const path = args.path.replace(/:\d+$/, '');
+      const files = {
+        'src/report.rs':
+          '// Report export\nuse std::fs;\n\npub fn export_pdf(rows: &[Row]) -> Result<Vec<u8>, String> {\n    let mut out = Vec::new();\n    for row in rows {\n        out.extend(row.render());\n    }\n    Ok(out)\n}\n',
+        'docs/README.md':
+          '# Экспорт отчётов\n\nОтчёт можно сохранить в **PDF** или CSV.\n\n> [!TIP]\n> Большие отчёты строятся в фоне.\n\n```mermaid\nflowchart LR\n  A[Данные] --> B[Отчёт] --> C[PDF]\n```\n\n| Формат | Размер |\n|---|---|\n| PDF | 120 КБ |\n| CSV | 8 КБ |\n',
+        'data/sales.csv': 'Месяц,Выручка,Заказы\nЯнварь,120000,340\nФевраль,135500,362\nМарт,"141 200",371\n',
+      };
+      const text = files[path];
+      if (text == null) throw 'Файл не найден';
+      const bytes = new TextEncoder().encode(text);
+      let bin = '';
+      bytes.forEach(b => (bin += String.fromCharCode(b)));
+      return {
+        name: path.split('/').pop(),
+        path: '/tmp/nexus-ui-fixture/' + path,
+        display: path,
+        size: bytes.length,
+        line: /:(\d+)$/.exec(args.path)?.[1] * 1 || null,
+        data: btoa(bin),
+      };
+    }
+    if (cmd === 'reveal_project_file') return;
+    if (cmd === 'read_attachment') return btoa('# Проверка вложения\n\nТекст файла.');
     if (cmd === 'adaptive_plan' || cmd === 'ai_adaptive_plan')
       return {
         warnings: cmd === 'ai_adaptive_plan' ? ['Уточнение с ИИ расходует квоту выбранного аккаунта.'] : [],

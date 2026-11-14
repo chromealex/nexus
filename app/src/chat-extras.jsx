@@ -1,4 +1,5 @@
 import {previewKind, normalizeQuestions, restoreQuestionSelection} from './chat-files.js';
+import {useToastOn} from './toaster.jsx';
 export {normalizeQuestions} from './chat-files.js';
 import React, {useEffect, useState} from 'react';
 import {invoke} from '@tauri-apps/api/core';
@@ -181,6 +182,7 @@ export function QuestionCard({questions, onSubmit, disabled = false, onCancel, s
     [custom, setCustom] = useState(restored.custom),
     [busy, setBusy] = useState(false),
     [error, setError] = useState('');
+  useToastOn(error, () => setError(''), 'error');
   const lock = React.useRef(false),
     groupId = React.useId();
   useEffect(() => {
@@ -323,7 +325,6 @@ export function QuestionCard({questions, onSubmit, disabled = false, onCancel, s
         </div>
       )}
       {busy && !disabled && <small>Отправляю…</small>}
-      {error && <p role="alert">{error}</p>}
     </form>
   );
 }

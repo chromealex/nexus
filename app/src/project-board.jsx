@@ -1,4 +1,5 @@
 import {CustomSelect} from './custom-select.jsx';
+import {useToastOn} from './toaster.jsx';
 import React, {useEffect, useRef, useState} from 'react';
 import {invoke} from '@tauri-apps/api/core';
 import {listen} from '@tauri-apps/api/event';
@@ -25,6 +26,7 @@ export function ProjectBoard({projectId, chatId, onChat, open, onToggle}) {
     [busy, setBusy] = useState(false),
     [editing, setEditing] = useState(false),
     [filter, setFilter] = useState('all');
+  useToastOn(error, () => setError(''), 'error');
   const current = useRef(projectId),
     sequence = useRef(0),
     saving = useRef(false);
@@ -275,7 +277,6 @@ export function ProjectBoard({projectId, chatId, onChat, open, onToggle}) {
               ))}
             {!board.tasks.length && <p>Отправьте запрос в чат — его статус появится здесь.</p>}
           </div>
-          {error && <p role="alert">{error}</p>}
         </section>
       )}
     </>

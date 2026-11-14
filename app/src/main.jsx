@@ -1,12 +1,13 @@
 import {teamPlan} from './team-plan.js';
 import {TeamPlanPreview} from './team-plan-preview.jsx';
-import {ChatNotice} from './chat-notice.jsx';
 import {chatErrorMessage} from './chat-errors.js';
 import {ROUTING_PRIORITIES} from './model-benchmarks.js';
 import {RoutingPreview} from './routing-preview.jsx';
 import {CustomSelect} from './custom-select.jsx';
 import {mergeLatestMessages, prependMessages} from './chat-history.js';
 import {ComposerPlan} from './composer-plan.jsx';
+import {Toaster, useToastOn} from './toaster.jsx';
+import {notify} from './toasts.js';
 import {ConnectionsDialog} from './connections-dialog.jsx';
 import {ProjectBoard} from './project-board.jsx';
 import {WelcomeScreen} from './welcome-screen.jsx';
@@ -18,12 +19,14 @@ import {ProjectNavigation} from './project-navigation.jsx';
 import {useChatScroll} from './use-chat-scroll.js';
 import {ComposerParams, ParamRow, composerParamsSummary} from './composer-params.jsx';
 import {BrowserParam} from './browser-param.jsx';
-import {BrowserPane, BrowserPreview, useChatBrowser} from './browser-pane.jsx';
+import {BrowserView, BrowserPreview, useChatBrowser} from './browser-pane.jsx';
+import {SidePanel, panelFile} from './side-panel.jsx';
+import {FileView} from './file-view.jsx';
 import {browserSummary} from './browser-mode.js';
 import {shortcutFor, withShortcut} from './shortcuts.js';
 import {ChatSkeleton} from './nav-extras.jsx';
 import {ComposerInput} from './composer-input.jsx';
-import {FileTile, FilePreview, QuestionCard} from './chat-extras.jsx';
+import {FileTile, QuestionCard} from './chat-extras.jsx';
 import {
   Copy,
   Paperclip,
@@ -152,7 +155,8 @@ function App() {
     [replyTo, setReplyTo] = useState(null),
     [draftFiles, setDraftFiles] = useState([]),
     [filesBusy, setFilesBusy] = useState(false),
-    [previewFile, setPreviewFile] = useState(null),
+    [panelFiles, setPanelFiles] = useState([]),
+    [panelView, setPanelView] = useState('browser'),
     [agentQuestion, setAgentQuestion] = useState(null),
     [chatTrace, setChatTrace] = useState(''),
     [chatDraft, setChatDraft] = useState(''),
@@ -725,7 +729,28 @@ function App() {
     }
   }, [chatMessages]);
   const currentChatSending = chatSending && activeRunRef.current?.chatId === activeChat;
-  const browserPaneShown = browserPaneOpen && !!activeChat;
+  // The side panel holds the chat browser and opened files; the browser streams only while its tab is shown.
+  const panelShown = browserPaneOpen && !!activeChat && (panelView === 'browser' || panelFiles.length > 0);
+  const browserPaneShown = panelShown && panelView === 'browser';
+  function openPanelFile(input) {
+    const file = panelFile(input);
+    setPanelFiles(list => (list.some(f => f.key === file.key) ? list : [...list, file].slice(-8)));
+    setPanelView(file.key);
+    setBrowserPaneOpen(true);
+  }
+  function closePanelFile(key) {
+    const rest = panelFiles.filter(f => f.key !== key);
+    setPanelFiles(rest);
+    if (panelView === key) setPanelView(rest.at(-1)?.key || 'browser');
+    if (!rest.length && !chatBrowser.available) setBrowserPaneOpen(false);
+  }
+  useEffect(() => {
+    // Paths in answers (`src/a.rs:12`) and links to local files open here.
+    const open = e =>
+      e.detail?.path && openPanelFile({source: 'project', path: e.detail.path, line: e.detail.line});
+    window.addEventListener('nexus-open-file', open);
+    return () => window.removeEventListener('nexus-open-file', open);
+  });
   const chatBrowser = useChatBrowser({
     chatId: activeChat,
     paneOpen: browserPaneShown,
@@ -737,12 +762,17 @@ function App() {
     setBrowserPaneOpen(false);
     browserDismissed.current = false;
     setPlanOpen(false);
+    setPanelFiles([]);
+    setPanelView('browser');
   }, [activeChat]);
   useEffect(() => {
     if (!currentChatSending) browserDismissed.current = false;
   }, [currentChatSending]);
   useEffect(() => {
-    if (chatBrowser.activity && currentChatSending && !browserDismissed.current) setBrowserPaneOpen(true);
+    if (chatBrowser.activity && currentChatSending && !browserDismissed.current) {
+      setPanelView('browser');
+      setBrowserPaneOpen(true);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatBrowser.activity]);
   const visibleTurns = chatMessages.filter(m => m.role !== 'system'),
@@ -934,11 +964,25 @@ function App() {
       setProjectError('Экспорт не выполнен: ' + String(e));
     }
   }
+  // Errors and notices go to the toasts at the top of the window and close by themselves.
   useEffect(() => {
     if (!exportNote) return;
-    const t = setTimeout(() => setExportNote(null), 7000);
-    return () => clearTimeout(t);
+    const path = exportNote.path;
+    notify(exportNote.text, {
+      tone: 'success',
+      action: path && {
+        label: 'Показать в Finder',
+        run: () => invoke('reveal_chat_export', {path}).catch(e => setProjectError(String(e))),
+      },
+    });
+    setExportNote(null);
   }, [exportNote]);
+  useToastOn(projectError, () => setProjectError(''), 'error', {
+    label: 'Подключения',
+    run: () => setOpen(true),
+  });
+  useToastOn(accountMessage, () => setAccountMessage(''), 'info');
+  useToastOn(browserError, () => setBrowserError(''), 'error');
   function regenerate(message) {
     const index = chatMessages.findIndex(m => m.id === message.id);
     const request = chatMessages
@@ -1657,15 +1701,15 @@ function App() {
         'app' +
         (chatMessages.length === 0 && !currentChatSending && !historyLoading ? ' cinematic-home' : '') +
         (navCollapsed ? ' nav-collapsed' : '') +
-        (browserPaneShown ? ' browser-pane-open' : '')
+        (panelShown ? ' browser-pane-open' : '')
       }
-      style={browserPaneShown ? {'--browser-pane-width': browserPaneWidth + 'px'} : undefined}
+      style={panelShown ? {'--browser-pane-width': browserPaneWidth + 'px'} : undefined}
     >
+      <Toaster />
       <div className="workspace-persona">
         <ParticlePersona interactive={chatMessages.length === 0 && !currentChatSending && !historyLoading} />
       </div>
       <ThinkingLightning active={currentChatSending} chatId={activeChat} />
-      {previewFile && <FilePreview file={previewFile} onClose={() => setPreviewFile(null)} />}
       <ProjectNavigation
         projects={projects}
         activeProject={activeProject}
@@ -1728,9 +1772,15 @@ function App() {
         </div>
         <div className="topright">
           <span className="status">● LOCAL SYSTEM</span>
-          {activeChat && !browserPaneShown && chatBrowser.available && (
-            <button title="Показать браузер чата" onClick={() => toggleBrowserPane(true)}>
-              <PanelRight size={14} aria-hidden="true" /> Браузер
+          {activeChat && !panelShown && (chatBrowser.available || panelFiles.length > 0) && (
+            <button
+              title="Показать боковую панель"
+              onClick={() => {
+                if (!panelFiles.length) setPanelView('browser');
+                toggleBrowserPane(true);
+              }}
+            >
+              <PanelRight size={14} aria-hidden="true" /> {panelFiles.length ? 'Панель' : 'Браузер'}
             </button>
           )}
           <button title={withShortcut('Агенты и подключения', 'connections')} onClick={() => setOpen(!open)}>
@@ -1899,7 +1949,7 @@ function App() {
                           onChange={e => setMinimapOn(e.target.checked)}
                         />
                         <MapIcon size={14} />
-                        Миникарта сообщений слева
+                        Миникарта вместо полосы прокрутки
                       </label>
                       <hr />
                       <button role="menuitem" onClick={() => exportChat('copy')}>
@@ -1915,26 +1965,6 @@ function App() {
                 </div>
               )}
             </div>
-            {exportNote && (
-              <div className="export-note" role="status">
-                {exportNote.text}
-                {exportNote.path && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      invoke('reveal_chat_export', {path: exportNote.path}).catch(e =>
-                        setProjectError(String(e))
-                      )
-                    }
-                  >
-                    Показать в Finder
-                  </button>
-                )}
-                <button type="button" aria-label="Скрыть" onClick={() => setExportNote(null)}>
-                  ×
-                </button>
-              </div>
-            )}
             {findOpen && activeChat && (
               <ChatFind
                 key={activeChat}
@@ -1954,7 +1984,7 @@ function App() {
             />
             {
               <>
-                <div className="chat-scroll-area">
+                <div className={'chat-scroll-area' + (minimapOn ? ' minimap-scroll' : '')}>
                   {minimapOn && activeChat && chatMessages.length > 1 && (
                     <ChatMinimap
                       viewportRef={chatScroll.viewport}
@@ -2106,7 +2136,11 @@ function App() {
                                   {m.attachments?.length > 0 && (
                                     <div className="message-files">
                                       {m.attachments.map(file => (
-                                        <FileTile key={file.id} file={file} onOpen={setPreviewFile} />
+                                        <FileTile
+                                          key={file.id}
+                                          file={file}
+                                          onOpen={file => openPanelFile({source: 'attachment', ...file})}
+                                        />
                                       ))}
                                     </div>
                                   )}
@@ -2264,11 +2298,6 @@ function App() {
                     </small>
                   </section>
                 )}
-                <ChatNotice
-                  message={projectError}
-                  onConnections={() => setOpen(true)}
-                  onClose={() => setProjectError('')}
-                />
                 <form
                   className="chat-composer"
                   onSubmit={e => {
@@ -2298,7 +2327,7 @@ function App() {
                         <FileTile
                           key={file.id}
                           file={file}
-                          onOpen={setPreviewFile}
+                          onOpen={file => openPanelFile({source: 'attachment', ...file})}
                           onRemove={() => {
                             if (!chatSending) setDraftFiles(v => v.filter(f => f.id !== file.id));
                           }}
@@ -2561,29 +2590,55 @@ function App() {
           </section>
         }
       </section>
-      {browserPaneShown && (
-        <BrowserPane
-          browser={chatBrowser}
-          chatId={activeChat}
+      {panelShown && (
+        <SidePanel
           width={browserPaneWidth}
           onResize={resizeBrowserPane}
           onClose={() => toggleBrowserPane(false)}
-          settings={
-            <BrowserParam
-              compact
-              status={browserState?.chatId === activeChat ? browserState : null}
-              disabled={!activeChat}
-              busy={browserBusy}
-              error={browserError}
-              onMode={saveBrowserMode}
-              onInstall={installBrowser}
-              onCancel={() => invoke('cancel_browser_install').catch(() => {})}
-              onExtension={openBrowserExtension}
+          view={panelView}
+          onView={setPanelView}
+          files={panelFiles}
+          onCloseFile={closePanelFile}
+          browserTab={chatBrowser.available || !!chatBrowser.activity || panelView === 'browser'}
+        >
+          {panelView === 'browser' ? (
+            <BrowserView
+              browser={chatBrowser}
+              chatId={activeChat}
+              settings={
+                <BrowserParam
+                  compact
+                  status={browserState?.chatId === activeChat ? browserState : null}
+                  disabled={!activeChat}
+                  busy={browserBusy}
+                  error={browserError}
+                  onMode={saveBrowserMode}
+                  onInstall={installBrowser}
+                  onCancel={() => invoke('cancel_browser_install').catch(() => {})}
+                  onExtension={openBrowserExtension}
+                />
+              }
             />
-          }
+          ) : (
+            panelFiles.find(f => f.key === panelView) && (
+              <FileView
+                key={panelView}
+                file={panelFiles.find(f => f.key === panelView)}
+                chatId={activeChat}
+              />
+            )
+          )}
+        </SidePanel>
+      )}
+      {chatBrowser.preview && (
+        <BrowserPreview
+          browser={chatBrowser}
+          onOpen={() => {
+            setPanelView('browser');
+            toggleBrowserPane(true);
+          }}
         />
       )}
-      {chatBrowser.preview && <BrowserPreview browser={chatBrowser} onOpen={() => toggleBrowserPane(true)} />}
       <ConnectionsDialog
         open={open}
         onClose={() => setOpen(false)}

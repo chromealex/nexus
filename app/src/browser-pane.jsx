@@ -1,9 +1,10 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {invoke} from '@tauri-apps/api/core';
 import {listen} from '@tauri-apps/api/event';
-import {ArrowLeft, ArrowRight, RotateCw, Plus, X, PanelRightClose, Globe, Maximize2} from 'lucide-react';
+import {ArrowLeft, ArrowRight, RotateCw, Plus, X, Globe, Maximize2} from 'lucide-react';
 import {BrowserParam} from './browser-param.jsx';
 import {keyAction, normalizeMode, pageCoords, previewVisible, tabTitle} from './browser-mode.js';
+import {notify} from './toasts.js';
 
 // Last picture of every chat browser in this window session, so switching chats or closing the pane
 // keeps something to show while the next frame arrives.
@@ -55,7 +56,7 @@ export function useChatBrowser({chatId, paneOpen, status, agentBusy}) {
     });
     on('browser-tabs', p => setTabs({...p, saved: true}));
     on('browser-activity', p => setActivity({text: p.text, asks: p.asks, at: Date.now()}));
-    on('browser-notice', p => setNotice(String(p.message || '')));
+    on('browser-notice', p => notify(String(p.message || ''), {tone: 'warn'}));
     return () => {
       live = false;
       off.forEach(u => u());
@@ -100,7 +101,7 @@ export function useChatBrowser({chatId, paneOpen, status, agentBusy}) {
 
   const input = action => {
     if (!chatId) return Promise.resolve();
-    return invoke('browser_pane_input', {chatId, action}).catch(e => setNotice(String(e)));
+    return invoke('browser_pane_input', {chatId, action}).catch(e => notify(String(e), {tone: 'error'}));
   };
   // The header shows «Браузер» only for chats whose browser exists (running now or with saved tabs).
   const available = ready && (tabs.running || tabs.saved || (tabs.tabs || []).length > 0);
@@ -174,7 +175,8 @@ function Viewport({frame, input, running}) {
   );
 }
 
-export function BrowserPane({browser, status, chatId, width, onResize, onClose, settings}) {
+// Browser tab of the side panel: page tabs, address bar and the live page.
+export function BrowserView({browser, chatId, settings}) {
   const {tabs, frame, activity, notice, error, ready, mode, input, setNotice} = browser;
   const active = tabs.tabs?.find(t => t.id === tabs.active);
   const [address, setAddress] = useState(''),
@@ -216,32 +218,8 @@ export function BrowserPane({browser, status, chatId, width, onResize, onClose, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, tabs.running, chatId]);
   const recent = activity && Date.now() - activity.at < 6000;
-  const drag = e => {
-    e.preventDefault();
-    const startX = e.clientX,
-      start = width;
-    const move = ev => onResize(start + (startX - ev.clientX));
-    const up = () => {
-      window.removeEventListener('pointermove', move);
-      window.removeEventListener('pointerup', up);
-    };
-    window.addEventListener('pointermove', move);
-    window.addEventListener('pointerup', up);
-  };
   return (
-    <aside className="browser-pane" aria-label="Браузер чата">
-      <div
-        className="browser-pane-resize"
-        role="separator"
-        aria-orientation="vertical"
-        aria-label="Ширина браузера"
-        tabIndex={0}
-        onPointerDown={drag}
-        onKeyDown={e => {
-          if (e.key === 'ArrowLeft') onResize(width + 24);
-          if (e.key === 'ArrowRight') onResize(width - 24);
-        }}
-      />
+    <div className="browser-view">
       <div className="browser-tabs" role="tablist" aria-label="Вкладки">
         {(ready ? tabs.tabs || [] : []).map(tab => (
           <div
@@ -273,15 +251,6 @@ export function BrowserPane({browser, status, chatId, width, onResize, onClose, 
             <Plus size={13} />
           </button>
         )}
-        <button
-          type="button"
-          className="browser-pane-close"
-          aria-label="Скрыть браузер"
-          title="Скрыть браузер"
-          onClick={onClose}
-        >
-          <PanelRightClose size={15} />
-        </button>
       </div>
       {ready && (
         <form
@@ -346,7 +315,7 @@ export function BrowserPane({browser, status, chatId, width, onResize, onClose, 
           </div>
         )}
       </div>
-    </aside>
+    </div>
   );
 }
 

@@ -1,4 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
+import {useToastOn} from './toaster.jsx';
 import {invoke} from '@tauri-apps/api/core';
 import {X, RotateCcw, MessageSquare, Archive, Trash2} from 'lucide-react';
 import {FadeLabel} from './fade-label.jsx';
@@ -6,6 +7,7 @@ export function SavedChats({kind, projects, onClose, onRestore}) {
   const [rows, setRows] = useState([]),
     [error, setError] = useState(''),
     [busy, setBusy] = useState('');
+  useToastOn(error, () => setError(''), 'error');
   const dialog = useRef(null),
     lastFocus = useRef(document.activeElement),
     saving = useRef(false);
@@ -113,11 +115,6 @@ export function SavedChats({kind, projects, onClose, onRestore}) {
                   : 'Сюда попадают чаты, удалённые через меню «…». Сообщения сохраняются, чат можно восстановить вместе с подчатами.'}
               </p>
             </div>
-          )}
-          {error && (
-            <p className="nav-error" role="alert">
-              {error}
-            </p>
           )}
         </div>
       </section>

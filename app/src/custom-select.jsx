@@ -83,9 +83,23 @@ function FlatSelect({value, onChange, children, disabled = false, className = ''
         desired = Math.min(300, options.length * 36 + 12),
         up = below < desired && above > below,
         maxHeight = Math.max(60, Math.min(300, up ? above : below));
+      // A dialog with transform/filter/backdrop-filter becomes the containing block for position:fixed,
+      // so viewport coordinates are shifted by the dialog's own offset.
+      const host = trigger.current?.closest('[role="dialog"]'),
+        style = host && getComputedStyle(host),
+        contained =
+          style &&
+          (style.transform !== 'none' ||
+            style.filter !== 'none' ||
+            (style.backdropFilter && style.backdropFilter !== 'none') ||
+            (style.webkitBackdropFilter && style.webkitBackdropFilter !== 'none') ||
+            /paint|layout|strict|content/.test(style.contain || '')),
+        box = contained ? host.getBoundingClientRect() : {left: 0, top: 0},
+        scrollX = contained ? host.scrollLeft : 0,
+        scrollY = contained ? host.scrollTop : 0;
       setPosition({
-        left: Math.max(8, Math.min(r.left, window.innerWidth - width - 8)),
-        top: up ? Math.max(8, r.top - 6 - Math.min(desired, maxHeight)) : r.bottom + 6,
+        left: Math.max(8, Math.min(r.left, window.innerWidth - width - 8)) - box.left + scrollX,
+        top: (up ? Math.max(8, r.top - 6 - Math.min(desired, maxHeight)) : r.bottom + 6) - box.top + scrollY,
         width,
         maxHeight,
       });

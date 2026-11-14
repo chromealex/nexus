@@ -3187,3 +3187,539 @@
   font-size: 12px;
   color: var(--text-muted, #9aa6ad);
 }
+
+/* ---------- Side panel: tabs for the browser and opened files (14 Nov 2026) ---------- */
+.side-panel-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 40px;
+  flex: none;
+  padding: 0 6px 0 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+.side-panel-tab,
+.side-panel-tab > button:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  height: 28px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--text-muted, #9aa6ad);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+button.side-panel-tab {
+  padding: 0 10px;
+}
+.side-panel-tab.is-file {
+  max-width: 200px;
+  padding-right: 2px;
+}
+.side-panel-tab.is-file > button:first-child {
+  padding: 0 2px 0 10px;
+  height: 100%;
+  min-width: 0;
+}
+.side-panel-tab.is-file > button:first-child span {
+  white-space: nowrap;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, #000 85%, transparent);
+}
+.side-panel-tab:hover {
+  color: var(--text-strong, #eef2f4);
+  background: rgba(255, 255, 255, 0.05);
+}
+.side-panel-tab.is-active {
+  color: var(--text-strong, #eef2f4);
+  background: rgba(255, 255, 255, 0.09);
+}
+.side-panel-tab-close {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.side-panel-tab-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.side-panel-bar .browser-pane-close {
+  margin: 0 0 0 auto;
+}
+.side-panel-body,
+.browser-view {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.file-view {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.file-view.is-empty {
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+  color: var(--text-muted, #9aa6ad);
+  font-size: 12px;
+}
+.file-view.is-empty button {
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-strong, #eef2f4);
+  font: inherit;
+  cursor: pointer;
+}
+.file-view-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  padding: 6px 8px 6px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: #1a1f23;
+}
+.file-view-path {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, #000 88%, transparent);
+  font-size: 12px;
+  color: var(--text-body, #d6dde1);
+}
+.file-view-path small {
+  color: var(--text-faint, #6f7b82);
+  font-size: 11px;
+}
+.file-view-bar > button,
+.file-view-bar > a {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-muted, #9aa6ad);
+  cursor: pointer;
+}
+.file-view-bar > button:hover,
+.file-view-bar > a:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-strong, #eef2f4);
+}
+.file-view-toggle {
+  display: inline-flex;
+  padding: 2px;
+  margin-right: 4px;
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.25);
+}
+.file-view-toggle button {
+  height: 22px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  color: var(--text-muted, #9aa6ad);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.file-view-toggle button.is-active {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-strong, #eef2f4);
+}
+.file-view-message,
+.file-view-note {
+  margin: 0;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #e7c98f;
+}
+.file-view-note {
+  color: var(--text-muted, #9aa6ad);
+}
+.file-view-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.file-view-body.is-image,
+.file-view-body.is-svg {
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: repeating-conic-gradient(#1a1f23 0% 25%, #15191c 0% 50%) 50% / 16px 16px;
+}
+.file-view-body.is-image img,
+.file-view-body.is-svg img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+.file-view-body.is-pdf iframe,
+.file-view-body .file-html {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #fff;
+}
+.file-view-body.is-html {
+  display: flex;
+  flex-direction: column;
+}
+.file-view-body .file-html {
+  flex: 1;
+  min-height: 0;
+}
+.file-view-body.is-audio,
+.file-view-body.is-video {
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+.file-view-body video {
+  max-width: 100%;
+  max-height: 100%;
+}
+.file-markdown {
+  padding: 18px 22px 28px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-body, #d6dde1);
+}
+.file-code {
+  padding: 8px 0 16px;
+  font:
+    12px/1.6 ui-monospace,
+    'SF Mono',
+    Menlo,
+    monospace;
+  color: #d8dee2;
+}
+.file-code-line {
+  display: flex;
+  min-width: max-content;
+}
+.file-code-line.is-target {
+  background: rgba(231, 201, 143, 0.12);
+}
+.file-code-no {
+  position: sticky;
+  left: 0;
+  flex: none;
+  width: 48px;
+  padding-right: 12px;
+  text-align: right;
+  color: #59646b;
+  background: #121619;
+  user-select: none;
+}
+.file-code code {
+  padding-right: 16px;
+  white-space: pre;
+  font: inherit;
+  background: none;
+}
+.file-table {
+  padding: 8px;
+}
+.file-table table {
+  border-collapse: collapse;
+  font-size: 12px;
+  color: var(--text-body, #d6dde1);
+}
+.file-table th,
+.file-table td {
+  padding: 5px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: left;
+  white-space: nowrap;
+}
+.file-table th {
+  position: sticky;
+  top: 0;
+  background: #1a1f23;
+  color: var(--text-strong, #eef2f4);
+  font-weight: 500;
+}
+.file-empty {
+  padding: 8px 12px;
+  color: var(--text-muted, #9aa6ad);
+  font-size: 12px;
+}
+.file-link {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.file-link code {
+  text-decoration: underline;
+  text-decoration-color: rgba(150, 200, 230, 0.45);
+  text-underline-offset: 3px;
+}
+.file-link:hover code {
+  text-decoration-color: rgba(150, 200, 230, 0.9);
+  color: var(--text-strong, #eef2f4);
+}
+a.file-link {
+  color: #a9d4ec;
+}
+/* Tab counters («Аккаунты 4/6») sit on the label's baseline. */
+.connections-nav > button {
+  align-items: baseline;
+}
+.connections-nav > button span {
+  padding-left: 2px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- One surface for everything that sits in the conversation (14 Nov 2026) ----------
+   Messages, file tiles, system details, notices, permission and question cards, the plan and the
+   browser preview share one translucent card: same fill, 1px edge, radius and background blur. */
+:root {
+  --card-fill: rgba(14, 20, 25, 0.72);
+  --card-fill-user: rgba(34, 46, 54, 0.74);
+  --card-edge: rgba(255, 255, 255, 0.08);
+  --card-blur: blur(22px) saturate(140%);
+  --card-radius: 12px;
+}
+.app:not(.cinematic-home) .chat-bubble.assistant,
+.app:not(.cinematic-home) .chat-bubble.user {
+  border: 1px solid var(--card-edge) !important;
+  backdrop-filter: var(--card-blur) !important;
+  -webkit-backdrop-filter: var(--card-blur) !important;
+}
+.app:not(.cinematic-home) .chat-bubble.assistant {
+  background: var(--card-fill) !important;
+}
+.app:not(.cinematic-home) .chat-bubble.user {
+  background: var(--card-fill-user) !important;
+}
+.app .file-tile,
+.app .chat-bubble.system > .response-details,
+.app .routing-offer,
+.app .permission-card,
+.app .agent-question,
+.app .chat-notice,
+.app .composer-plan,
+.app .browser-preview {
+  border: 1px solid var(--card-edge) !important;
+  border-radius: var(--card-radius) !important;
+  background: var(--card-fill) !important;
+  backdrop-filter: var(--card-blur);
+  -webkit-backdrop-filter: var(--card-blur);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.18) !important;
+}
+.app .file-tile {
+  min-width: 200px;
+  max-width: 300px;
+}
+.app .file-tile:hover {
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+.app .file-open {
+  padding: 10px 12px;
+  gap: 10px;
+  color: var(--text-body, #d6dde1);
+}
+.app .file-open strong {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-strong, #eef2f4);
+  text-overflow: clip;
+  mask-image: linear-gradient(90deg, #000 85%, transparent);
+}
+.app .file-open small {
+  font-size: 11px;
+  color: var(--text-muted, #9aa6ad);
+}
+.app .file-open svg {
+  color: var(--text-muted, #9aa6ad);
+}
+.app .chat-bubble.system > .response-details summary {
+  color: var(--text-muted, #9aa6ad);
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  :root {
+    --card-fill: #121a20;
+    --card-fill-user: #223038;
+    --card-blur: none;
+  }
+}
+
+/* Wrapped rows of buttons and chips always keep a gap between lines. */
+.connection-account-actions,
+.composer-plan-actions,
+.browser-actions,
+.permission-actions,
+.project-revoke-confirm,
+.catalog-agent-top,
+.accountsummary,
+.project-head,
+.composer-tools,
+.composer-bottom {
+  row-gap: 8px !important;
+}
+.connection-account-actions {
+  column-gap: 8px;
+  margin-top: 14px;
+}
+
+/* ---------- Toasts: errors and notices at the top of the window, closing by themselves ---------- */
+.app-toasts {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  z-index: 20000;
+  transform: translateX(-50%);
+  display: grid;
+  gap: 8px;
+  width: min(560px, calc(100vw - 32px));
+  pointer-events: none;
+}
+.app-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 10px 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--card-edge, rgba(255, 255, 255, 0.08));
+  background: rgba(22, 28, 33, 0.92);
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  color: var(--text-body, #d6dde1);
+  font-size: 12px;
+  line-height: 1.5;
+  pointer-events: auto;
+  animation: app-toast-in 0.18s ease-out;
+}
+.app-toast > svg {
+  flex: none;
+  margin-top: 1px;
+  color: #7cc6e8;
+}
+.app-toast.is-error {
+  border-color: rgba(240, 140, 130, 0.35);
+}
+.app-toast.is-error > svg {
+  color: #f0a39a;
+}
+.app-toast.is-warn > svg {
+  color: #e7c98f;
+}
+.app-toast.is-success > svg {
+  color: #8fd6a8;
+}
+.app-toast-text {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+.app-toast-text small {
+  color: var(--text-muted, #9aa6ad);
+}
+.app-toast-action {
+  flex: none;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-strong, #eef2f4);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.app-toast-close {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-muted, #9aa6ad);
+  cursor: pointer;
+}
+.app-toast-close:hover,
+.app-toast-action:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-strong, #eef2f4);
+}
+@keyframes app-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-toast {
+    animation: none;
+  }
+}
+
+/* ---------- Minimap replaces the scrollbar (14 Nov 2026) ----------
+   With the minimap on, the history has no scrollbar; the map sits at the right edge where the scrollbar
+   was and is the scroll control (click, drag). Turning the map off brings the thin scrollbar back. */
+.chat-scroll-area.minimap-scroll .chat-thread {
+  scrollbar-width: none;
+}
+.chat-scroll-area.minimap-scroll .chat-thread::-webkit-scrollbar {
+  display: none;
+  width: 0;
+}
+.app .chat-scroll-area.minimap-scroll .chat-minimap {
+  left: auto;
+  right: 6px;
+  top: 12px;
+  bottom: 18px;
+  width: 30px;
+  display: block;
+  opacity: 0.7;
+}
+.app .chat-scroll-area.minimap-scroll .chat-minimap.is-idle {
+  display: none;
+}
+.app .chat-scroll-area.minimap-scroll .chat-minimap:hover {
+  opacity: 1;
+}
+@media (max-width: 1240px) {
+  .app .chat-scroll-area.minimap-scroll .chat-minimap {
+    display: block;
+    width: 22px;
+  }
+  .app .chat-scroll-area.minimap-scroll .chat-thread {
+    padding-right: 30px;
+  }
+}

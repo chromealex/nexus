@@ -22,6 +22,7 @@ mod chat_variants;
 mod claude_usage;
 mod custom_acp;
 mod custom_agents;
+mod file_preview;
 mod gemini_auth;
 mod installer;
 mod native_install;
@@ -228,6 +229,8 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             browser_tools::browser_tools_status,
+            file_preview::read_project_file,
+            file_preview::reveal_project_file,
             browser_host::browser_pane_open,
             browser_host::browser_pane_view,
             browser_host::browser_pane_input,

@@ -1,4 +1,5 @@
 import React, {useEffect, useId, useRef, useState} from 'react';
+import {useToastOn} from './toaster.jsx';
 import {createPortal} from 'react-dom';
 import {X} from 'lucide-react';
 import {withShortcut} from './shortcuts.js';
@@ -23,6 +24,7 @@ export function ModelTreeSelect({
     [collapsed, setCollapsed] = useState({}),
     [inspected, setInspected] = useState(null),
     [sourceError, setSourceError] = useState('');
+  useToastOn(sourceError, () => setSourceError(''), 'error');
   const trigger = useRef(null),
     panel = useRef(null),
     search = useRef(null),
@@ -384,7 +386,6 @@ export function ModelTreeSelect({
                           Официальный источник · {profile.date}
                         </button>
                       )}
-                      {sourceError && <p role="alert">{sourceError}</p>}
                     </>
                   ) : (
                     <>

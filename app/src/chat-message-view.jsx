@@ -1,7 +1,8 @@
 // Message rendering pieces used by App: markdown, answer details, message actions and the inline editor.
 import {AgentConnectionCard} from './agent-connection-card.jsx';
+import {useToastOn} from './toaster.jsx';
 import {countLabel} from './locale-format.js';
-import {legacyQuestionSelection} from './chat-files.js';
+import {legacyQuestionSelection, filePathRef} from './chat-files.js';
 import {QuestionCard, normalizeQuestions} from './chat-extras.jsx';
 import {
   Reply,
@@ -70,11 +71,29 @@ function MarkdownCode({className, children, ...props}) {
       return <pre className="widget-error">Widget data invalid</pre>;
     }
   }
+  // A file path in inline code opens in the side panel.
+  const ref = !className && typeof children === 'string' ? filePathRef(children) : null;
+  if (ref)
+    return (
+      <button type="button" className="file-link" title="Открыть файл справа" onClick={() => openFile(ref)}>
+        <code {...props}>{children}</code>
+      </button>
+    );
   return (
     <code className={className} {...props}>
       {children}
     </code>
   );
+}
+function safeDecode(value) {
+  try {
+    return decodeURI(value);
+  } catch {
+    return value;
+  }
+}
+function openFile(ref) {
+  window.dispatchEvent(new CustomEvent('nexus-open-file', {detail: ref}));
 }
 const markdownComponents = {
   pre: ({children}) => {
@@ -90,11 +109,27 @@ const markdownComponents = {
   },
   table: TableBlock,
   blockquote: Blockquote,
-  a: ({href, children}) => (
-    <a href={/^https:\/\//.test(href || '') ? href : undefined} target="_blank" rel="noreferrer">
-      {children}
-    </a>
-  ),
+  a: ({href, children}) => {
+    const ref = !/^https?:\/\//i.test(href || '') ? filePathRef(safeDecode(href || '')) : null;
+    if (ref)
+      return (
+        <a
+          href="#"
+          className="file-link"
+          onClick={e => {
+            e.preventDefault();
+            openFile(ref);
+          }}
+        >
+          {children}
+        </a>
+      );
+    return (
+      <a href={/^https:\/\//.test(href || '') ? href : undefined} target="_blank" rel="noreferrer">
+        {children}
+      </a>
+    );
+  },
   code: MarkdownCode,
 };
 export function ChatMarkdown({
@@ -149,6 +184,7 @@ export function MessageActions({
   const [copied, setCopied] = useState(false),
     [busy, setBusy] = useState(false),
     [actionError, setActionError] = useState('');
+  useToastOn(actionError, () => setActionError(''), 'error');
   const timer = useRef();
   useEffect(() => () => clearTimeout(timer.current), []);
   const date = messageDate(message.createdAt),
@@ -271,7 +307,6 @@ export function MessageActions({
           </span>
         )}
       </div>
-      {actionError && <small role="alert">{actionError}</small>}
     </div>
   );
 }
