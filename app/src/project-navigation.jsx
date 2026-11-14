@@ -1,4 +1,5 @@
 import {CustomSelect} from './custom-select.jsx';
+import {ProjectImport} from './project-import.jsx';
 import {ProjectIcon, ProjectIconSettings, useProjectIcons} from './project-icons.jsx';
 import {useToastOn} from './toaster.jsx';
 import {PathPick} from './path-pick.jsx';
@@ -19,6 +20,7 @@ import {
   FolderOpen,
   MessageSquare,
   Plus,
+  FolderInput,
   Settings,
   ChevronRight,
   ChevronDown,
@@ -61,6 +63,7 @@ export function ProjectNavigation({
     [folderName, setFolderName] = useState(''),
     [activity, setActivity] = useState({}),
     [savedKind, setSavedKind] = useState(null),
+    [importing, setImporting] = useState(false),
     [query, setQuery] = useState(''),
     [resultIndex, setResultIndex] = useState(0),
     [toast, setToast] = useState(null),
@@ -533,6 +536,14 @@ export function ProjectNavigation({
               {compact ? <Rows3 size={15} /> : <Rows4 size={15} />}
             </button>
             <button
+              title="Импорт проектов из Claude Code и Codex"
+              aria-label="Импорт проектов из Claude Code и Codex"
+              disabled={disabled || busy}
+              onClick={() => setImporting(true)}
+            >
+              <FolderInput size={15} />
+            </button>
+            <button
               title="Добавить проект"
               aria-label="Добавить проект"
               disabled={disabled || busy}
@@ -630,6 +641,15 @@ export function ProjectNavigation({
           </button>
         </div>
       </nav>
+      {importing && (
+        <ProjectImport
+          onClose={() => setImporting(false)}
+          onImported={async () => {
+            await onProjects();
+            await refresh();
+          }}
+        />
+      )}
       {savedKind && (
         <SavedChats
           kind={savedKind}

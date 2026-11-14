@@ -32,6 +32,7 @@ mod process_group;
 mod project_board;
 mod project_context;
 mod project_icons;
+mod project_import;
 mod project_store;
 mod provider_connections;
 mod push_notify;
@@ -235,6 +236,8 @@ pub fn run() {
             system_open::open_system_target,
             path_picker::pick_path,
             project_icons::project_icon,
+            project_import::import_candidates,
+            project_import::import_projects,
             project_icons::set_project_icon,
             file_preview::read_project_file,
             file_preview::reveal_project_file,

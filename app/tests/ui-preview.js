@@ -384,6 +384,35 @@ window.__TAURI_INTERNALS__ = {
       };
     }
     if (cmd === 'reveal_project_file' || cmd === 'open_system_target') return;
+    if (cmd === 'import_candidates')
+      return [
+        {
+          path: '/Users/you/Projects/BunkerWars',
+          name: 'BunkerWars',
+          sources: ['claude', 'codex'],
+          lastUsed: Math.floor(Date.now() / 1000) - 3600,
+          sessions: 42,
+          added: false,
+        },
+        {
+          path: '/Users/you/Projects/site',
+          name: 'site',
+          sources: ['codex'],
+          lastUsed: Math.floor(Date.now() / 1000) - 86400 * 3,
+          sessions: 5,
+          added: false,
+        },
+        {
+          path: '/tmp/nexus-ui-fixture',
+          name: 'nexus-ui-fixture',
+          sources: ['claude'],
+          lastUsed: Math.floor(Date.now() / 1000) - 86400 * 40,
+          sessions: 2,
+          added: true,
+        },
+      ];
+    if (cmd === 'import_projects')
+      return {added: args.paths.map(p => ({id: p, name: p.split('/').pop(), workspace: p})), skipped: []};
     if (cmd === 'project_icon' || cmd === 'set_project_icon')
       return args.mode === 'none'
         ? {mode: 'none', url: null, source: null}

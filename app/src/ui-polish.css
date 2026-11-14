@@ -3946,3 +3946,105 @@ a.file-link {
 .nav-row .nav-new-chat svg {
   display: block;
 }
+
+/* Import projects from Claude Code and Codex. */
+.project-import {
+  width: min(720px, calc(100vw - 32px));
+}
+.project-import-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border-radius: 9px;
+  background: var(--dialog-raised, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--dialog-border, rgba(255, 255, 255, 0.08));
+  color: var(--text-muted, #9aa6ad);
+}
+.project-import-search input {
+  flex: 1;
+  border: 0 !important;
+  background: transparent !important;
+  padding: 8px 0 !important;
+}
+.project-import-list {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.project-import-list label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.project-import-list li:hover label {
+  background: rgba(255, 255, 255, 0.04);
+}
+.project-import-list li.is-added label {
+  cursor: default;
+  opacity: 0.6;
+}
+.project-import-list input {
+  accent-color: #9ec8dc;
+  margin: 0;
+}
+.project-import-main {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.project-import-main strong {
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--text-strong, #eef2f4);
+}
+.project-import-main small {
+  font-size: 11px;
+  color: var(--text-faint, #6f7b82);
+  white-space: nowrap;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, #000 85%, transparent);
+}
+.project-import-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  font-size: 11px;
+  color: var(--text-muted, #9aa6ad);
+}
+.project-import-source .agent-logo {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+}
+.project-import-source img,
+.project-import-source svg {
+  width: 14px;
+  height: 14px;
+}
+.project-import-empty {
+  margin: 8px 0;
+  color: var(--text-muted, #9aa6ad);
+  font-size: 12px;
+}
+.project-import .settings-body label.project-import-search,
+.project-import .settings-body .project-import-list label {
+  flex-direction: row !important;
+  align-items: center !important;
+  text-align: left;
+}
+.project-import .settings-body .project-import-list label {
+  justify-content: flex-start;
+}
+.project-import .settings-body .project-import-list label > input {
+  width: auto;
+  flex: none;
+}
