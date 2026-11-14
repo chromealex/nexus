@@ -1,0 +1,162 @@
+/*
+ * UI polish: readability, spacing and small UX fixes across all windows.
+ * Loaded last, after cinematic.css. Keep rules here narrow and token-based;
+ * do not introduce a separate theme for one window.
+ *
+ * Text scale used here (minimum sizes):
+ *   12px  — body text, controls, list rows, form labels
+ *   11px  — secondary captions, statuses, tags, meta lines
+ *   never below 11px for readable text
+ */
+:root {
+  --text-strong: #ededed;
+  --text-body: #d4d8da;
+  --text-muted: #a3aaae;
+  --text-faint: #8d9498;
+}
+
+/* ---------- Top bar ---------- */
+.app>header .topright button {
+  font-size: 12px; letter-spacing: 0; color: var(--text-muted);
+  display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; padding: 6px 10px;
+}
+.app>header .topright button:hover { color: var(--text-strong); background: var(--surface-hover, #ffffff10); }
+.app>header .topright .count {
+  min-width: 18px; padding: 1px 6px; border-radius: 999px; font-size: 11px; line-height: 16px; text-align: center;
+  color: var(--text-strong); background: #ffffff14; font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Left navigation ---------- */
+.project-nav .nav-chat-count { font-size: 11px; color: var(--text-faint); font-variant-numeric: tabular-nums; }
+.project-nav .nav-empty { font-size: 12px !important; color: var(--text-faint) !important; }
+.project-nav .nav-empty:hover { color: var(--text-body) !important; }
+.project-nav .nav-saved-links button { font-size: 12px; color: var(--text-muted); }
+.project-nav .nav-saved-links button:hover { color: var(--text-strong); }
+/* Context menu: was 64% transparent, tree rows showed through the items. */
+.nav-menu { background-color: rgba(24, 31, 37, .94) !important; }
+.nav-menu button { font-size: 12px; }
+
+/* ---------- Chat heading and work strip ---------- */
+.app:not(.cinematic-home) .chat-heading>div { flex: 1; min-width: 0; gap: 2px; }
+.app:not(.cinematic-home) .chat-heading .chat-heading-project { font-size: 11px; color: var(--text-faint); line-height: 1.5; }
+.app:not(.cinematic-home) .chat-heading .chat-heading-title {
+  font-size: 15px; font-weight: 500; color: var(--text-strong); line-height: 1.45;
+  display: block; overflow: hidden; white-space: nowrap;
+  mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+}
+.project-work-strip button { font-size: 12px; }
+.app:not(.cinematic-home) .project-work-strip button+button { font-size: 12px; color: var(--text-muted); }
+.cinematic-home .project-work-strip button+button { font-size: 11px; color: var(--text-muted); }
+
+/* ---------- Messages ---------- */
+.chat-bubble .chat-markdown { line-height: 1.65; }
+.chat-bubble .chat-markdown :is(p, ul, ol) { margin-block: 0 .7em; }
+.chat-bubble .chat-markdown> :last-child { margin-bottom: 0; }
+.chat-bubble.system .response-details summary { font-size: 12px; color: var(--text-muted); }
+.response-details pre { font-size: 12px; line-height: 1.55; }
+
+/* ---------- Composer ---------- */
+.composer-tools .nexus-select-trigger,
+.cinematic-home .composer-tools .nexus-select-trigger {
+  font-size: 12px; font-weight: 500; min-height: 30px; padding: 5px 10px; color: var(--text-body);
+}
+.composer-tools .nexus-select-trigger span { font-size: 12px; font-weight: 500; color: inherit; }
+.composer-tools .nexus-select-trigger.model-choice { color: var(--text-strong); }
+.model-route-preview { font-size: 11px; color: var(--text-faint); }
+.model-route-preview summary:hover { color: var(--text-body); }
+
+/* ---------- Welcome: connections card ---------- */
+.welcome-account small { font-size: 11px; line-height: 1.4; }
+.welcome-account .quota-window-label { font-size: 11px; }
+.welcome-account .quota-window-label strong { font-size: 11px; white-space: nowrap; }
+.welcome-account .quota-window-note,
+.quota-window-note, .quota-window-note time { font-size: 11px; color: var(--text-faint); }
+.quota-unknown { font-size: 11px; color: var(--text-faint); line-height: 1.5; }
+
+/* ---------- Agents and connections dialog ---------- */
+.connections-heading p { font-size: 12px; color: var(--text-muted); }
+.connections-nav>button { font-size: 12px; }
+.connections-nav span { font-size: 11px; }
+.connections-nav>button:last-child { padding-inline: 8px; border-radius: 8px 8px 0 0; }
+.connections-nav>button:last-child:is(:focus, :active, .active) { background: transparent; }
+.connections-dialog>footer { font-size: 11px; color: var(--text-faint); }
+/* Primary action was clipped at 136px ("становить и подключит"). */
+.connections-dialog .catalog-agent-top>button,
+.catalog-agent-top>button {
+  max-width: none; font-size: 12px; padding: 7px 12px; line-height: 1.4; white-space: nowrap; overflow: visible;
+}
+.catalog-agent-top h3 { font-size: 13px; }
+.catalog-agent-top span { font-size: 11px; }
+.catalog-tags span { font-size: 11px; padding: 2px 7px; }
+.catalog-agent p { font-size: 12px; line-height: 1.6; color: var(--text-muted); }
+.connections-dialog .connection-link { font-size: 12px; }
+@media (max-width: 760px) {
+  .catalog-agent-top { flex-wrap: wrap; }
+  .catalog-agent-top>button { flex-basis: 100%; }
+}
+
+/* ---------- Model picker ---------- */
+/* Same glass treatment as other dialogs: chat text no longer shows through the header. */
+.model-picker-backdrop { backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px); }
+.model-picker {
+  background-color: rgba(17, 25, 31, .82) !important;
+  backdrop-filter: blur(32px) saturate(145%); -webkit-backdrop-filter: blur(32px) saturate(145%);
+}
+.model-picker-header { padding-top: 20px; padding-bottom: 14px; }
+.model-picker-header>div { display: flex; flex-direction: column; gap: 3px; }
+.model-picker-header strong { font-size: 17px; font-weight: 600; }
+.model-picker small { font-size: 12px; }
+.model-picker .model-picker-close {
+  display: inline-grid; place-items: center; width: 32px; height: 32px; min-height: 32px; padding: 0;
+  border-color: transparent; border-radius: 8px; color: var(--text-muted);
+}
+.model-picker .model-picker-close:hover { background: var(--surface-hover, #ffffff10); color: var(--text-strong); }
+.model-picker>input { font-size: 13px; padding: 10px 12px; }
+.model-tree button { border-color: transparent; text-align: left; }
+.model-tree button:hover:not(:disabled) { background: var(--surface-hover, #ffffff10); }
+.model-tree button[aria-selected="true"], .model-tree button[aria-pressed="true"] { background: var(--surface-selected, #ffffff16); }
+.model-facts { font-size: 12px; }
+.model-facts strong { font-size: 13px; }
+.model-facts p { color: var(--text-body); line-height: 1.65; margin: 0 0 10px; }
+.model-picker-footer { font-size: 12px; }
+.model-picker-footer button { font-size: 12px; color: var(--text-body); }
+
+/* ---------- Project tools ---------- */
+.project-tool-body>div>p { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+.project-tool-field { font-size: 12px; }
+.project-tool-body table :is(td, th) { font-size: 12px; line-height: 1.55; }
+.project-tool-body table td { color: var(--text-body); }
+.project-tool-actions button:disabled { opacity: .5; cursor: not-allowed; }
+.project-tool-actions button:first-child:not(:disabled) { background: #e0e5e7; color: #24272a; border-color: #e0e5e7; font-weight: 500; }
+.project-tool-actions button:first-child:not(:disabled):hover { background: #fff; border-color: #fff; }
+
+/* ---------- Goals and tasks panel ---------- */
+.project-work-heading strong { font-size: 16px; }
+.project-goals h3, .task-list-heading h3 { font-size: 13px; }
+.project-goals input[type="checkbox"] { accent-color: #9ec8dc; width: 15px; height: 15px; }
+.task-status {
+  display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 999px;
+  border: 1px solid currentColor; line-height: 1.6;
+}
+.project-task strong { font-size: 13px; }
+.project-goals p, .project-task p, .project-task small, .project-task summary, .project-task ol { font-size: 12px; }
+
+/* ---------- Archive / trash / settings ---------- */
+.saved-chats-dialog .saved-empty, .saved-chats-dialog p { font-size: 12px; }
+:is(.settings-header, .tools-header, .connections-heading)>div>p,
+:is(.settings-header, .tools-header, .connections-heading) small { font-size: 12px; }
+
+@media (prefers-contrast: more) {
+  :root { --text-muted: #c8d0d3; --text-faint: #b7c0c4; }
+  .nav-menu { background-color: #1b2228 !important; }
+}
+
+/* Welcome card: the main call to action stays visible while the account list scrolls. */
+.welcome-connections .welcome-connect-action {
+  position: sticky; bottom: -20px; z-index: 1;
+  box-shadow: 0 -14px 18px -6px rgba(20, 26, 30, .9);
+}
+
+/* Project tools: tabs of different length no longer make the dialog jump. */
+.project-tools-dialog { min-height: min(640px, calc(100dvh - 48px)); }

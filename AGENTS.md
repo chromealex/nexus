@@ -193,3 +193,14 @@
 - Unknown/stale quotas remain eligible for authenticated accounts. Only actual active limits block them. Malformed legacy blocks without resetAt are not evidence of exhaustion. Never claim successful account execution from unit tests.
 - Thinking lightning meets a rounded message boundary and branches in opposite directions around its outline, below text, clipped to the viewport. Glass message and approval surfaces are darker. History fades over 26px at the top; scrollbar track stays transparent.
 - Unit/build checks do not substitute for visual inspection or live team/account execution.
+
+## Читаемость и отступы (UI polish, 14 ноября 2026)
+
+- `src/ui-polish.css` подключается последним и содержит общие правила читаемости для всех окон. Минимальный размер читаемого текста — 11px (подписи, статусы, теги, мета-строки); основной текст, элементы управления и строки списков — 12px. Не возвращать 9–10px и разрядку букв в подписях.
+- Цвета текста через `--text-strong/body/muted/faint`; при `prefers-contrast: more` вторичный текст светлее.
+- Шапка чата: сверху мелко название проекта, ниже крупно название чата на всю ширину колонки с плавным затуханием.
+- Кнопки каталога подключений не обрезаются (`max-width` снят); на узком окне кнопка переносится под заголовок карточки.
+- Окно выбора модели и контекстное меню навигации плотнее (без просвечивания текста под ними), закрытие модели — иконка X как в остальных окнах; у строк дерева моделей есть hover и выделение выбранного.
+- Кнопка «Подключить агента» на стартовой карточке закреплена внизу, список аккаунтов прокручивается над ней.
+- «Инструменты проекта» имеют постоянную минимальную высоту, чтобы окно не прыгало при смене вкладок; основное действие планирования выделено, disabled-кнопки заметно приглушены.
+- Статус задачи на панели «Цели и задачи» — контурная метка.

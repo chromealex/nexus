@@ -1,5 +1,6 @@
 import React,{useEffect,useId,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
+import {X} from 'lucide-react';
 import {CATALOG,modelCapabilities,incompatibleReason,preferredModel} from './agent-catalog.js';
 import {modelProfile,CRITERIA,criterionAssessment} from './model-profiles.js';
 import {evidenceFor,evidenceGap,evidenceText,COHORTS} from './model-benchmarks.js';
@@ -35,7 +36,7 @@ export function ModelTreeSelect({value,onChange,models,connections=[],task,reaso
  }
  const inspect=inspected&&models.find(m=>m.id===inspected),profile=inspect&&modelProfile(inspect,connections),caps=inspect&&modelCapabilities(inspect,connections);
  return <span className="nexus-select"><button ref={trigger} type="button" className="nexus-select-trigger reasoning-mode model-choice" disabled={disabled} aria-haspopup="dialog" aria-expanded={open} aria-controls={open?id:undefined} onClick={()=>{setQuery('');setInspected(selected?.id||null);setOpen(!open)}}>{busy?'Обновление моделей…':title}<span aria-hidden="true">⌄</span></button>{open&&createPortal(<div className="model-picker-backdrop"><section ref={panel} id={id} role="dialog" aria-modal="true" aria-label="Выбор модели для этого чата" className="model-picker" onKeyDown={keydown}>
- <div className="model-picker-header"><div><strong>Модель для этого чата</strong><small>Выбор сохраняется в истории проекта</small></div><button type="button" aria-label="Закрыть выбор модели" onClick={close}>×</button></div>
+ <div className="model-picker-header"><div><strong>Модель для этого чата</strong><small>Выбор сохраняется в истории проекта</small></div><button type="button" className="model-picker-close" aria-label="Закрыть выбор модели" onClick={close}><X size={16}/></button></div>
  <input ref={search} aria-label="Поиск модели или агента" placeholder="Поиск модели, агента или задачи" value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==='ArrowDown'){e.preventDefault();panel.current.querySelector('[role="treeitem"]')?.focus()}}}/>
  <div className="model-picker-body"><div role="tree" aria-label="Агенты и модели" className="model-tree">
  <button type="button" role="treeitem" aria-selected={value==='auto'} onFocus={()=>setInspected(null)} onClick={()=>choose('auto')}>Авто · возможности и опубликованные тесты</button>
