@@ -1,6 +1,6 @@
 # Nexus — правила работы
 
-Короткий список действующих правил. Полная история решений и прежние формулировки — в [docs/AGENTS_HISTORY.md](docs/AGENTS_HISTORY.md); если правило ниже ей противоречит, действует правило ниже. Подробности по чату — [app/UNIFIED_CHAT_V020.md](app/UNIFIED_CHAT_V020.md), по каналам — [app/CHANNELS_V021.md](app/CHANNELS_V021.md).
+Короткий список действующих правил. Полная история решений и прежние формулировки — в [docs/AGENTS_HISTORY.md](docs/AGENTS_HISTORY.md); если правило ниже ей противоречит, действует правило ниже. Отложенные задачи — [docs/TODO.md](docs/TODO.md). Подробности по чату — [app/UNIFIED_CHAT_V020.md](app/UNIFIED_CHAT_V020.md), по каналам — [app/CHANNELS_V021.md](app/CHANNELS_V021.md).
 
 ## Проект
 
