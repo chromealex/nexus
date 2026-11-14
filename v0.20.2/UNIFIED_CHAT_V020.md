@@ -344,3 +344,13 @@ Nexus закрыт через Cmd+Q и запущен вновь. В прове�
 
 Входы Codex (14 ноября 2026): приложение, запущенное из Finder/Dock, получает PATH launchd без каталога Node.js. Codex CLI запускается через `#!/usr/bin/env node`, поэтому вход, проверка статуса и запуск падали с `env: node: No such file or directory` (код 127), а аккаунт показывался как «Требуется вход». При старте `run()` теперь дополняет PATH каталогами Node.js (nvm, Homebrew, /usr/local, Volta, asdf, pnpm, bun) и `NEXUS/bin`. Gemini CLI: личный вход Google закрыт провайдером; это не ошибка Nexus, доступны Antigravity или Gemini API.
 - Removed the duplicate "Автовыбор модели" label from the chat heading (the composer already shows the model choice). The accounts tab shows "confirmed/total" when not all connections are confirmed. Composer selectors use the same outlined chip style on the start screen and in chats. `v0.20.2/README.md` now points to the root README.
+
+## Навигация, поиск и контекст проекта (14.11.2026)
+
+- Горячие клавиши: ⌘N, ⌘K (поиск чатов), ⌘, (подключения), ⌘/ (модель), ⌘[ / ⌘] (соседний чат), ⌘\ (панель проектов). Не срабатывают при открытом модальном окне и во время IME-ввода.
+- Поиск чатов в левой панели с подсветкой совпадений и путём «проект / папки / родительский чат».
+- Архивирование и удаление чата можно отменить в течение 6 секунд.
+- Заглушки загрузки для дерева, истории и аккаунтов; разделители дней в истории.
+- Второстепенные настройки запроса (приоритет, глубина, команда) собраны в «Параметры» у поля ввода.
+- Контекст при создании проекта: папки, файлы, ссылки, заметки, загруженные файлы и картинки (перетаскивание, вставка, кнопка), до 200 источников. Бюджет контекста в запросе — 48 000 символов.
+- Проверки: `npm test` (включая chat-search, shortcuts, day-separators), сборка Vite, осмотр в изолированном UI-превью. Rust-изменения (`create_project` с контекстом, предел 200) проверены только на синтаксис: полный `cargo test` в среде без WebKit не собирается — запустить на Mac.

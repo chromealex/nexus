@@ -10,7 +10,7 @@
     "build:mac": "bash scripts/build-mac.sh",
     "setup:signing": "bash scripts/setup-local-signing.sh",
     "build": "vite build",
-    "test": "node tests/chat-send.mjs && node tests/chat-errors.mjs && node tests/chat-message.mjs && node tests/chat-files.mjs && node tests/composer-suggestions.mjs && node tests/locale-format.mjs && node tests/chat-scroll.mjs && node tests/navigation-counts.mjs && node tests/chat-history.mjs && node tests/agent-routing.mjs && node tests/model-selection.mjs && node tests/model-benchmarks.mjs && node tests/quota-format.mjs && node tests/persona-asset.mjs && node tests/persona-lightning.mjs && node tests/team-plan.mjs && node tests/thinking-contour.mjs"
+    "test": "node tests/chat-send.mjs && node tests/chat-errors.mjs && node tests/chat-message.mjs && node tests/chat-files.mjs && node tests/composer-suggestions.mjs && node tests/locale-format.mjs && node tests/chat-scroll.mjs && node tests/navigation-counts.mjs && node tests/chat-history.mjs && node tests/agent-routing.mjs && node tests/model-selection.mjs && node tests/model-benchmarks.mjs && node tests/quota-format.mjs && node tests/persona-asset.mjs && node tests/persona-lightning.mjs && node tests/team-plan.mjs && node tests/thinking-contour.mjs && node tests/chat-search.mjs && node tests/shortcuts.mjs && node tests/day-separators.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",

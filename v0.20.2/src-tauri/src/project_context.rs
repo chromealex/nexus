@@ -5,8 +5,11 @@ pub(super) struct Source {pub kind:String,pub name:String,pub value:String}
 #[derive(Clone,Serialize,Deserialize)]
 #[serde(rename_all="camelCase")]
 pub(super) struct Folder {pub id:String,pub project_id:String,pub parent_id:Option<String>,pub name:String,#[serde(default)]pub contexts:Vec<Source>}
-fn validate_sources(items:Vec<Source>)->Result<Vec<Source>,String>{
- if items.len()>32{return Err("Максимум 32 источника контекста".into())}
+// Sources are passed to agents as paths, links and notes; the prompt keeps a shared 48 000-character budget,
+// so the count limit only protects projects.json from unbounded growth.
+pub(super) const MAX_SOURCES:usize=200;
+pub(super) fn validate_sources(items:Vec<Source>)->Result<Vec<Source>,String>{
+ if items.len()>MAX_SOURCES{return Err(format!("Максимум {MAX_SOURCES} источников контекста"))}
  items.into_iter().map(|mut s|{
   s.name=s.name.trim().to_string();s.value=s.value.trim().to_string();
   if s.value.is_empty()||s.value.len()>16000||s.name.len()>120{return Err("Проверьте название и содержимое источника".into())}
@@ -81,6 +84,12 @@ pub(super) fn prompt(db:&ProjectStore,chat:&NexusChat,project:&NexusProject)->St
 }
 #[cfg(test)]mod tests{
  use super::*;
+ #[test]fn source_count_limit(){
+  let note=|i:usize|Source{kind:"note".into(),name:format!("n{i}"),value:"v".into()};
+  assert_eq!(validate_sources((0..MAX_SOURCES).map(note).collect()).unwrap().len(),MAX_SOURCES);
+  assert!(validate_sources((0..=MAX_SOURCES).map(note).collect()).is_err());
+  assert!(validate_sources(vec![Source{kind:"url".into(),name:String::new(),value:"ftp://x".into()}]).is_err());
+ }
  #[test]fn legacy_store_and_inheritance(){
   let db:ProjectStore=serde_json::from_value(serde_json::json!({"projects":[{"id":"p","name":"Old","workspace":"/tmp","createdAt":""}],"chats":[{"id":"c","projectId":"p","title":"Chat","createdAt":""}],"messages":[]})).unwrap();
   assert!(db.folders.is_empty());assert!(db.projects[0].contexts.is_empty());assert!(db.chats[0].folder_id.is_none());

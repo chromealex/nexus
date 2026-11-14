@@ -45,3 +45,21 @@ export function mergeContinuation(prefix,suffix){
  for(const ch of Array.from(prefix).slice(-16000)){while(matched>0&&(matched===pattern.length||pattern[matched]!==ch))matched=failure[matched-1];if(matched<pattern.length&&pattern[matched]===ch)matched++;}
  return prefix+Array.from(suffix).slice(matched>=24?matched:0).join('');
 }
+
+// Day separators in the chat history. Local calendar days; null for messages without a valid date.
+export function dayKey(value){
+ if(value==null||value==='')return null;
+ const date=value instanceof Date?value:messageDate(value);
+ if(!date||Number.isNaN(date.getTime()))return null;
+ return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+}
+const MONTHS=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+export function dayLabel(value,now=new Date()){
+ if(value==null||value==='')return '';
+ const date=value instanceof Date?value:messageDate(value);
+ if(!date||Number.isNaN(date.getTime()))return '';
+ const key=dayKey(date),today=dayKey(now),yesterday=dayKey(new Date(now.getFullYear(),now.getMonth(),now.getDate()-1));
+ if(key===today)return 'Сегодня';
+ if(key===yesterday)return 'Вчера';
+ return `${date.getDate()} ${MONTHS[date.getMonth()]}${date.getFullYear()!==now.getFullYear()?' '+date.getFullYear():''}`;
+}

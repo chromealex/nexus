@@ -3,7 +3,8 @@ const callbacks=new Map(),listeners=new Map();let sequence=0;
 const projects=[{id:'preview',name:'Nexus · проверка интерфейса',workspace:'/tmp/nexus-ui-fixture',contexts:[]},{id:'nexus-system',name:'Nexus',system:true,workspace:'/tmp/nexus-ui-fixture'}];
 const chats=[{id:'preview-empty',projectId:'preview',title:'Новый чат',folderId:'f'},{id:'long',projectId:'preview',title:'Очень длинное название чата для проверки плавного затухания и появления кнопок действий',folderId:'f'},{id:'child',projectId:'preview',title:'Подчат с сохранённым контекстом',folderId:'f',parentChatId:'long'},{id:'history',projectId:'preview',title:'Проверка оформления ответов и технических деталей',folderId:null}];
 const accounts=[{id:'codex-fixture',provider:'codex',name:'Тестовый профиль'},{id:'gemini-fixture',provider:'gemini',name:'Тестовый Google'}],api=[];
-const messages=[{id:'u1',chatId:'history',role:'user',content:'Проверь оформление чата и технического сообщения.'},{id:'a1',chatId:'history',role:'assistant',content:'Обычный ответ агента без обрамляющей карточки.\n\n- Сохранён текст\n- Детали свёрнуты',details:'Route: codex / fixture\nModel: fixture-model\nEffort: low'},{id:'s1',chatId:'history',role:'system',content:'Тестовый технический журнал. Это данные изолированной проверки, а не реального провайдера.'}];
+const day=offset=>new Date(Date.now()-offset*86400000).toISOString();
+const messages=[{id:'u0',chatId:'history',role:'user',content:'Вчерашний вопрос для проверки разделителя дней.',createdAt:day(1)},{id:'u1',chatId:'history',role:'user',content:'Проверь оформление чата и технического сообщения.',createdAt:day(0)},{id:'a1',chatId:'history',role:'assistant',createdAt:day(0),content:'Обычный ответ агента без обрамляющей карточки.\n\n- Сохранён текст\n- Детали свёрнуты',details:'Route: codex / fixture\nModel: fixture-model\nEffort: low'},{id:'s1',chatId:'history',role:'system',createdAt:day(0),content:'Тестовый технический журнал. Это данные изолированной проверки, а не реального провайдера.'}];
 const goals=[{id:'g',projectId:'preview',title:'Проверить подключения и навигацию',done:false}];
 const emit=(event,payload)=>{for(const item of listeners.values())if(item.event===event)callbacks.get(item.callback)?.({event,payload,id:1})};
 window.__TAURI_EVENT_PLUGIN_INTERNALS__={unregisterListener:()=>{}};
@@ -25,7 +26,7 @@ window.__TAURI_INTERNALS__={transformCallback(fn){const id=++sequence;callbacks.
  if(cmd==='check_account')return {status:args.id.startsWith('codex')?'ready':'login_required',detail:'Изолированная проверка UI'};
  if(cmd==='account_quota')return args.id.startsWith('codex')?{status:'available',primaryUsedPercent:27,secondaryUsedPercent:43,source:'Fixture · synthetic data',checkedAt:Math.floor(Date.now()/1000)}:{status:'unavailable',source:'UI fixture'};
  if(cmd==='list_chat_models')return [{id:'codex/fixture-model',label:'Codex · fixture-model',model:'fixture-model',provider:'codex'},...api.flatMap(a=>a.models.map(model=>({id:`${a.id}/${model}`,label:`${a.name} · ${model}`,provider:a.id,model})))];
- if(cmd==='project_board')return {goals:goals.filter(g=>g.projectId===args.projectId),tasks:[{id:'task',projectId:'preview',chatId:'history',title:'Проверить результат работы агента',status:'review',steps:['Изучить проект','Выполнить изменения','Проверить'],verification:'Тестовые данные: независимая проверка ожидается'}]};
+ if(cmd==='project_board')return {goals:goals.filter(g=>g.projectId===args.projectId),tasks:[{id:'task',projectId:'preview',chatId:'history',title:'Проверить результат работы агента',status:'review',steps:['Изучить проект','Выполнить изменения','Проверить'],verification:'Тестовые данные: независимая проверка ожидается'},{id:'team-task',projectId:'preview',chatId:'history',title:'Командная задача из тестовых данных',status:'running',steps:[],team:[{step:{id:'s1',title:'Изучить код',modelChoice:'auto',reason:'Тест'},status:'done',elapsedMs:4200},{step:{id:'s2',title:'Внести правки',modelChoice:'auto',reason:'Тест'},status:'running',elapsedMs:0},{step:{id:'s3',title:'Проверить',modelChoice:'auto',reason:'Тест'},status:'pending',elapsedMs:0}],verification:'Тестовые данные: команда в работе'}]};
  if(cmd==='change_chat_state'){const ids=new Set([args.chatId]);for(let i=0;i<17;i++)for(const c of chats)if(ids.has(c.parentChatId))ids.add(c.id);for(const c of chats)if(ids.has(c.id)){c.archived=args.action==='archive';c.deletedAt=args.action==='trash'?'fixture':null}return}
  if(cmd==='list_saved_chats')return chats.filter(c=>args.kind==='archive'?c.archived&&!c.deletedAt:c.deletedAt);
  if(cmd==='remove_account'){const i=accounts.findIndex(a=>a.id===args.id);if(i>=0)accounts.splice(i,1);return}
@@ -36,6 +37,10 @@ window.__TAURI_INTERNALS__={transformCallback(fn){const id=++sequence;callbacks.
  if(cmd==='check_provider_connection')return api.find(a=>a.id===args.id);
  if(cmd==='agent_registry')return [{id:'registry-fixture',name:'Пример агента из реестра',description:'Тестовые данные интерфейса, без установки',distribution:'npm',npmPackage:null,args:[]}];
  if(cmd==='mark_chat_read'||cmd==='drag_main_window')return;
+ if(cmd==='create_project'){if(!args.workspace?.startsWith('/'))throw Error('Укажите абсолютный путь');const p={id:'project-'+(++sequence),name:args.name,workspace:args.workspace,contexts:args.contexts||[]};projects.push(p);return p}
+ if(cmd==='save_project_settings'){const p=projects.find(x=>x.id===args.projectId);p.name=args.name;p.contexts=args.contexts;return p}
+ if(cmd==='upload_attachment')return {id:'attachment-'+(++sequence),name:args.name,mime:args.mime,size:args.data.length,projectId:args.projectId};
+ if(cmd==='save_project_folder')return {id:args.id||'folder-'+(++sequence),projectId:args.projectId,parentId:args.parentId,name:args.name,contexts:args.contexts};
  throw Error(`UI fixture does not implement ${cmd}`);
 }};
 await import('/src/main.jsx');

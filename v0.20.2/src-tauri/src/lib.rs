@@ -1216,14 +1216,19 @@ fn list_projects()->Result<Vec<NexusProject>,String>{
  Ok(db.projects)
 }
 #[tauri::command]
-fn create_project(name:String,workspace:String)->Result<NexusProject,String>{
+fn create_project(name:String,workspace:String,contexts:Option<Vec<project_context::Source>>)->Result<NexusProject,String>{
  let _guard=PROJECTS_LOCK.lock().map_err(|_|"Project storage lock failed")?;
  let name=name.trim();
  if name.is_empty()||name.len()>120{return Err("Project name must be 1–120 characters".into())}
  let workspace=validate_workspace(&workspace)?;
+ // Context is validated before the project exists, so a bad path or link never leaves a half-created project.
+ // Uploaded documents belong to a project and are attached by the UI right after creation.
+ let contexts=contexts.unwrap_or_default();
+ if contexts.iter().any(|s|s.kind=="attachment"){return Err("Загруженные документы добавляются после создания проекта".into())}
+ let contexts=project_context::validate_sources(contexts)?;
  let mut db=load_project_store()?;
  if db.projects.iter().any(|p|p.workspace==workspace){return Err("Project workspace already added".into())}
- let project=NexusProject{id:project_id(),name:name.into(),workspace,created_at:now_string(),contexts:vec![],system:false};
+ let project=NexusProject{id:project_id(),name:name.into(),workspace,created_at:now_string(),contexts,system:false};
  db.projects.push(project.clone());save_project_store(&db)?;Ok(project)
 }
 #[tauri::command]
