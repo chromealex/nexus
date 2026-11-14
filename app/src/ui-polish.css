@@ -4190,28 +4190,6 @@ a.file-link {
 }
 
 /* ---------- Chat history: content dissolves at the edges (masks are set per element by chat-edge-fade.js) ---------- */
-.particle-persona:before {
-  content: none !important;
-}
-
-/* Invisible dithering (dither.js): one texel per physical pixel, overlay blend ≈ ±1 step. Breaks bands in
-   dark gradients and glass without visible grain. */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 2147483646;
-  pointer-events: none;
-  background-image: var(--dither-image, none);
-  background-size: var(--dither-size, 128px) var(--dither-size, 128px);
-  image-rendering: pixelated;
-  mix-blend-mode: overlay;
-}
-@media (prefers-reduced-transparency: reduce) {
-  body::after {
-    content: none;
-  }
-}
 
 /* Second click confirms removing a folder. */
 .app .nav-menu button.danger,
@@ -4274,4 +4252,14 @@ body::after {
   border-color: rgba(168, 226, 246, 0.2);
   color: rgba(225, 245, 252, 0.55);
   opacity: 1;
+}
+
+/* No noise or dither textures anywhere. Large glass surfaces use a flat tint: a low-contrast diagonal
+   gradient across a big dialog is what produced visible bands. */
+:root {
+  --glass-body: rgba(14, 23, 30, 0.86);
+  --glass-user-body: rgba(20, 33, 42, 0.88);
+}
+.welcome-connections {
+  background: rgba(22, 31, 37, 0.8);
 }
