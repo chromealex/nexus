@@ -221,6 +221,13 @@ pub async fn run(
                     if v["is_error"] == true {
                         return Err(v.to_string());
                     }
+                    // The CLI reports the exact versions it used; aliases are matched to benchmarks by these IDs.
+                    if let Some(usage) = v["modelUsage"].as_object().filter(|u| !u.is_empty()) {
+                        let ids: Vec<&str> = usage.keys().map(String::as_str).collect();
+                        diagnostics
+                            .push_str(&format!("Фактические модели Claude Code: {}\n", ids.join(", ")));
+                        control.diagnostics(&diagnostics);
+                    }
                     if let Some(text) = v["result"].as_str() {
                         answer = text.to_string();
                         control.update(&answer);

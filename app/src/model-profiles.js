@@ -1,4 +1,4 @@
-import {evidenceFor, evidenceText} from './model-benchmarks.js';
+import {evidenceFor, evidenceRow, evidenceText, benchmarkModel, HARNESS} from './model-benchmarks.js';
 // Reviewed 2026-11-11. Exact IDs only: aliases must not inherit a version's price.
 export const PROFILE_DATE = '2026-11-11';
 const openai = 'https://developers.openai.com/api/docs/models/';
@@ -246,7 +246,7 @@ export const CRITERIA = [
   'Надёжность инструментов',
 ];
 export function modelProfile(model, connections = []) {
-  const p = MODEL_PROFILES[model.model],
+  const p = MODEL_PROFILES[model.model] || MODEL_PROFILES[model.resolved],
     connection = connections.find(c => c.id === model.provider);
   const local = connection?.provider === 'local';
   const subscription = ['codex', 'claude'].includes(model.provider);
@@ -277,6 +277,7 @@ export function modelProfile(model, connections = []) {
       : 'Контекст модели неизвестен',
     exampleCost: p?.input != null ? ((p.input * 10000 + p.output * 2000) / 1000000).toFixed(4) : null,
     quality: 'Сравнительных измерений Nexus нет',
+    resolvedNote: model.resolvedNote || null,
     date: p ? PROFILE_DATE : null,
   };
 }
@@ -288,31 +289,64 @@ const CRITERION_TASK = {
   'Извлечение данных': 'simple',
   Изображения: 'visual',
 };
+// Each criterion reads only the public test that measures it; nothing is borrowed from another test.
+const CRITERION_COHORTS = {
+  'Код и тесты': ['codingAgent', 'webdev'],
+  'Архитектура и рассуждения': ['intelligence'],
+  'Текст и перевод': ['text'],
+  'Извлечение данных': ['gdppdf'],
+  Изображения: ['vision'],
+  'Надёжность инструментов': ['automation'],
+};
+const NOTE = {
+  webdev: ' · только веб-разработка',
+  text: ' · общий текст, не отдельный перевод',
+  gdppdf: ' · вопросы по сложным PDF',
+  automation: ' · сценарии с API приложений, не инструменты Nexus',
+};
+const money = v => (v == null ? '' : ` · API $${v}/задачу`);
+const minutes = v => (v == null ? '' : ` · ${v < 60 ? v + ' мин' : (v / 60).toFixed(1) + ' ч'}/задачу`);
+function speedText(model) {
+  const rows = evidenceFor(model).filter(
+    r => r.cohort === 'intelligence' && (r.minutes != null || r.outputSpeed != null)
+  );
+  if (!rows.length) return null;
+  // Default effort of Claude Code and the Codex app is medium; show it first when published.
+  const pick = rows.find(r => r.effort === 'medium') || rows.find(r => r.effort === 'max') || rows[0];
+  const parts = [
+    pick.minutes != null && `${pick.minutes} мин на задачу`,
+    pick.firstToken != null && `первый ответ ${pick.firstToken} с`,
+    pick.outputSpeed != null && `${pick.outputSpeed} ток/с`,
+  ].filter(Boolean);
+  return `${parts.join('; ')} · AA, ${pick.effort}, ${pick.date}; не замер Nexus`;
+}
 export function criterionAssessment(model, criterion, caps) {
   const p = MODEL_PROFILES[model.model];
   if (!caps.text) return 'Отдельная специализация; недоступна в чате Nexus';
   if (criterion === 'Изображения' && caps.images !== true)
     return 'Адаптер не передаёт или не подтвердил изображения';
   if (criterion === 'Надёжность инструментов' && !caps.tools) return 'Адаптер не выполняет инструменты';
-  const cohort = {
-    'Код и тесты': 'webdev',
-    'Архитектура и рассуждения': 'intelligence',
-    'Текст и перевод': 'text',
-    Изображения: 'vision',
-  }[criterion];
-  const row = evidenceFor(model.model).find(r => r.cohort === cohort && r.score != null);
-  if (row)
-    return (
-      evidenceText(row) +
-      (criterion === 'Код и тесты'
-        ? ' · только веб-разработка'
-        : criterion === 'Текст и перевод'
-          ? ' · общий текст, не отдельный перевод'
-          : '')
-    );
-  const speed = evidenceFor(model.model).find(r => r.outputSpeed != null);
-  if (criterion === 'Скорость' && speed)
-    return `${speed.outputSpeed} ток/с; первый ответ ${speed.firstToken} с · AA, ${speed.effort}, ${speed.date}; не замер Nexus`;
+  if (['haiku', 'sonnet', 'opus'].includes(model.model) && !model.resolved)
+    return model.resolvedNote || 'Плавающий алиас: точная версия не подтверждена';
+  if (criterion === 'Скорость') {
+    const text = speedText(model);
+    if (text) return text;
+  }
+  for (const cohort of CRITERION_COHORTS[criterion] || []) {
+    const row = evidenceRow(model, cohort);
+    if (!row) continue;
+    if (cohort === 'codingAgent')
+      return (
+        evidenceText(row) +
+        ` · репозитории ${row.parts.frontier}%, терминал ${row.parts.terminal}%, вопросы по коду ${row.parts.qna}%` +
+        money(row.cost) +
+        minutes(row.minutes)
+      );
+    if (cohort === 'intelligence') return evidenceText(row) + money(row.cost) + minutes(row.minutes);
+    return evidenceText(row) + (NOTE[cohort] || '');
+  }
+  const other = criterion === 'Код и тесты' && evidenceFor(model).find(r => r.cohort === 'codingAgent');
+  if (other) return `Измерено только в ${HARNESS[other.harness]}, не в этом подключении`;
   const relevant = p?.tasks?.includes(CRITERION_TASK[criterion]);
   return relevant
     ? 'Заявленная специализация; сравнительное качество не измерено'

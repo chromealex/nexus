@@ -104,3 +104,20 @@ import {apiLimitsView} from '../src/quota-format.js';
 assert.equal(apiLimitsView(null).checking, true);
 assert.equal(apiLimitsView({status: 'unavailable'}).windows.length, 0);
 console.log('Claude stream-json limits and xAI API key limits passed.');
+{
+  const v = quotaView(
+    {status: 'available', creditsBalance: '125.5', planType: 'business', checkedAt: 1800000000},
+    null,
+    1800000000000
+  );
+  assert.equal(v.windows.length, 0);
+  assert.equal(v.credits.balance, 125.5);
+  assert.equal(v.plan, 'business');
+}
+{
+  const v = quotaView({status: 'available', creditsUnlimited: true, primaryUsedPercent: 10}, null);
+  assert.equal(v.credits.unlimited, true);
+  assert.equal(v.windows.length, 1);
+}
+assert.equal(quotaView({status: 'available', creditsBalance: 'abc'}, null).credits, null);
+console.log('Codex workspace credits passed.');

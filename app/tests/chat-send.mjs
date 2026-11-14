@@ -19,7 +19,7 @@ function fixture({chat = '', fail = false} = {}) {
   const gate = new Promise(r => (release = r));
   const ctx = {
     teamPlan,
-    teamEnabled: false,
+    teamMode: 'single',
     chatErrorMessage,
     routingAdvice,
     modelSaving: false,
@@ -201,7 +201,7 @@ console.log('Manual model: selected model forwarded and unavailable selection is
 
 {
   const f = fixture({chat: 'existing'});
-  f.ctx.teamEnabled = true;
+  f.ctx.teamMode = 'team';
   f.ctx.chatDraft = '- Напиши код\n- Переведи текст';
   const p = f.ctx.sendChat();
   f.release();
@@ -212,7 +212,7 @@ console.log('Manual model: selected model forwarded and unavailable selection is
 }
 {
   const f = fixture({chat: 'existing'});
-  f.ctx.teamEnabled = true;
+  f.ctx.teamMode = 'team';
   const p = f.ctx.sendChat('Продолжить', 'stopped-answer');
   f.release();
   await p;

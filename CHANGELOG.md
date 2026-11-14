@@ -8,6 +8,8 @@ Short history of NEXUS Desktop. The original per-version notes are in [docs/hist
 - Chat: answer variants and regenerate, edit last request, per-chat drafts, chat search (⌘F), chat list search (⌘K), keyboard shortcuts, day separators, bookmarks, export to Markdown, code highlighting, Mermaid diagrams and chart widgets in answers (charts load on demand), minimap, adjustable text size.
 - Projects: context sources (folders, files, links, notes, images) can be set when a project is created; up to 200 sources.
 - UI review fixes: crash when opening connections from a chat, composer selectors hidden on narrow windows, fixed-size dialogs, two-step confirmation for destructive actions, consistent composer chips.
+- Model selection: Claude Code aliases resolve to exact versions (unless settings override them), coding tasks use the AA Coding Agent Index of the same agent, the model card fills data extraction (GDP.pdf), tool reliability (AutomationBench-AA) and speed; Anthropic default fallback no longer excludes results; short plain questions skip ratings. See `docs/MODEL_BENCHMARKS.md`.
+- Auto executors: in Auto, composite requests are split into parts and each part goes to the model rated best for its kind of work, at its own reasoning depth; new per-chat «Авто / Один агент / Команда». Claude Fable 5.2 added to Claude Code by exact ID (CLI 2.1.321+, Auto only with the Quality priority). See `app/UNIFIED_CHAT_V020.md`.
 - Repository: English README, CI, single test runner, unused persona assets removed.
 
 ## 0.20 (November 2026)

@@ -354,6 +354,9 @@ pub fn choices() -> Result<Vec<chat_models::Choice>, String> {
         .filter(|a| a.ready)
         .flat_map(|a| {
             a.models.into_iter().map(move |m| chat_models::Choice {
+                resolved: None,
+                resolved_note: None,
+                unavailable: None,
                 id: format!("{}/{}", a.id, m),
                 label: format!("{} · {}", a.name, m),
                 provider: a.id.clone(),
@@ -761,7 +764,11 @@ fn rate_window(headers: &[(String, String)], kind: &str) -> Option<Value> {
         json!({"limit":limit,"remaining":remaining,"usedPercent":((limit-remaining)/limit*1000.0).round()/10.0,"reset":header_text(headers,&format!("x-ratelimit-reset-{kind}"))}),
     )
 }
-async fn rate_headers(url: &str, key: &str) -> Result<(u16, Vec<(String, String)>), String> {
+async fn rate_headers(
+    url: &str,
+    key: &str,
+    body: Option<&Value>,
+) -> Result<(u16, Vec<(String, String)>), String> {
     let mut c = Command::new("/usr/bin/curl");
     c.args([
         "--silent",
@@ -790,7 +797,7 @@ async fn rate_headers(url: &str, key: &str) -> Result<(u16, Vec<(String, String)
         .stdin
         .take()
         .ok_or("Нет входного канала")?
-        .write_all(config(url, key, None).as_bytes())
+        .write_all(config(url, key, body).as_bytes())
         .await
         .map_err(|_| "Ошибка HTTP-запроса")?;
     let out = tokio::time::timeout(Duration::from_secs(25), child.wait_with_output())
@@ -815,6 +822,47 @@ fn remember_limit_headers(id: &str, headers: &[(String, String)]) {
 fn chat_limit_headers(id: &str) -> Option<(Vec<(String, String)>, u64)> {
     CHAT_LIMITS.lock().ok()?.as_ref()?.get(id).cloned()
 }
+// Background probe: only when neither /models nor a chat reply gave limit headers.
+// One minimal request (max_tokens 1) per connection at most every 10 minutes; it is billed by xAI.
+static LAST_PROBE: std::sync::Mutex<Option<HashMap<String, u64>>> = std::sync::Mutex::new(None);
+const PROBE_INTERVAL: u64 = 600;
+fn probe_due(id: &str, at: u64) -> bool {
+    let Ok(mut m) = LAST_PROBE.lock() else {
+        return false;
+    };
+    let map = m.get_or_insert_with(Default::default);
+    if map
+        .get(id)
+        .map(|t| at.saturating_sub(*t) < PROBE_INTERVAL)
+        .unwrap_or(false)
+    {
+        return false;
+    }
+    map.insert(id.into(), at);
+    true
+}
+fn probe_model(models: &[String]) -> Option<String> {
+    let usable: Vec<&String> = models
+        .iter()
+        .filter(|m| chat_models::chat_compatible(m) && !m.contains("multi-agent"))
+        .collect();
+    let rank = |m: &str| {
+        let m = m.to_lowercase();
+        if m.contains("non-reasoning") {
+            0
+        } else if m.contains("mini") || m.contains("fast") {
+            1
+        } else if m.contains("reasoning") {
+            3
+        } else {
+            2
+        }
+    };
+    usable
+        .into_iter()
+        .min_by_key(|m| (rank(m), m.to_string()))
+        .cloned()
+}
 fn balance(v: &Value, name: &str) -> Option<f64> {
     v.get(name)
         .and_then(|n| n.as_f64().or_else(|| n.as_str().and_then(|s| s.parse().ok())))
@@ -831,7 +879,7 @@ pub async fn provider_limits(id: String) -> Result<Value, String> {
     }
     let key = secrets::get(&id)?;
     let base = endpoint(&row.provider, &row.endpoint)?;
-    let (code, headers) = rate_headers(&format!("{base}/models"), &key).await?;
+    let (code, headers) = rate_headers(&format!("{base}/models"), &key, None).await?;
     if !(200..300).contains(&code) && code != 429 {
         return Err(http_error(code));
     }
@@ -850,6 +898,23 @@ pub async fn provider_limits(id: String) -> Result<Value, String> {
             }
         }
     }
+    if requests.is_none() && tokens.is_none() && probe_due(&id, now()) {
+        if let Some(model) = probe_model(&row.models) {
+            let body = json!({"model":model,"stream":false,"max_tokens":1,"messages":[{"role":"user","content":"ok"}]});
+            if let Ok((_, h)) = rate_headers(&format!("{base}/chat/completions"), &key, Some(&body)).await {
+                if !h.is_empty() {
+                    remember_limit_headers(&id, &h);
+                    requests = rate_window(&h, "requests");
+                    tokens = rate_window(&h, "tokens");
+                    if requests.is_some() || tokens.is_some() {
+                        source =
+                            format!("xAI API: заголовки x-ratelimit-* фонового запроса ({model}, 1 токен)");
+                        checked = now();
+                    }
+                }
+            }
+        }
+    }
     let blocked = info
         .as_ref()
         .map(|v| v["api_key_blocked"] == true || v["api_key_disabled"] == true || v["team_blocked"] == true)
@@ -865,7 +930,7 @@ pub async fn provider_limits(id: String) -> Result<Value, String> {
     let detail = if available {
         "Лимиты API-ключа. Лимиты подписки SuperGrok через API недоступны."
     } else {
-        "xAI не передал лимиты при проверке. Они появятся после ответа Grok в чате, если xAI их пришлёт."
+        "xAI не передал лимиты ни при проверке, ни в ответе на фоновый запрос."
     };
     Ok(
         json!({"status":status,"source":source,"limited":limited,"blocked":blocked,"requests":requests,"tokens":tokens,"credits":credits,"detail":detail,"checkedAt":checked}),
@@ -874,6 +939,21 @@ pub async fn provider_limits(id: String) -> Result<Value, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn probe_picks_cheap_chat_model_and_is_throttled() {
+        let m = vec![
+            "grok-imagine-image".to_string(),
+            "grok-4.20-multi-agent-0309".into(),
+            "grok-4.20-0309-reasoning".into(),
+            "grok-4.20-0309-non-reasoning".into(),
+            "grok-4.7".into(),
+        ];
+        assert_eq!(probe_model(&m).as_deref(), Some("grok-4.20-0309-non-reasoning"));
+        assert_eq!(probe_model(&["grok-imagine-video".to_string()]), None);
+        assert!(probe_due("api-test", 1000));
+        assert!(!probe_due("api-test", 1500));
+        assert!(probe_due("api-test", 1600));
+    }
     #[test]
     fn endpoint_and_header_safety() {
         assert!(endpoint("openai-compatible", "http://evil.example/v1").is_err());

@@ -159,6 +159,11 @@ export function classifyTask(
   const webdev = /(фронтенд|frontend|лендинг|landing|веб.?сайт|web.?site|react|html|css)/i.test(text);
   const translation = /(переведи|перевод|translate|translation)/i.test(text);
   const editing = /(отредакт|редактур|перепиши|корректур|proofread|rewrite)/i.test(text);
+  const extraction =
+    hasFiles &&
+    /(извлеки|извлечь|вытащи|выпиши|найди в (?:документ|файл|pdf|отч)|таблиц|pdf|extract|parse|invoice|счёт|счет-фактур)/i.test(
+      text
+    );
   const code =
     webdev ||
     /(код|рефактор|программ|алгоритм|тест|code|debug|implement|test|shader|unity|rust|python|javascript)/i.test(
@@ -181,18 +186,33 @@ export function classifyTask(
           ? 'Перевод'
           : editing
             ? 'Редактура'
-            : repair
-              ? 'Исправление кода'
-              : code
-                ? 'Разработка кода'
-                : complex
-                  ? 'Рассуждения'
-                  : 'Тексты',
+            : extraction
+              ? 'Извлечение данных'
+              : repair
+                ? 'Исправление кода'
+                : code
+                  ? 'Разработка кода'
+                  : complex
+                    ? 'Рассуждения'
+                    : 'Тексты',
     complex,
     webdev,
+    extraction,
     hasFiles,
     hasImages,
     needsTools: executionMode === 'execute' || executionMode === 'auto' || hasFiles || projectInspection,
+    // Short plain questions do not need the strongest rated model; ratings are skipped for them.
+    trivial:
+      !hasImages &&
+      !hasFiles &&
+      !code &&
+      !complex &&
+      !translation &&
+      !editing &&
+      executionMode !== 'execute' &&
+      executionMode !== 'auto' &&
+      !projectInspection &&
+      text.trim().length < 160,
     reason: projectInspection
       ? 'Нужен агент с доступом к файлам проекта.'
       : hasImages
@@ -205,6 +225,15 @@ export function classifyTask(
               ? 'Запрос содержит несколько этапов.'
               : 'Текстовое обсуждение.',
   };
+}
+// Mirror of the backend `complexity()` → effort rule used when depth is «Авто»,
+// so models are compared at the depth the request will actually run with.
+const HIGH_EFFORT =
+  /architecture|architect|burst|concurrency|thread|security|shader|rendergraph|algorithm|архитект|шейдер|алгоритм|поток|безопасност|оптимизац|ecs/;
+const MEDIUM_EFFORT = /implement|refactor|debug|fix|test|реализ|рефактор|исправ|тест|интеграц/;
+export function autoEffort(text = '') {
+  const l = text.toLowerCase();
+  return HIGH_EFFORT.test(l) ? 'high' : MEDIUM_EFFORT.test(l) ? 'medium' : 'low';
 }
 export function nonChatModel(model) {
   return /(?:imagine|embedding|tts|transcri|whisper|dall-e|gpt-image|veo|imagen|multi-agent|codex-auto-review)/i.test(
@@ -224,6 +253,7 @@ export function modelCapabilities(model, connections = []) {
   };
 }
 export function incompatibleReason(model, task, reasoningMode = 'auto', connections = []) {
+  if (model.unavailable) return model.unavailable;
   if (connections.some(c => c.id === model.provider && c.ready === false))
     return 'Подключение не готово; обновите проверку';
   const c = modelCapabilities(model, connections);
@@ -236,6 +266,11 @@ export function incompatibleReason(model, task, reasoningMode = 'auto', connecti
       : 'Поддержка изображений не подтверждена; переподключите ACP';
   if (reasoningMode !== 'auto' && !c.reasoning) return 'Ручная глубина недоступна; выберите «Авто»';
   return '';
+}
+// On some Claude plans Fable runs on usage credits bought separately from the subscription,
+// so Auto picks it only when the chat asks for quality first; manual choice is always allowed.
+export function usesExtraCredits(model) {
+  return model.provider === 'claude' && /^claude-fable-/.test(model.model);
 }
 export function automaticModelAllowed(model) {
   return !model.provider.startsWith('custom-') && model.autoEligible !== false;
@@ -259,6 +294,7 @@ export function routingAdvice(
     reasoningMode = 'auto',
     selection = 'auto',
     priority = 'balanced',
+    effort = null,
   } = {}
 ) {
   const task = classifyTask(text, hasFiles, {hasImages, executionMode});
@@ -273,7 +309,10 @@ export function routingAdvice(
     return {...task, choice: error ? null : manual.id, error, offer: false};
   }
   const eligible = scoped.filter(
-    m => automaticModelAllowed(m) && !incompatibleReason(m, task, reasoningMode, connections)
+    m =>
+      automaticModelAllowed(m) &&
+      (priority === 'quality' || !usesExtraCredits(m)) &&
+      !incompatibleReason(m, task, reasoningMode, connections)
   );
   if (selection.startsWith('agent-auto:custom-'))
     return {
@@ -291,7 +330,15 @@ export function routingAdvice(
         : 'codex';
   const match = m =>
     preferred === 'qwen-local' ? modelCapabilities(m, connections).local : m.provider === preferred;
-  const measured = benchmarkChoice(eligible, task, {reasoningMode, priority, prices: MODEL_PROFILES});
+  const measured =
+    task.trivial && priority !== 'quality'
+      ? null
+      : benchmarkChoice(eligible, task, {
+          reasoningMode,
+          priority,
+          prices: MODEL_PROFILES,
+          preferEffort: reasoningMode === 'auto' ? effort || autoEffort(text) : null,
+        });
   if (measured)
     return {
       ...task,
@@ -299,6 +346,7 @@ export function routingAdvice(
       choice: measured.model.id,
       offer: false,
       benchmark: measured.evidence,
+      effort: measured.effort,
       comparison: measured.comparison,
       coverage: measured.coverage,
       reason:
@@ -323,7 +371,9 @@ export function routingAdvice(
       })),
       reason:
         task.reason +
-        ' Недостаточно сопоставимых свежих данных для этого режима; резервный выбор по совместимости. ' +
+        (task.trivial && priority !== 'quality'
+          ? ' Короткий простой запрос: рейтинги не применяются, выбор по совместимости без самой дорогой модели. '
+          : ' Недостаточно сопоставимых свежих данных для этого режима; резервный выбор по совместимости. ') +
         (chosen.isDefault
           ? 'Выбрана модель по умолчанию.'
           : 'Выбран совместимый вариант; рейтинг качества не измерен.'),

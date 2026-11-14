@@ -207,6 +207,9 @@ pub(crate) async fn chat_send(
                         .contains(&format!("@{}", a.manifest.name.to_lowercase()))
             })
             .map(|a| chat_models::Choice {
+                resolved: None,
+                resolved_note: None,
+                unavailable: None,
                 id: format!("{}/default", a.id),
                 label: a.manifest.name,
                 provider: a.id,

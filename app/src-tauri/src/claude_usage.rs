@@ -497,3 +497,99 @@ pub(crate) fn claude_statusline_remove(id: String) -> Result<String, String> {
     std::fs::rename(tmp, settings).map_err(|e| e.to_string())?;
     Ok("NEXUS Status Line collector removed; other settings preserved".into())
 }
+
+// Background probe: when there is no recent (<=10 min) Claude reading, send one tiny Haiku request
+// with the profile's own CLI login and keep only the rate_limit_event. At most once per 10 minutes
+// per profile; it uses a small part of the subscription quota. Runs in an empty folder so no
+// project files or CLAUDE.md enter the request.
+static CLAUDE_PROBES: std::sync::Mutex<Option<HashMap<String, u64>>> = std::sync::Mutex::new(None);
+pub(crate) fn claude_probe_due(id: &str, at: u64) -> bool {
+    let Ok(mut m) = CLAUDE_PROBES.lock() else {
+        return false;
+    };
+    let map = m.get_or_insert_with(Default::default);
+    if map.get(id).map(|t| at.saturating_sub(*t) < 600).unwrap_or(false) {
+        return false;
+    }
+    map.insert(id.into(), at);
+    true
+}
+fn claude_reading_fresh(id: &str) -> bool {
+    let path = statusline_path(id);
+    let recent = std::fs::metadata(&path)
+        .ok()
+        .and_then(|m| m.modified().ok())
+        .and_then(|t| t.elapsed().ok())
+        .map(|d| d.as_secs() <= 600)
+        .unwrap_or(false);
+    recent
+        && std::fs::read(&path)
+            .ok()
+            .and_then(|b| serde_json::from_slice::<serde_json::Value>(&b).ok())
+            .map(|v| {
+                v.pointer("/fiveHour/usedPercent").is_some() || v.pointer("/sevenDay/usedPercent").is_some()
+            })
+            .unwrap_or(false)
+}
+#[tauri::command]
+pub(crate) async fn claude_limits_probe(id: String) -> Result<bool, String> {
+    let account = statusline_profile(&id)?;
+    if claude_reading_fresh(&id) {
+        return Ok(false);
+    }
+    let at = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    if !claude_probe_due(&id, at) {
+        return Ok(false);
+    }
+    let exe = find_bin("claude").ok_or("Claude Code не установлен")?;
+    let dir = home().join("Library/Application Support/NEXUS/limit-probe");
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let mut child = Command::new(exe)
+        .args([
+            "-p",
+            "Reply with OK",
+            "--model",
+            "haiku",
+            "--output-format",
+            "stream-json",
+            "--verbose",
+            "--max-turns",
+            "1",
+            "--permission-mode",
+            "plan",
+        ])
+        .env("CLAUDE_CONFIG_DIR", &account.config_dir)
+        .current_dir(&dir)
+        .kill_on_drop(true)
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::null())
+        .spawn()
+        .map_err(|e| format!("Не удалось запустить Claude Code: {e}"))?;
+    let stdout = child.stdout.take().ok_or("No stdout")?;
+    let mut lines = BufReader::new(stdout).lines();
+    let read = async {
+        let mut got = false;
+        while let Ok(Some(line)) = lines.next_line().await {
+            let Ok(v) = serde_json::from_str::<serde_json::Value>(&line) else {
+                continue;
+            };
+            if v["type"] == "rate_limit_event" && record_claude_rate_limit(&id, &v["rate_limit_info"]) {
+                got = true;
+            }
+            if v["type"] == "result" {
+                break;
+            }
+        }
+        got
+    };
+    let got = tokio::time::timeout(Duration::from_secs(90), read)
+        .await
+        .unwrap_or(false);
+    let _ = child.kill().await;
+    let _ = child.wait().await;
+    Ok(got)
+}

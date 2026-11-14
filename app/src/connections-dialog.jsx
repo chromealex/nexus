@@ -878,18 +878,43 @@ export function ConnectionsDialog({
                         {confirmRemove === a.id && 'Удалить?'}
                       </button>
                     </div>
-                    <Quota
-                      quota={quotas[a.id]}
-                      statusline={statuslines[a.id]}
-                      expanded={isOpen}
-                      unsupported={
-                        a.provider === 'claude'
-                          ? 'Нет данных · лимиты появятся после первого ответа Claude в чате Nexus'
-                          : undefined
-                      }
-                    />
+                    {a.provider === 'gemini' && !ready && state !== 'checking' ? (
+                      <p className="connection-hint">
+                        Google закрыл личный вход через Gemini CLI. Подключите Gemini через Antigravity (вход
+                        Google) или по ключу Gemini API. Вход в этот профиль доступен только для корпоративных
+                        аккаунтов Google с Gemini Code Assist — в «Лимиты и детали».
+                      </p>
+                    ) : (
+                      <Quota
+                        quota={quotas[a.id]}
+                        statusline={statuslines[a.id]}
+                        expanded={isOpen}
+                        unsupported={
+                          a.provider === 'claude'
+                            ? 'Нет данных · Claude Code пока не передал лимиты'
+                            : undefined
+                        }
+                      />
+                    )}
                     <div className="connection-account-actions">
-                      {!ready && state !== 'checking' && (
+                      {a.provider === 'gemini' && !ready && state !== 'checking' && !waiting && (
+                        <>
+                          <button
+                            className="connection-primary"
+                            disabled={!!busy}
+                            onClick={() => primary(CATALOG.find(c => c.id === 'antigravity'))}
+                          >
+                            Войти через Antigravity
+                          </button>
+                          <button
+                            disabled={!!busy}
+                            onClick={() => connect(CATALOG.find(c => c.id === 'gemini'))}
+                          >
+                            Gemini API по ключу
+                          </button>
+                        </>
+                      )}
+                      {!ready && state !== 'checking' && (a.provider !== 'gemini' || waiting) && (
                         <button
                           className="connection-primary"
                           disabled={waiting || !!busy}
@@ -935,12 +960,21 @@ export function ConnectionsDialog({
                     {job?.phase === 'error' && (
                       <p className="connection-error">
                         {job.log?.includes('no longer supported')
-                          ? 'Личный вход через старый Gemini CLI закрыт Google. Выберите Antigravity или Gemini API в каталоге.'
+                          ? 'Google отклонил вход: для личных аккаунтов он закрыт. Используйте Antigravity или Gemini API.'
                           : redact(job.log)}
                       </p>
                     )}
                     {isOpen && (
                       <>
+                        {a.provider === 'gemini' && !ready && !waiting && (
+                          <button
+                            disabled={!!busy}
+                            title="Работает только для корпоративных аккаунтов Google с Gemini Code Assist"
+                            onClick={() => onLogin(a.id)}
+                          >
+                            Корпоративный аккаунт Google (Code Assist)
+                          </button>
+                        )}
                         {a.provider === 'claude' && (
                           <button
                             disabled={!!busy}

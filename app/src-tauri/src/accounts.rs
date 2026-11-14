@@ -368,6 +368,14 @@ pub(crate) struct QuotaReport {
     pub(crate) secondary_used_percent: Option<f64>,
     pub(crate) secondary_reset_at: Option<i64>,
     pub(crate) checked_at: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) plan_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) credits_balance: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) credits_unlimited: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) limit_name: Option<String>,
 }
 pub(crate) fn quota_unavailable(source: &str, detail: &str) -> QuotaReport {
     QuotaReport {
@@ -384,38 +392,155 @@ pub(crate) fn quota_unavailable(source: &str, detail: &str) -> QuotaReport {
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap_or_default()
             .as_secs(),
+        plan_type: None,
+        credits_balance: None,
+        credits_unlimited: None,
+        limit_name: None,
     }
 }
 pub(crate) fn pct(v: &serde_json::Value) -> Option<f64> {
     v.as_f64().filter(|n| n.is_finite() && *n >= 0.0 && *n <= 100.0)
 }
+fn safe_label(v: Option<&serde_json::Value>) -> Option<String> {
+    v.and_then(|v| v.as_str())
+        .map(|s| s.chars().filter(|c| !c.is_control()).take(60).collect::<String>())
+        .filter(|s| !s.is_empty())
+}
+fn window_used(w: Option<&serde_json::Value>) -> Option<f64> {
+    w.and_then(|w| {
+        w.get("usedPercent")
+            .or_else(|| w.get("used_percent"))
+            .and_then(pct)
+    })
+}
+fn snapshot_windows(snap: &serde_json::Value) -> (Option<&serde_json::Value>, Option<&serde_json::Value>) {
+    let pick = |a: &str, b: &str| {
+        snap.get(a)
+            .or_else(|| snap.get(b))
+            .filter(|w| window_used(Some(w)).is_some())
+    };
+    (
+        pick("primary", "primaryWindow"),
+        pick("secondary", "secondaryWindow"),
+    )
+}
 pub(crate) fn parse_codex_quota(value: &serde_json::Value) -> Option<QuotaReport> {
-    // Codex app-server rateLimits/read response. Do not interpret account usage as subscription quota.
+    // Codex app-server account/rateLimits/read. Business/Enterprise workspaces may report windows
+    // only in rateLimitsByLimitId, or only credits. Never derive percentages from credits.
     let result = value.get("result")?;
-    let limits = result.get("rateLimits").unwrap_or(result);
-    let window = limits.get("primary").or_else(|| limits.get("primaryWindow"));
-    let weekly = limits.get("secondary").or_else(|| limits.get("secondaryWindow"));
-    let used = window.and_then(|w| w.get("usedPercent").and_then(pct));
-    let used2 = weekly.and_then(|w| w.get("usedPercent").and_then(pct));
-    if used.is_none() && used2.is_none() {
+    let main = result
+        .get("rateLimits")
+        .filter(|v| v.is_object())
+        .unwrap_or(result);
+    let mut chosen = main;
+    let (mut window, mut weekly) = snapshot_windows(main);
+    if window.is_none() && weekly.is_none() {
+        if let Some(map) = result.get("rateLimitsByLimitId").and_then(|m| m.as_object()) {
+            let mut keys: Vec<&String> = map.keys().collect();
+            keys.sort_by_key(|k| (k.as_str() != "codex", k.to_string()));
+            for k in keys {
+                let snap = &map[k];
+                let (p, s2) = snapshot_windows(snap);
+                if p.is_some() || s2.is_some() {
+                    chosen = snap;
+                    window = p;
+                    weekly = s2;
+                    break;
+                }
+            }
+        }
+    }
+    let credits = main
+        .get("credits")
+        .filter(|c| c.is_object())
+        .or_else(|| chosen.get("credits").filter(|c| c.is_object()));
+    let unlimited = credits.and_then(|c| c.get("unlimited")).and_then(|v| v.as_bool());
+    let balance = credits
+        .and_then(|c| c.get("balance"))
+        .and_then(|v| {
+            v.as_str()
+                .map(String::from)
+                .or_else(|| v.as_f64().map(|n| n.to_string()))
+        })
+        .filter(|s| {
+            !s.is_empty() && s.len() < 32 && s.chars().all(|c| c.is_ascii_digit() || c == '.' || c == '-')
+        });
+    let used = window_used(window);
+    let used2 = window_used(weekly);
+    if used.is_none() && used2.is_none() && balance.is_none() && unlimited != Some(true) {
         return None;
     }
+    let mins = |w: Option<&serde_json::Value>| {
+        w.and_then(|w| {
+            w.get("windowDurationMins")
+                .or_else(|| w.get("window_minutes"))
+                .and_then(|v| v.as_i64())
+        })
+        .filter(|v| *v > 0)
+    };
+    let reset = |w: Option<&serde_json::Value>| {
+        w.and_then(|w| {
+            w.get("resetsAt")
+                .or_else(|| w.get("resets_at"))
+                .and_then(|v| v.as_i64())
+        })
+    };
     let mut q = quota_unavailable(
         "Codex app-server: account/rateLimits/read",
         "Provider-reported rate limit windows",
     );
     q.status = "available".into();
-    q.primary_window_minutes = window
-        .and_then(|w| w.get("windowDurationMins").and_then(|v| v.as_i64()))
-        .filter(|v| *v > 0);
-    q.secondary_window_minutes = weekly
-        .and_then(|w| w.get("windowDurationMins").and_then(|v| v.as_i64()))
-        .filter(|v| *v > 0);
+    q.primary_window_minutes = mins(window);
+    q.secondary_window_minutes = mins(weekly);
     q.primary_used_percent = used;
     q.secondary_used_percent = used2;
-    q.primary_reset_at = window.and_then(|w| w.get("resetsAt").and_then(|v| v.as_i64()));
-    q.secondary_reset_at = weekly.and_then(|w| w.get("resetsAt").and_then(|v| v.as_i64()));
+    q.primary_reset_at = reset(window);
+    q.secondary_reset_at = reset(weekly);
+    q.plan_type = safe_label(chosen.get("planType").or_else(|| main.get("planType")));
+    q.limit_name = safe_label(chosen.get("limitName")).or_else(|| safe_label(chosen.get("limitId")));
+    q.credits_balance = balance;
+    q.credits_unlimited = unlimited;
+    if used.is_none() && used2.is_none() {
+        q.detail = "Provider reported credits only; no usage windows for this plan".into();
+    }
     Some(q)
+}
+// Diagnostics: structure only (keys and null-ness), or the provider's error message. Never values.
+pub(crate) fn codex_quota_shape(value: &serde_json::Value) -> String {
+    if let Some(e) = value.get("error") {
+        let msg = e
+            .get("message")
+            .and_then(|m| m.as_str())
+            .unwrap_or("")
+            .chars()
+            .filter(|c| !c.is_control())
+            .take(200)
+            .collect::<String>();
+        return format!("Provider error: {msg}");
+    }
+    fn keys(v: &serde_json::Value) -> String {
+        v.as_object()
+            .map(|o| {
+                o.iter()
+                    .map(|(k, v)| format!("{k}{}", if v.is_null() { "=null" } else { "" }))
+                    .collect::<Vec<_>>()
+                    .join(",")
+            })
+            .unwrap_or_else(|| "not an object".into())
+    }
+    let r = value.get("result").unwrap_or(&serde_json::Value::Null);
+    let rl = r.get("rateLimits").map(keys).unwrap_or_else(|| "absent".into());
+    let by = r
+        .get("rateLimitsByLimitId")
+        .and_then(|m| m.as_object())
+        .map(|m| m.len())
+        .unwrap_or(0);
+    format!(
+        "No usage windows or credits in provider response (result: {}; rateLimits: {}; rateLimitsByLimitId: {})",
+        keys(r),
+        rl,
+        by
+    )
 }
 #[tauri::command]
 pub(crate) async fn account_quota(id: String) -> Result<QuotaReport, String> {
@@ -478,7 +603,9 @@ pub(crate) async fn account_quota(id: String) -> Result<QuotaReport, String> {
                 .ok_or("Connection closed")?;
             if let Ok(value) = serde_json::from_str::<serde_json::Value>(&line) {
                 if value.get("id").and_then(|v| v.as_i64()) == Some(2) {
-                    return Ok::<Option<QuotaReport>, &str>(parse_codex_quota(&value));
+                    return Ok::<Result<QuotaReport, String>, &str>(
+                        parse_codex_quota(&value).ok_or_else(|| codex_quota_shape(&value)),
+                    );
                 }
             }
         }
@@ -488,11 +615,8 @@ pub(crate) async fn account_quota(id: String) -> Result<QuotaReport, String> {
     let _ = child.kill().await;
     let _ = child.wait().await;
     Ok(match result {
-        Ok(Ok(Some(report))) => report,
-        Ok(Ok(None)) => quota_unavailable(
-            "Codex app-server",
-            "No supported rate-limit windows in provider response",
-        ),
+        Ok(Ok(Ok(report))) => report,
+        Ok(Ok(Err(shape))) => quota_unavailable("Codex app-server", &shape),
         Ok(Err(e)) => quota_unavailable("Codex app-server", e),
         Err(_) => quota_unavailable("Codex app-server", "Timed out after 10 seconds"),
     })

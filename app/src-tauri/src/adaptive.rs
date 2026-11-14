@@ -550,7 +550,9 @@ pub(crate) async fn execute_routed_step(
     if step.provider != "claude" && step.provider != "codex" {
         return Err("Unsupported provider".into());
     }
-    if step.provider == "claude" && !["haiku", "sonnet", "opus"].contains(&step.model.as_str()) {
+    if step.provider == "claude"
+        && !["haiku", "sonnet", "opus", super::chat_models::FABLE_5_2].contains(&step.model.as_str())
+    {
         return Err("Unsupported Claude model".into());
     }
     if step.provider == "codex" && step.model != "default" && stream.is_none() {

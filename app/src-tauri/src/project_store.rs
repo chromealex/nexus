@@ -19,6 +19,10 @@ pub(crate) struct NexusProject {
 pub(crate) struct NexusChat {
     #[serde(default)]
     pub(crate) team_enabled: bool,
+    /// "auto" (decompose composite requests when the model is Auto), "single" or "team".
+    /// Missing in old data: team_enabled=true → "team", otherwise "auto".
+    #[serde(default)]
+    pub(crate) team_mode: Option<String>,
     #[serde(default)]
     pub(crate) routing_priority: Option<String>,
     #[serde(default)]
@@ -142,6 +146,7 @@ pub(crate) fn list_projects() -> Result<Vec<NexusProject>, String> {
         );
         db.chats.push(NexusChat {
             team_enabled: false,
+            team_mode: None,
             routing_priority: None,
             model_choice: None,
             id: project_id(),
@@ -247,6 +252,7 @@ pub(crate) fn create_project_chat(project_id_value: String, title: String) -> Re
     }
     let chat = NexusChat {
         team_enabled: false,
+        team_mode: None,
         routing_priority: None,
         model_choice: None,
         id: project_id(),
@@ -434,8 +440,21 @@ pub(crate) fn save_chat_routing_priority(chat_id: String, priority: String) -> R
     Ok(updated)
 }
 
+pub(crate) fn team_mode(chat: &NexusChat) -> &str {
+    chat.team_mode
+        .as_deref()
+        .unwrap_or(if chat.team_enabled { "team" } else { "auto" })
+}
 #[tauri::command]
-pub(crate) fn save_chat_team(chat_id: String, enabled: bool) -> Result<NexusChat, String> {
+pub(crate) fn save_chat_team(
+    chat_id: String,
+    enabled: bool,
+    mode: Option<String>,
+) -> Result<NexusChat, String> {
+    let mode = mode.unwrap_or_else(|| if enabled { "team" } else { "single" }.into());
+    if !["auto", "single", "team"].contains(&mode.as_str()) {
+        return Err("Неизвестный режим исполнителей".into());
+    }
     let _guard = PROJECTS_LOCK.lock().map_err(|_| "Project storage lock failed")?;
     let mut db = load_project_store()?;
     let chat = db
@@ -446,7 +465,8 @@ pub(crate) fn save_chat_team(chat_id: String, enabled: bool) -> Result<NexusChat
     if chat_runs::is_running(&chat_id) {
         return Err("Дождитесь завершения ответа".into());
     }
-    chat.team_enabled = enabled;
+    chat.team_enabled = mode == "team";
+    chat.team_mode = Some(mode);
     let updated = chat.clone();
     save_project_store(&db)?;
     Ok(updated)

@@ -1,51 +1,106 @@
-// Audited public evidence, not Nexus trials. Never infer a version from a CLI alias.
-export const BENCHMARK_DATE = '2026-11-11';
+// Audited public evidence, not Nexus trials. A CLI alias is matched only through the exact
+// version the backend resolved from the official alias table (model.resolved).
+export const BENCHMARK_DATE = '2026-11-14';
+const AA = 'https://artificialanalysis.ai/';
 export const COHORTS = {
+  codingAgent: {
+    name: 'AA Coding Agent Index v2.1',
+    date: '2026-11-14',
+    source: AA + 'agents/coding-agents',
+    scale: 'points',
+    limit:
+      'Модель вместе с агентом (Claude Code или Codex): изменения в реальных репозиториях, терминал и вопросы по коду. Переносится только на тот же агент.',
+  },
   intelligence: {
     name: 'AA Intelligence Index v5.0.1',
-    date: BENCHMARK_DATE,
-    source: 'https://artificialanalysis.ai/methodology/intelligence-benchmarking',
+    date: '2026-11-14',
+    source: AA + 'methodology/intelligence-benchmarking',
+    scale: 'points',
     limit:
-      'Смешанный набор сложных задач, включая код; не отдельная оценка архитектуры или исправления ошибок.',
+      'Смешанный набор из 9 агентных и научных оценок, включая код; не отдельная оценка архитектуры или исправления ошибок.',
+  },
+  automation: {
+    name: 'AutomationBench-AA',
+    date: '2026-11-10',
+    source: AA + 'articles/announcing-zapier-automationbench-aa',
+    scale: 'percent',
+    limit:
+      'Бизнес-сценарии через API приложений (Zapier): доля целей, выполненных без нарушения ограничений. Не проверяет инструменты и разрешения Nexus.',
+  },
+  gdppdf: {
+    name: 'GDP.pdf (прогон AA)',
+    date: '2026-11-03',
+    source: 'https://surgehq.ai/benchmarks/gdp-pdf',
+    scale: 'percent',
+    limit:
+      'Ответы по сложным профессиональным PDF (таблицы, формы, отчёты); засчитывается только полностью верный ответ. Не проверяет извлечение из баз данных или веб-страниц.',
   },
   webdev: {
     name: 'Arena WebDev',
     date: '2026-11-10',
     source: 'https://arena.ai/leaderboard/code/webdev',
+    scale: 'elo',
     limit: 'Предпочтения в веб-разработке; не доля пройденных тестов и не оценка любого кода.',
   },
   text: {
     name: 'Arena Text Overall',
     date: '2026-11-09',
     source: 'https://arena.ai/leaderboard/chat/text',
+    scale: 'elo',
     limit: 'Общие предпочтения пользователей; не отдельный тест перевода, русского языка или фактологии.',
   },
   vision: {
     name: 'Arena Vision Overall',
     date: '2026-11-08',
     source: 'https://arena.ai/leaderboard/chat/vision',
+    scale: 'elo',
     limit: 'Понимание изображений, не генерация изображений.',
   },
 };
-// AA columns: model, tested effort, index, first answer seconds, output tokens/s,
-// estimated inference minutes/task, weighted API USD/task. Null is unknown, never zero.
-const aa = [
-  ['gpt-6.1-sol', 'max', 55, 156.46, 55, 20.4, 1.27],
+export const BENCHMARKS = [];
+const push = row => BENCHMARKS.push({fallback: false, ...row, date: row.date || COHORTS[row.cohort].date});
+const aaPage = model => AA + 'models/' + model.replaceAll('.', '-');
+
+// AA Intelligence Index v5.0.1: model, effort, index, first answer s, output tok/s,
+// inference minutes/task, weighted API USD/task, Anthropic default fallback, snapshot date.
+// Null is unknown, never zero.
+for (const [model, effort, score, firstToken, outputSpeed, minutes, cost, fallback, date] of [
+  ['claude-fable-5-2', 'max', 65, null, 97, 46.8, 26.54, true],
+  ['claude-fable-5-2', 'xhigh', 62, null, 103, 26.2, 14.83, true],
+  ['claude-fable-5-2', 'high', 62, null, 97, 16.9, 9.08, true],
+  ['claude-fable-5-2', 'medium', 56, 12.22, 95, 7.5, 3.8, true],
+  ['claude-fable-5-2', 'low', 54, 8.46, 99, 6.1, 3.1, true],
+  ['claude-opus-5-5', 'max', 59, 353.75, 115, 25.2, 10.04, true],
+  ['claude-opus-5-5', 'xhigh', 57, 79.4, 109, 15.8, null, true],
+  ['claude-opus-5-5', 'high', 52, null, null, 9.5, null, true],
+  ['claude-opus-5-5', 'medium', 48, 15.69, 103, 7.1, null, true],
+  ['claude-opus-5-5', 'low', 35, null, null, 3.0, 0.98, true],
+  ['claude-sonnet-5-5', 'max', 55, 254.92, 145, 32.7, 10.02, true, '2026-11-11'],
+  ['claude-haiku-5-5', 'max', 36, null, null, null, 0.41, false],
+  ['claude-haiku-5-5', 'xhigh', 35, 56.06, 233, 9.8, 0.25, false],
+  ['claude-haiku-5-5', 'medium', 25, 11.14, 221, 4.0, 0.09, false],
   ['gpt-6-astra', 'max', 57, 249.02, 38, 23, 6.24],
-  ['gpt-6.1-terra', 'max', 51, 157.72, 74, 13.5, 0.96],
-  ['gpt-6-luna', 'max', 28, 81.37, 109, 11.5, 0.15],
-  ['gpt-6-sol', 'max', 44, 45.04, 121, 7.4, 2.47],
-  ['gpt-5.6-sol', 'max', null, 54.26, 96, null, null],
-  ['gpt-5.6-terra', 'max', 32, 72.23, 101, 10.9, 3.73],
-  ['gpt-5.6-luna', 'max', 24, 51.32, 114, 8.6, 0.33],
-  ['grok-4.5', 'high', null, 8.68, 72, null, null],
-  ['grok-4.6', 'high', null, 26.82, 68, null, null],
-  ['grok-4.7', 'xhigh', 35, 57.56, 63, 27.4, 7.77],
-  ['claude-opus-5-5', 'max', 59, 353.75, 115, 25, 10.04, true],
-  ['claude-sonnet-5-5', 'max', 55, 254.92, 145, 32.7, 10.02, true],
-];
-export const BENCHMARKS = aa.map(
-  ([model, effort, score, firstToken, outputSpeed, minutes, cost, fallback = false]) => ({
+  ['gpt-6-astra', 'xhigh', 55, null, null, null, 3.66],
+  ['gpt-6-astra', 'high', 55, null, null, null, 3.24],
+  ['gpt-6-astra', 'medium', 52, null, null, null, 2.73],
+  ['gpt-6-astra', 'low', 43, null, null, 4.0, 1.42],
+  ['gpt-6.1-sol', 'max', 55, 156.46, 55, 20.4, 1.27],
+  ['gpt-6.1-sol', 'xhigh', 52, null, null, 9.2, 0.76],
+  ['gpt-6.1-sol', 'high', 50, null, null, null, 0.59],
+  ['gpt-6.1-sol', 'medium', 46, null, null, null, 0.36],
+  ['gpt-6.1-sol', 'low', 35, null, null, 2.0, 0.16],
+  ['gpt-6.1-terra', 'max', 51, 157.72, 74, 13.5, 0.96, false, '2026-11-11'],
+  ['gpt-6-luna', 'max', 28, 81.37, 109, 11.5, 0.15, false, '2026-11-11'],
+  ['gpt-6-sol', 'max', 44, 45.04, 121, 7.4, 2.47, false, '2026-11-11'],
+  ['gpt-5.6-sol', 'max', null, 54.26, 96, null, null, false, '2026-11-11'],
+  ['gpt-5.6-terra', 'max', 32, 72.23, 101, 10.9, 3.73, false, '2026-11-11'],
+  ['gpt-5.6-luna', 'max', 24, 51.32, 114, 8.6, 0.33, false, '2026-11-11'],
+  ['grok-4.5', 'high', null, 8.68, 72, null, null, false, '2026-11-11'],
+  ['grok-4.6', 'high', null, 26.82, 68, null, null, false, '2026-11-11'],
+  ['grok-4.7', 'xhigh', 35, 57.56, 63, 27.4, 7.77, false, '2026-11-11'],
+])
+  push({
+    cohort: 'intelligence',
     model,
     effort,
     score,
@@ -53,23 +108,104 @@ export const BENCHMARKS = aa.map(
     outputSpeed,
     minutes,
     cost,
-    fallback,
-    cohort: 'intelligence',
-    date: BENCHMARK_DATE,
-    source: 'https://artificialanalysis.ai/models/' + model.replaceAll('.', '-'),
-  })
-);
+    fallback: !!fallback,
+    date,
+    source: aaPage(model),
+  });
+
+// AA Coding Agent Index v2.1 (FrontierCode-AA 2.0, Terminal-Bench 4.1, SWE-Atlas-QnA-AA, equal weights).
+// harness = Nexus provider that runs the same agent; cost is pay-per-token API, not a subscription.
+for (const [model, harness, effort, score, frontier, terminal, qna, cost, minutes, fallback] of [
+  ['claude-fable-5-2', 'claude', 'xhigh', 58, 49, 64, 62, 15.47, 53.3, true],
+  ['claude-fable-5-2', 'claude', 'high', 58, 49, 64, 62, 7.51, 31.3, true],
+  ['claude-fable-5-2', 'claude', 'max', 56, 44, 63, 60, 44.22, 132, true],
+  ['claude-fable-5-2', 'claude', 'medium', 53, 36, 60, 64, 2.89, 15.1, true],
+  ['claude-fable-5-2', 'claude', 'low', 48, 31, 53, 60, 2.49, 13.4, true],
+  ['claude-opus-5-5', 'claude', 'max', 58, 44, 65, 66, 12.61, 66, true],
+  ['claude-sonnet-5-5', 'claude', 'max', 56, 39, 66, 64, 11.4, 84, true],
+  ['claude-haiku-5-5', 'claude', 'max', 30, 23, 32, 34, 2.25, 78, false],
+  ['gpt-6-astra', 'codex', 'max', 53, 43, 58, 59, 7.63, 26.0],
+  ['gpt-6.1-sol', 'codex', 'max', 52, 42, 54, 60, 1.51, 21.9],
+  ['gpt-6.1-terra', 'codex', 'max', 49, 41, 51, 54, 1.53, 28.1],
+  ['gpt-6-luna', 'codex', 'max', 26, 24, 15, 38, 0.19, 23.5],
+  ['grok-4.7', 'grok-build', 'xhigh', 42, 30, 32, 63, 15.35, 36.6],
+])
+  push({
+    cohort: 'codingAgent',
+    model,
+    harness,
+    effort,
+    score,
+    parts: {frontier, terminal, qna},
+    cost,
+    minutes,
+    fallback: !!fallback,
+    source:
+      AA +
+      'agents/coding-agents/comparisons/' +
+      (harness === 'claude' ? 'claude-code-vs-opencode' : 'codex-vs-grok-build'),
+  });
+
+// AutomationBench-AA, best published effort. Mirrors of AA results with their capture dates.
+const benchmarklist = 'https://benchmarklist.com/benchmarks/automationbench_aa/';
+const benchgap = 'https://benchgap.net/b/aa-automation-bench/current';
+for (const [model, effort, score, date, source, fallback] of [
+  [
+    'claude-fable-5-2',
+    'max',
+    76.4,
+    '2026-11-10',
+    'https://modelmenu.dev/benchmarks/automationbench-aa',
+    true,
+  ],
+  ['claude-sonnet-5-5', 'max', 71.8, '2026-10-29', benchmarklist, true],
+  ['claude-opus-5-5', 'max', 69.5, '2026-10-29', benchmarklist, true],
+  ['gpt-6-astra', 'max', 68.5, '2026-10-29', benchmarklist],
+  ['grok-4.6', 'unspecified', 66.7, '2026-10-10', benchgap],
+  ['grok-4.7', 'xhigh', 65.6, '2026-10-29', benchmarklist],
+  ['gpt-6.1-sol', 'max', 64.9, '2026-10-29', benchmarklist],
+  ['gpt-6-sol', 'unspecified', 61.6, '2026-10-10', benchgap],
+  ['gpt-6.1-terra', 'max', 60.2, '2026-10-29', benchmarklist],
+])
+  push({cohort: 'automation', model, effort, score, date, source, fallback: !!fallback, mirror: true});
+
+// GDP.pdf as run by AA (all-pass %). Mirrors; effort given where the mirror lists it.
+const benchleader = 'https://www.benchleader.com/benchmarks/aa_gdp_pdf';
+const benchlm = 'https://benchlm.ai/benchmarks/aagdppdf';
+for (const [model, effort, score, source, fallback] of [
+  ['gpt-6-astra', 'unspecified', 32.2, benchleader],
+  ['gpt-6.1-sol', 'high', 32.0, benchleader],
+  ['gpt-6.1-sol', 'xhigh', 31.8, benchleader],
+  ['gpt-6.1-sol', 'max', 31.0, benchleader],
+  ['gpt-6.1-sol', 'medium', 30.0, benchleader],
+  ['claude-opus-5-5', 'high', 28.8, benchleader, true],
+  ['claude-opus-5-5', 'xhigh', 26.6, benchleader, true],
+  ['claude-opus-5-5', 'max', 26.2, benchleader, true],
+  ['claude-opus-5-5', 'medium', 25.6, benchleader, true],
+  ['claude-opus-5-5', 'low', 25.6, benchleader, true],
+  ['gpt-6.1-terra', 'max', 28.6, benchleader],
+  ['gpt-5.6-sol', 'high', 27.8, benchleader],
+  ['gpt-5.6-sol', 'medium', 26.2, benchleader],
+  ['gpt-6-sol', 'max', 25.2, benchleader],
+  ['claude-sonnet-5-5', 'unspecified', 25.8, benchlm, true],
+  ['gpt-6-luna', 'unspecified', 22.8, benchlm],
+  ['claude-haiku-5-5', 'unspecified', 20.8, benchlm],
+  ['grok-4.7', 'unspecified', 20.0, benchlm],
+])
+  push({
+    cohort: 'gdppdf',
+    model,
+    effort,
+    score,
+    source,
+    fallback: !!fallback,
+    mirror: true,
+    date: source === benchlm ? '2026-11-05' : '2026-11-03',
+  });
+
 function arena(cohort, rows) {
   for (const [model, effort, score, interval] of rows)
-    BENCHMARKS.push({
-      model,
-      effort,
-      score,
-      interval,
-      cohort,
-      date: COHORTS[cohort].date,
-      source: COHORTS[cohort].source,
-    });
+    push({model, effort, score, interval, cohort, source: COHORTS[cohort].source});
 }
 arena('webdev', [
   ['claude-fable-5-2', 'xhigh', 1836, 22],
@@ -103,10 +239,13 @@ arena('vision', [
   ['grok-4.6', 'high', 1263, 8],
   ['claude-sonnet-5-5', 'xhigh', 1263, 10],
 ]);
+
+const ALIAS_GAP =
+  'Плавающий алиас: точная версия не подтверждена (переопределение в настройках или другой провайдер).';
 export const EVIDENCE_GAPS = {
-  haiku: 'Плавающий алиас: точная версия не подтверждена.',
-  sonnet: 'Плавающий алиас: точная версия не подтверждена.',
-  opus: 'Плавающий алиас: точная версия не подтверждена.',
+  haiku: ALIAS_GAP,
+  sonnet: ALIAS_GAP,
+  opus: ALIAS_GAP,
   'gpt-reserve': 'В проверенных публичных источниках нет сопоставимых результатов этой модели.',
   'codex-auto-review': 'Служебная модель; не участник сравнения чата.',
   'grok-4.20-0309-reasoning': 'AA публикует 0309 v2; соответствие этой версии каталогу не подтверждено.',
@@ -117,78 +256,144 @@ export const EVIDENCE_GAPS = {
   'gemini-3.1-flash-lite': 'Страница AA относится к preview; соответствие стабильной версии не подтверждено.',
   'qwen3:4b': 'Есть model card Qwen3-4B; квантование Ollama и скорость на этом Mac отдельно не измерены.',
 };
+// Exact ID used for evidence: the backend-resolved version of an alias, else the model ID itself.
+export function benchmarkModel(model) {
+  if (typeof model === 'string') return model;
+  return model?.resolved || model?.model;
+}
 export function evidenceFor(model) {
-  return BENCHMARKS.filter(r => r.model === model);
+  const id = benchmarkModel(model);
+  return BENCHMARKS.filter(r => r.model === id);
 }
 export function evidenceGap(model) {
+  const id = typeof model === 'string' ? model : model?.model;
+  if (typeof model === 'object' && model?.resolvedNote && !model.resolved) return model.resolvedNote;
   return (
-    EVIDENCE_GAPS[model] ||
-    (/imagine/.test(model)
+    EVIDENCE_GAPS[id] ||
+    (/imagine/.test(id)
       ? 'Медиа-модель: нет адаптера Nexus; оценки генерации не смешиваются с пониманием изображений.'
       : 'Сопоставимых данных для этой задачи пока нет.')
   );
 }
+export const HARNESS = {claude: 'Claude Code', codex: 'Codex', 'grok-build': 'Grok Build'};
 export function evidenceText(r) {
+  const unit = COHORTS[r.cohort].scale === 'percent' ? '%' : '';
   const score =
-    r.score == null ? 'оценка неизвестна' : `${r.score}${r.interval != null ? ' ± ' + r.interval : ''}`;
-  return `${COHORTS[r.cohort].name}: ${score} · ${r.effort}${r.fallback ? ' · Default Fallback (не участвует в автовыборе)' : ''} · ${r.date}`;
+    r.score == null
+      ? 'оценка неизвестна'
+      : `${r.score}${unit}${r.interval != null ? ' ± ' + r.interval : ''}`;
+  return [
+    `${COHORTS[r.cohort].name}: ${score}`,
+    r.harness && 'в ' + HARNESS[r.harness],
+    r.effort === 'unspecified' ? 'режим не указан' : r.effort,
+    r.fallback && 'с резервной моделью Anthropic по умолчанию',
+    r.mirror && 'по зеркалу результатов',
+    r.date,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 }
+
 // Public results are a prior, not a promise about the current runtime/effort.
-// Compare only one benchmark snapshot. Unknown models stay unranked.
 export const ROUTING_PRIORITIES = {
   balanced: 'Баланс',
   quality: 'Качество',
   economy: 'Экономия',
   speed: 'Скорость',
 };
+// Which public test answers which kind of request. The first test that covers at least two
+// compatible exact versions decides; the rest are fallbacks.
+export function cohortsFor(task) {
+  if (task.kind === 'visual') return ['vision'];
+  if (task.kind === 'code') return ['codingAgent', ...(task.webdev ? ['webdev'] : []), 'intelligence'];
+  if (task.kind === 'reasoning') return ['intelligence'];
+  return [...(task.extraction ? ['gdppdf'] : []), ...(task.needsTools ? ['automation'] : []), 'text'];
+}
+const DAY = 86400000;
+export function evidenceRow(model, cohort, {effort, records = BENCHMARKS, now = Date.now()} = {}) {
+  const id = benchmarkModel(model);
+  const rows = records.filter(
+    r =>
+      r.model === id &&
+      r.cohort === cohort &&
+      Number.isFinite(r.score) &&
+      now - Date.parse(r.date) >= 0 &&
+      now - Date.parse(r.date) < 90 * DAY &&
+      (!r.harness || typeof model === 'string' || r.harness === model.provider) &&
+      (!effort || r.effort === effort)
+  );
+  // Auto compares each model's best published mode; manual depth compares only the same mode.
+  // Equal scores: prefer the published mode that finished faster, then the cheaper one.
+  return rows.sort(
+    (a, b) =>
+      b.score - a.score ||
+      (a.minutes ?? Infinity) - (b.minutes ?? Infinity) ||
+      (a.cost ?? Infinity) - (b.cost ?? Infinity)
+  )[0];
+}
 export function benchmarkChoice(
   models,
   task,
-  {reasoningMode = 'auto', priority = 'balanced', now = Date.now(), records = BENCHMARKS, prices = {}} = {}
+  {
+    reasoningMode = 'auto',
+    priority = 'balanced',
+    now = Date.now(),
+    records = BENCHMARKS,
+    prices = {},
+    preferEffort = null,
+  } = {}
 ) {
   if (!ROUTING_PRIORITIES[priority]) priority = 'balanced';
-  const cohort =
-    task.kind === 'visual'
-      ? 'vision'
-      : task.webdev
-        ? 'webdev'
-        : ['code', 'reasoning'].includes(task.kind)
-          ? 'intelligence'
-          : 'text';
   const effort = {fast: 'low', normal: 'medium', deep: 'high'}[reasoningMode];
-  const candidates = models.flatMap(model =>
-    records
-      .filter(
-        r =>
-          r.model === model.model &&
-          r.cohort === cohort &&
-          !r.fallback &&
-          Number.isFinite(r.score) &&
-          r.date === COHORTS[cohort].date &&
-          now - Date.parse(r.date) >= 0 &&
-          now - Date.parse(r.date) < 90 * 86400000 &&
-          (!effort || r.effort === effort)
-      )
-      .slice(0, 1)
-      .map(evidence => ({model, evidence}))
-  );
-  if (new Set(candidates.map(c => c.model.model)).size < 2) return null;
+  // Manual depth: only that mode. Auto: first the depth Nexus will actually run, then the best
+  // published mode of each model when fewer than two models were measured at that depth.
+  const efforts = effort ? [effort] : preferEffort ? [preferEffort, null] : [null];
+  let cohort = null,
+    usedEffort = null,
+    candidates = [];
+  search: for (const name of cohortsFor(task))
+    for (const e of efforts) {
+      const found = models.flatMap(model => {
+        const evidence = evidenceRow(model, name, {effort: e, records, now});
+        return evidence ? [{model, evidence}] : [];
+      });
+      if (new Set(found.map(c => benchmarkModel(c.model))).size >= 2) {
+        cohort = name;
+        usedEffort = e;
+        candidates = found;
+        break search;
+      }
+    }
+  if (!cohort) return null;
+  const depthNote = effort
+    ? `Сравнение только при выбранной глубине (${effort}). `
+    : usedEffort
+      ? `Сравнение при той глубине, с которой будет выполнен запрос (${usedEffort}). `
+      : preferEffort
+        ? `Для глубины ${preferEffort} сопоставимых данных нет; сравнены лучшие опубликованные режимы. `
+        : '';
+  const elo = COHORTS[cohort].scale === 'elo';
   candidates.sort((a, b) => b.evidence.score - a.evidence.score || a.model.id.localeCompare(b.model.id));
   const best = candidates[0].evidence;
   const close = candidates.filter(c =>
-    cohort === 'intelligence'
-      ? c.evidence.score >= best.score - (priority === 'quality' ? 0 : 3)
-      : c.evidence.score + (c.evidence.interval || 0) >= best.score - (best.interval || 0)
+    elo
+      ? c.evidence.score + (c.evidence.interval || 0) >= best.score - (best.interval || 0)
+      : c.evidence.score >= best.score - (priority === 'quality' ? 0 : 3)
   );
+  const api = c => c.model.provider.startsWith('api-');
+  const tariff = c => {
+    const p = prices[benchmarkModel(c.model)];
+    return Number.isFinite(p?.input) && Number.isFinite(p?.output) ? p.input * 0.01 + p.output * 0.002 : null;
+  };
   const cost = c =>
-    !c.model.provider.startsWith('api-')
+    !api(c)
       ? null
       : cohort === 'intelligence'
         ? (c.evidence.cost ?? null)
-        : Number.isFinite(prices[c.model.model]?.input) && Number.isFinite(prices[c.model.model]?.output)
-          ? prices[c.model.model].input * 0.01 + prices[c.model.model].output * 0.002
-          : null;
-  const time = c => (cohort === 'intelligence' ? (c.evidence.minutes ?? null) : null);
+        : cohort === 'codingAgent'
+          ? null
+          : tariff(c);
+  const time = c => c.evidence.minutes ?? null;
   let pool = close,
     metric = null,
     explanation =
@@ -201,13 +406,15 @@ export function benchmarkChoice(
   } else if (priority === 'speed' && complete(candidates, time)) {
     pool = candidates;
     metric = time;
-    explanation = 'Минимальное расчётное время в том же тесте; качество может быть ниже.';
+    explanation = 'Минимальное время задачи в том же тесте; качество может быть ниже.';
+  } else if (close.length === 1) {
+    explanation = 'Лучший результат в этом тесте с отрывом больше допуска.';
   } else if (complete(close, cost)) {
     metric = cost;
     explanation = 'Среди близких по качеству вариантов выбран меньший API-расход.';
   } else if (complete(close, time)) {
     metric = time;
-    explanation = 'Среди близких по качеству вариантов выбрано меньшее расчётное время.';
+    explanation = 'Среди близких по качеству вариантов выбрано меньшее время задачи в тесте.';
   }
   if (
     (priority === 'economy' && !complete(candidates, cost)) ||
@@ -246,13 +453,22 @@ export function benchmarkChoice(
         quality: 'Нет сопоставимой оценки',
         cost: null,
         minutes: null,
-        note: evidenceGap(model.model),
+        note: evidenceGap(model),
       });
   }
+  const tolerance =
+    !elo && priority !== 'quality'
+      ? `Допуск баланса — 3 ${COHORTS[cohort].scale === 'percent' ? 'п.п.' : 'балла'}: правило продукта, не статистическая погрешность. `
+      : '';
+  const alias = chosen.model.resolved
+    ? `«${chosen.model.model}» сопоставлен с ${chosen.model.resolved}. `
+    : '';
   return {
     ...chosen,
+    cohort,
+    effort: usedEffort,
     comparison: [describe(chosen), ...alternatives],
-    coverage: `${new Set(candidates.map(c => c.model.model)).size} из ${new Set(models.map(m => m.model)).size}`,
-    reason: `${ROUTING_PRIORITIES[priority]}. ${explanation} Ориентир: ${evidenceText(chosen.evidence)}. ${COHORTS[cohort].limit} ${cohort === 'intelligence' && priority !== 'quality' ? 'Допуск баланса — 3 балла: правило продукта, не статистическая погрешность. ' : ''}Режим Nexus может отличаться; глубина не изменяется. Стоимость подписки неизвестна; API-цена не равна цене успешного запроса.`,
+    coverage: `${new Set(candidates.map(c => benchmarkModel(c.model))).size} из ${new Set(models.map(benchmarkModel)).size}`,
+    reason: `${ROUTING_PRIORITIES[priority]}. ${explanation} ${depthNote}Ориентир: ${evidenceText(chosen.evidence)}. ${alias}${COHORTS[cohort].limit} ${tolerance} Стоимость подписки неизвестна; API-цена не равна цене успешного запроса.`,
   };
 }

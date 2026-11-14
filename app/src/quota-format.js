@@ -44,6 +44,16 @@ export function quotaView(quota, statusline, now = Date.now()) {
     source: useStatusline ? report?.source || 'Claude Code statusLine' : quota?.source || '',
     checking: quota?.status === 'checking',
     error: quota?.status === 'error',
+    // Codex Business/Enterprise may report credits instead of usage windows; never shown as a percentage.
+    credits:
+      !useStatusline &&
+      (quota?.creditsUnlimited === true || /^-?\d+(\.\d+)?$/.test(quota?.creditsBalance ?? ''))
+        ? {
+            unlimited: quota.creditsUnlimited === true,
+            balance: quota.creditsUnlimited === true ? null : Number(quota.creditsBalance),
+          }
+        : null,
+    plan: !useStatusline && typeof quota?.planType === 'string' ? quota.planType : null,
   };
 }
 

@@ -11,6 +11,14 @@ export function Quota({quota, statusline, expanded = false, unsupported}) {
         {view.error && view.windows.length > 0 && <small>Не удалось обновить · последние данные</small>}
         {view.stale && !view.error && <small>Последние данные · требуют обновления</small>}
       </div>
+      {view.credits && (
+        <p className="quota-unknown">
+          {view.credits.unlimited
+            ? 'Кредиты: без ограничения'
+            : `Кредиты: ${number.format(view.credits.balance)}`}
+          {view.plan ? ` · тариф ${view.plan}` : ''}
+        </p>
+      )}
       {view.windows.length > 0 ? (
         <div className="quota-windows">
           {view.windows.map(window => (
@@ -46,7 +54,7 @@ export function Quota({quota, statusline, expanded = false, unsupported}) {
             </div>
           ))}
         </div>
-      ) : (
+      ) : view.credits ? null : (
         <p className="quota-unknown">
           {view.checking
             ? 'Получаем данные от провайдера…'

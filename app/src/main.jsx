@@ -235,8 +235,9 @@ function App() {
     selection: modelChoice,
   };
   const routePreview = routingAdvice(chatDraft, routeOptions);
-  const teamEnabled = !!chats.find(c => c.id === activeChat)?.teamEnabled;
-  const teamPreview = teamPlan(chatDraft, routeOptions, teamEnabled);
+  const activeChatRow = chats.find(c => c.id === activeChat);
+  const teamMode = activeChatRow?.teamMode || (activeChatRow?.teamEnabled ? 'team' : 'auto');
+  const teamPreview = teamPlan(chatDraft, routeOptions, teamMode);
   const [browserState, setBrowserState] = useState(null),
     [browserBusy, setBrowserBusy] = useState(false),
     [browserError, setBrowserError] = useState('');
@@ -317,12 +318,12 @@ function App() {
       setBrowserError(String(e));
     }
   }
-  async function saveTeamEnabled(value) {
+  async function saveTeamMode(mode) {
     if (!activeChat || modelSaving || chatSending) return;
     const chatId = activeChat;
     setModelSaving(true);
     try {
-      const saved = await invoke('save_chat_team', {chatId, enabled: value});
+      const saved = await invoke('save_chat_team', {chatId, enabled: mode === 'team', mode});
       setChats(rows => rows.map(c => (c.id === chatId ? saved : c)));
     } catch (e) {
       setProjectError(String(e));
@@ -1146,7 +1147,7 @@ function App() {
           (replyTo ? 'Контекст цитаты: ' + replyTo.content.slice(0, 3000).replace(/\n/g, ' ') + '\n' : '') +
             input,
           routeOptions,
-          teamEnabled
+          teamMode
         );
     if (team?.error) {
       setProjectError(team.error);
@@ -1229,13 +1230,15 @@ function App() {
             executionMode,
             teamAutoPlan: !!team?.autoPlan,
             teamSteps: team?.steps?.length
-              ? team.steps.map(({id, title, prompt, dependsOn, modelChoice, reason}) => ({
+              ? team.steps.map(({id, title, prompt, dependsOn, modelChoice, reason, effort, kind}) => ({
                   id,
                   title,
                   prompt,
                   dependsOn,
                   modelChoice,
                   reason,
+                  ...(effort ? {effort} : {}),
+                  ...(kind ? {kind} : {}),
                 }))
               : null,
           });
@@ -1440,6 +1443,10 @@ function App() {
     const acct = accounts.find(a => a.id === id);
     if (acct?.provider === 'claude') {
       await statuslineRead(id);
+      // Without a fresh reading Claude Code is asked once (at most every 10 minutes) for its limits.
+      invoke('claude_limits_probe', {id})
+        .then(ran => ran && statuslineRead(id))
+        .catch(() => {});
       return;
     }
     setQuotaReports(s => ({...s, [id]: {...s[id], status: 'checking', detail: 'Checking provider...'}}));
@@ -2419,10 +2426,10 @@ function App() {
                           priorityLabel: ROUTING_PRIORITIES[routingPriority],
                           reasoning: reasoningMode,
                           reasoningLabel: REASONING_LABELS[reasoningMode],
-                          team: teamEnabled,
+                          team: teamMode === 'team',
                           browser: browserSummary(browserMode),
                         })}
-                        fullSummary={`Приоритет: ${ROUTING_PRIORITIES[routingPriority]} · Глубина: ${REASONING_LABELS[reasoningMode]} · ${teamEnabled ? 'Команда' : 'Один агент'} · Браузер: ${browserSummary(browserMode) || 'выключен'}`}
+                        fullSummary={`Приоритет: ${ROUTING_PRIORITIES[routingPriority]} · Глубина: ${REASONING_LABELS[reasoningMode]} · ${{auto: 'Исполнители: авто', team: 'Команда', single: 'Один агент'}[teamMode]} · Браузер: ${browserSummary(browserMode) || 'выключен'}`}
                       >
                         <ParamRow
                           label="Приоритет автовыбора"
@@ -2476,15 +2483,16 @@ function App() {
                         </ParamRow>
                         <ParamRow
                           label="Исполнители"
-                          hint="«Команда» делит запрос на 2–4 этапа: это дополнительные вызовы и расход квоты."
+                          hint="«Авто» делит на части только составные запросы при автоматическом выборе модели и отдаёт каждую часть лучшей для неё модели. «Команда» делит всегда. Каждая часть — отдельный вызов и расход квоты."
                         >
                           <CustomSelect
                             className="reasoning-mode"
                             aria-label="Исполнители запроса"
-                            value={teamEnabled ? 'team' : 'single'}
+                            value={teamMode}
                             disabled={chatSending || modelSaving || !activeChat}
-                            onChange={e => saveTeamEnabled(e.target.value === 'team')}
+                            onChange={e => saveTeamMode(e.target.value)}
                           >
+                            <option value="auto">Авто</option>
                             <option value="single">Один агент</option>
                             <option value="team">Команда</option>
                           </CustomSelect>

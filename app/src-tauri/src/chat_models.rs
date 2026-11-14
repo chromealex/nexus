@@ -14,7 +14,18 @@ pub struct Choice {
     pub model: String,
     pub is_default: bool,
     pub images: Option<bool>,
+    /// Exact version a Claude Code alias resolves to (official alias table), when no
+    /// provider/env override can change it. Benchmarks are matched by this ID only.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub resolved: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub resolved_note: Option<String>,
+    /// Why this model cannot be chosen right now (shown in the picker); None = available.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub unavailable: Option<String>,
 }
+/// Claude Fable 5.2 — exact model ID accepted by Claude Code next to the haiku/sonnet/opus aliases.
+pub const FABLE_5_2: &str = "claude-fable-5-2";
 static CHOICES: LazyLock<Mutex<Vec<Choice>>> = LazyLock::new(|| Mutex::new(Vec::new()));
 fn valid_model(model: &str) -> bool {
     !model.is_empty()
@@ -33,6 +44,9 @@ fn parse_models(data: &Value) -> Vec<Choice> {
                 return None;
             }
             Some(Choice {
+                resolved: None,
+                resolved_note: None,
+                unavailable: None,
                 id: format!("codex/{model}"),
                 label: format!("Codex · {}", v["displayName"].as_str().unwrap_or(model)),
                 provider: "codex".into(),
@@ -103,14 +117,98 @@ async fn codex_models(config: &str) -> Result<Vec<Choice>, String> {
     let _ = child.wait().await;
     result
 }
+/// Claude Code docs (code.claude.com/docs/en/model-config), alias table for the Anthropic API.
+pub(crate) const CLAUDE_ALIAS_DATE: &str = "2026-11-14";
+pub(crate) fn claude_alias_target(alias: &str) -> Option<&'static str> {
+    match alias {
+        "haiku" => Some("claude-haiku-5-5"),
+        "sonnet" => Some("claude-sonnet-5-5"),
+        "opus" => Some("claude-opus-5-5"),
+        _ => None,
+    }
+}
+/// Settings that make aliases resolve to another version (other providers, pinned models).
+const CLAUDE_ALIAS_OVERRIDES: [&str; 9] = [
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL",
+    "ANTHROPIC_MODEL",
+    "ANTHROPIC_BASE_URL",
+    "CLAUDE_CODE_USE_BEDROCK",
+    "CLAUDE_CODE_USE_VERTEX",
+    "CLAUDE_CODE_USE_FOUNDRY",
+    "CLAUDE_CODE_USE_ANTHROPIC_AWS",
+];
+fn override_in(env: &Value) -> Option<&'static str> {
+    CLAUDE_ALIAS_OVERRIDES.iter().copied().find(|k| {
+        env.get(*k)
+            .map(|v| !v.is_null() && v != "" && v != "0")
+            .unwrap_or(false)
+    })
+}
+/// Only names of settings are reported, never their values.
+pub(crate) fn claude_alias_override_from(
+    process_env: &[(String, String)],
+    settings: &[Value],
+) -> Option<String> {
+    if let Some((k, _)) = process_env
+        .iter()
+        .find(|(k, v)| CLAUDE_ALIAS_OVERRIDES.contains(&k.as_str()) && !v.is_empty() && v != "0")
+    {
+        return Some(format!(
+            "Алиас переопределён переменной {k}; точная версия неизвестна, внешние сравнения не применяются"
+        ));
+    }
+    for s in settings {
+        if let Some(k) = override_in(&s["env"]) {
+            return Some(format!("Алиас переопределён в settings.json ({k}); точная версия неизвестна, внешние сравнения не применяются"));
+        }
+        if s.get("model")
+            .and_then(Value::as_str)
+            .is_some_and(|m| !m.is_empty())
+            && s.get("availableModels").is_some()
+        {
+            return Some(
+                "В settings.json задан список моделей организации; точная версия алиасов не подтверждена"
+                    .into(),
+            );
+        }
+    }
+    None
+}
+fn claude_alias_override(config_dirs: &[String]) -> Option<String> {
+    let env: Vec<(String, String)> = std::env::vars().collect();
+    let settings: Vec<Value> = config_dirs
+        .iter()
+        .filter_map(|d| std::fs::read_to_string(std::path::Path::new(d).join("settings.json")).ok())
+        .filter_map(|t| serde_json::from_str(&t).ok())
+        .collect();
+    claude_alias_override_from(&env, &settings)
+}
 #[tauri::command]
 pub async fn list_chat_models() -> Result<Vec<Choice>, String> {
     let candidates = super::routing_candidates().await;
     let mut result = Vec::new();
     let mut codex_error = None;
     if candidates.iter().any(|c| c.account.provider == "claude") {
+        let claude_dirs: Vec<String> = candidates
+            .iter()
+            .filter(|c| c.account.provider == "claude")
+            .map(|c| c.account.config_dir.clone())
+            .collect();
+        let override_note = claude_alias_override(&claude_dirs);
         for (model, label) in [("haiku", "Haiku"), ("sonnet", "Sonnet"), ("opus", "Opus")] {
+            let (resolved, resolved_note) = match &override_note {
+                None => (
+                    claude_alias_target(model).map(String::from),
+                    Some(format!("Алиас Claude Code → {} по официальной таблице алиасов для Anthropic API ({CLAUDE_ALIAS_DATE})", claude_alias_target(model).unwrap_or("?"))),
+                ),
+                Some(note) => (None, Some(note.clone())),
+            };
             result.push(Choice {
+                unavailable: None,
+                resolved,
+                resolved_note,
                 id: format!("claude/{model}"),
                 label: format!("Claude · {label}"),
                 provider: "claude".into(),
@@ -119,6 +217,18 @@ pub async fn list_chat_models() -> Result<Vec<Choice>, String> {
                 is_default: model == "sonnet",
             });
         }
+        // Fable is an exact version, not an alias; on some plans it uses separately bought credits.
+        result.push(Choice {
+            unavailable: None,
+            resolved: Some(FABLE_5_2.into()),
+            resolved_note: Some("Точная версия модели, не алиас".into()),
+            id: format!("claude/{FABLE_5_2}"),
+            label: "Claude · Fable 5.2".into(),
+            provider: "claude".into(),
+            model: FABLE_5_2.into(),
+            images: Some(true),
+            is_default: false,
+        });
     }
     for candidate in candidates.iter().filter(|c| c.account.provider == "codex") {
         match codex_models(&candidate.account.config_dir).await {
@@ -135,6 +245,9 @@ pub async fn list_chat_models() -> Result<Vec<Choice>, String> {
     for a in super::custom_agents::load()? {
         if a.verified {
             result.push(Choice {
+                resolved: None,
+                resolved_note: None,
+                unavailable: None,
                 id: format!("{}/default", a.id),
                 label: format!("{} · Модель агента", a.manifest.name),
                 provider: a.id,
@@ -240,5 +353,23 @@ mod tests {
             .err()
             .unwrap()
             .contains("ручном"));
+    }
+}
+
+#[cfg(test)]
+mod alias_tests {
+    use super::*;
+    #[test]
+    fn aliases_resolve_only_without_overrides() {
+        assert_eq!(claude_alias_target("opus"), Some("claude-opus-5-5"));
+        assert_eq!(claude_alias_target("default"), None);
+        assert!(claude_alias_override_from(&[], &[json!({"theme":"dark"})]).is_none());
+        let env = vec![("CLAUDE_CODE_USE_BEDROCK".to_string(), "1".to_string())];
+        assert!(claude_alias_override_from(&env, &[])
+            .unwrap()
+            .contains("CLAUDE_CODE_USE_BEDROCK"));
+        let settings = json!({"env":{"ANTHROPIC_DEFAULT_OPUS_MODEL":"secret-arn"}});
+        let note = claude_alias_override_from(&[], &[settings]).unwrap();
+        assert!(note.contains("ANTHROPIC_DEFAULT_OPUS_MODEL") && !note.contains("secret-arn"));
     }
 }

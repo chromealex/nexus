@@ -6,8 +6,8 @@ export function TeamPlanPreview({plan, integrator}) {
       <summary>
         {plan.steps.length
           ? plan.autoPlan
-            ? 'Команда · разбиение по контексту'
-            : `Команда · ${plan.steps.length} подзадачи + итог`
+            ? `${plan.mode === 'auto' ? 'Авто' : 'Команда'} · разбиение по контексту на ${plan.steps.length} типа работ`
+            : `${plan.mode === 'auto' ? 'Авто' : 'Команда'} · ${plan.steps.length} подзадачи + итог`
           : 'Команда · один исполнитель'}
       </summary>
       <p>{plan.reason}</p>
@@ -17,8 +17,16 @@ export function TeamPlanPreview({plan, integrator}) {
           <li key={step.id}>
             <strong>{step.title}</strong>
             <p>
-              {step.label || 'Нет исполнителя'} ·{' '}
-              {step.dependsOn.length ? `после этапа ${step.dependsOn.join(', ')}` : 'независимый этап'}
+              {step.label || 'Нет исполнителя'}
+              {step.effort
+                ? ` · глубина ${{low: 'низкая', medium: 'средняя', high: 'высокая'}[step.effort]}`
+                : ''}{' '}
+              ·{' '}
+              {plan.autoPlan
+                ? 'для этапов этого типа'
+                : step.dependsOn.length
+                  ? `после этапа ${step.dependsOn.join(', ')}`
+                  : 'независимый этап'}
             </p>
             <small>{step.reason}</small>
           </li>

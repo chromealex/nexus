@@ -313,6 +313,7 @@ pub fn run() {
             nexus_diagnostics,
             claude_statusline_install,
             claude_statusline_read,
+            claude_limits_probe,
             claude_statusline_remove,
             adaptive_plan,
             adaptive_execute_step,
@@ -365,6 +366,7 @@ mod system_project_tests {
         )
         .unwrap();
         assert!(!c.team_enabled);
+        assert_eq!(project_store::team_mode(&c), "auto");
         assert!(!c.unread);
         assert!(!c.running);
         assert!(c.folder_id.is_none());
@@ -376,6 +378,7 @@ mod system_project_tests {
         a.model_choice = Some("agent-auto:codex".into());
         let restored: NexusChat = serde_json::from_value(serde_json::to_value(&a).unwrap()).unwrap();
         assert!(restored.team_enabled);
+        assert_eq!(project_store::team_mode(&restored), "team");
         assert_eq!(restored.routing_priority.as_deref(), Some("economy"));
         assert_eq!(restored.model_choice.as_deref(), Some("agent-auto:codex"));
         assert!(c.model_choice.is_none());
