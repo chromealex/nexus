@@ -1,4 +1,5 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {PathPick} from './path-pick.jsx';
 import {
   Folder,
   FileText,
@@ -153,6 +154,13 @@ export function ContextSources({contexts, setContexts, onFiles, busy, pendingNot
                 rows={s.kind === 'note' ? 4 : 1}
                 onPaste={s.kind === 'url' ? e => pasteLinks(i, e) : undefined}
                 onChange={e => patch(i, {value: e.target.value})}
+              />
+            )}
+            {(s.kind === 'directory' || s.kind === 'file') && (
+              <PathPick
+                kind={s.kind === 'directory' ? 'folder' : 'file'}
+                prompt={s.kind === 'directory' ? 'Папка для контекста' : 'Файл для контекста'}
+                onPick={path => patch(i, {value: path})}
               />
             )}
           </div>

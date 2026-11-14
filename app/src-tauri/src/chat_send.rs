@@ -218,11 +218,14 @@ pub(crate) async fn chat_send(
     let reasoning_mode = reasoning_mode.unwrap_or_else(|| "auto".into());
     let request_text = continuation.as_ref().map(|c| c.request.as_str()).unwrap_or(&text);
     let effort = chat_continuation::effort(&reasoning_mode, complexity(request_text))?;
-    let work = match execution_mode.as_deref().unwrap_or("discuss") {
+    let mode_name = execution_mode.as_deref().unwrap_or("discuss");
+    let work = match mode_name {
         "discuss" => false,
-        "execute" => true,
+        // "auto" = «Выполнение · без разрешений»: the same tool loop, requests approved without a card.
+        "execute" | "auto" => true,
         _ => return Err("Неизвестный режим работы".into()),
     };
+    let auto_approve = mode_name == "auto";
     if work
         && manual_model
             .as_ref()
@@ -325,6 +328,7 @@ pub(crate) async fn chat_send(
     let control = &*run.0;
     control.set_effort(effort);
     control.set_manual_model(manual_model.is_some());
+    control.set_auto_approve(auto_approve);
     // The browser gateway lives exactly as long as this generation; dropping it closes the permission channel.
     let _browser_session = match browser {
         Some(prepared) => {

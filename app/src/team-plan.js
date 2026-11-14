@@ -4,7 +4,7 @@ import {routingAdvice} from './agent-catalog.js';
 export function teamPlan(text, options, enabled = false) {
   if (!enabled || !text.trim()) return null;
   const scope = options.selection || 'auto',
-    execute = options.executionMode === 'execute';
+    execute = options.executionMode === 'execute' || options.executionMode === 'auto';
   const items = text
     .split('\n')
     .map(line => line.match(/^\s*(?:[-*•]|\d+[.)])\s+(.+)$/)?.[1])

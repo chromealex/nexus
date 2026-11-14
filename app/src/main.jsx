@@ -8,6 +8,7 @@ import {mergeLatestMessages, prependMessages} from './chat-history.js';
 import {ComposerPlan} from './composer-plan.jsx';
 import {Toaster, useToastOn} from './toaster.jsx';
 import {notify} from './toasts.js';
+import {installScrollFades} from './scroll-fades.js';
 import {ConnectionsDialog} from './connections-dialog.jsx';
 import {ProjectBoard} from './project-board.jsx';
 import {WelcomeScreen} from './welcome-screen.jsx';
@@ -125,7 +126,7 @@ function App() {
     [providerRows, setProviderRows] = useState([]),
     [connectionTarget, setConnectionTarget] = useState(null),
     [routeOffer, setRouteOffer] = useState(null),
-    [executionMode, setExecutionMode] = useState('discuss');
+    [executionMode, setExecutionMode] = useState('execute');
   const routeApproval = useRef(null);
   const [planOpen, setPlanOpen] = useState(false),
     [navCollapsed, setNavCollapsed] = useState(false),
@@ -977,6 +978,7 @@ function App() {
     });
     setExportNote(null);
   }, [exportNote]);
+  useEffect(() => installScrollFades(), []);
   useToastOn(projectError, () => setProjectError(''), 'error', {
     label: 'Подключения',
     run: () => setOpen(true),
@@ -2507,12 +2509,16 @@ function App() {
                         </div>
                       </ComposerParams>
                       <CustomSelect
-                        className="reasoning-mode"
                         aria-label="Режим работы"
                         title={
-                          executionMode === 'execute'
-                            ? 'Выполнение: агент меняет файлы и запускает команды с вашим подтверждением, затем Nexus предлагает запустить проверки проекта (тесты, линтер, типы) — тоже с подтверждением'
-                            : 'Обсуждение: агент отвечает и читает файлы, ничего не меняя'
+                          executionMode === 'auto'
+                            ? 'Выполнение без разрешений: агент меняет файлы, запускает команды и работает в браузере чата без вопросов; проверки проекта запускаются сами. Действия в вашем Chrome со входами всё равно подтверждаются.'
+                            : executionMode === 'execute'
+                              ? 'Выполнение: агент меняет файлы и запускает команды с вашим подтверждением, затем Nexus предлагает запустить проверки проекта (тесты, линтер, типы) — тоже с подтверждением'
+                              : 'Обсуждение: агент отвечает и читает файлы, ничего не меняя'
+                        }
+                        className={
+                          'reasoning-mode execution-mode' + (executionMode === 'auto' ? ' is-auto' : '')
                         }
                         value={executionMode}
                         disabled={chatSending}
@@ -2520,6 +2526,7 @@ function App() {
                       >
                         <option value="discuss">Обсуждение</option>
                         <option value="execute">Выполнение · с разрешениями</option>
+                        <option value="auto">Выполнение · без разрешений</option>
                       </CustomSelect>
                       <span>{filesBusy ? 'Добавляю файлы…' : 'Enter — отправить'}</span>
                     </div>

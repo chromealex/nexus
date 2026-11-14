@@ -27,6 +27,7 @@ mod gemini_auth;
 mod installer;
 mod native_install;
 mod orchestration;
+mod path_picker;
 mod process_group;
 mod project_board;
 mod project_context;
@@ -231,6 +232,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             browser_tools::browser_tools_status,
             system_open::open_system_target,
+            path_picker::pick_path,
             file_preview::read_project_file,
             file_preview::reveal_project_file,
             browser_host::browser_pane_open,

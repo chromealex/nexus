@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import {AgentIcon} from './agent-icon.jsx';
 import {useToastOn} from './toaster.jsx';
+import {PathPick} from './path-pick.jsx';
 import {CATALOG, TAG_NAMES, connectionState} from './agent-catalog.js';
 const active = phase => ['queued', 'checking', 'installing', 'verifying'].includes(phase);
 const phaseLabel = {
@@ -561,13 +562,16 @@ export function ConnectionsDialog({
                 <>
                   <label>
                     Исполняемый файл
-                    <input
-                      required
-                      value={executable}
-                      maxLength={500}
-                      onChange={e => setExecutable(e.target.value)}
-                      placeholder="my-agent или /полный/путь/к/агенту"
-                    />
+                    <span className="path-field">
+                      <input
+                        required
+                        value={executable}
+                        maxLength={500}
+                        onChange={e => setExecutable(e.target.value)}
+                        placeholder="my-agent или /полный/путь/к/агенту"
+                      />
+                      <PathPick kind="executable" prompt="Исполняемый файл агента" onPick={setExecutable} />
+                    </span>
                   </label>
                   <label>
                     Аргументы · JSON

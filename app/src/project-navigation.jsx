@@ -1,5 +1,6 @@
 import {CustomSelect} from './custom-select.jsx';
 import {useToastOn} from './toaster.jsx';
+import {PathPick} from './path-pick.jsx';
 import {ProjectPermissions} from './project-permissions.jsx';
 import {folderChatCount, projectChatCount} from './navigation-counts.js';
 import {countLabel} from './locale-format.js';
@@ -839,13 +840,16 @@ function ProjectEditor({editor, project, folders, chats, onClose, onSaved}) {
             {type === 'new-project' && (
               <label>
                 Рабочая папка
-                <input
-                  aria-label="Рабочая папка"
-                  placeholder="/Users/you/Projects/MyProject"
-                  value={workspace}
-                  onChange={e => setWorkspace(e.target.value)}
-                  required
-                />
+                <span className="path-field">
+                  <input
+                    aria-label="Рабочая папка"
+                    placeholder="/Users/you/Projects/MyProject"
+                    value={workspace}
+                    onChange={e => setWorkspace(e.target.value)}
+                    required
+                  />
+                  <PathPick kind="folder" prompt="Рабочая папка проекта" onPick={setWorkspace} />
+                </span>
                 <small>Основной локальный каталог проекта</small>
               </label>
             )}

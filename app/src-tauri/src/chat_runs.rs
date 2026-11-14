@@ -26,6 +26,7 @@ pub struct Control {
     log: Mutex<String>,
     created: Instant,
     browser: Mutex<Option<super::browser_tools::Spec>>,
+    auto_approve: AtomicBool,
 }
 impl Control {
     fn new(chat_id: String, request_id: String) -> Self {
@@ -47,6 +48,7 @@ impl Control {
             log: Mutex::new(String::new()),
             created: Instant::now(),
             browser: Mutex::new(None),
+            auto_approve: AtomicBool::new(false),
         }
     }
     pub fn specialist(chat: &str, effort: String) -> Self {
@@ -58,6 +60,14 @@ impl Control {
     }
     pub fn is_specialist(&self) -> bool {
         self.specialist
+    }
+    /// «Выполнение · без разрешений»: agent requests of this generation are approved without a card.
+    pub fn set_auto_approve(&self, value: bool) {
+        self.auto_approve
+            .store(value && !self.specialist, Ordering::SeqCst)
+    }
+    pub fn auto_approve(&self) -> bool {
+        self.auto_approve.load(Ordering::SeqCst)
     }
     // Browser gateway of this generation; never set for read-only team specialists.
     pub fn set_browser(&self, spec: Option<super::browser_tools::Spec>) {
@@ -283,6 +293,16 @@ pub fn is_running(chat: &str) -> bool {
         .map(|runs| {
             runs.values()
                 .any(|c| c.chat_id == chat && c.started.load(Ordering::SeqCst))
+        })
+        .unwrap_or(false)
+}
+
+/// True while this chat runs a generation in «Выполнение · без разрешений».
+pub fn auto_approved(chat: &str) -> bool {
+    RUNS.lock()
+        .map(|runs| {
+            runs.values()
+                .any(|c| c.chat_id == chat && c.started.load(Ordering::SeqCst) && c.auto_approve())
         })
         .unwrap_or(false)
 }

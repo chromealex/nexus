@@ -79,6 +79,17 @@ fn scope(kind: &str, params: &Value) -> Option<(Value, String)> {
         _ => None,
     }
 }
+pub(crate) fn auto_approves(kind: &str, params: &Value) -> bool {
+    !(kind == "browser" && params["mode"] == "chrome")
+}
+fn auto_label(kind: &str, params: &Value) -> String {
+    let text = params["summary"]
+        .as_str()
+        .or_else(|| params["command"].as_str())
+        .or_else(|| params["tool_name"].as_str())
+        .unwrap_or(kind);
+    text.chars().take(120).collect()
+}
 #[tauri::command]
 pub fn reset_project_permissions(project_id: String) -> Result<(), String> {
     let _guard = GRANTS_LOCK.lock().map_err(|_| "Permission storage unavailable")?;
@@ -174,6 +185,15 @@ pub async fn ask(
     kind: &str,
     params: Value,
 ) -> Result<bool, String> {
+    // «Выполнение · без разрешений» approves without a card. Actions in the user's own Chrome (personal
+    // accounts) are still confirmed one by one.
+    if auto_approves(kind, &params) && super::chat_runs::auto_approved(chat) {
+        let _ = app.emit(
+            "chat-progress",
+            json!({"chatId":chat,"stage":format!("Разрешено без вопроса: {}", auto_label(kind, &params))}),
+        );
+        return Ok(true);
+    }
     let project = super::load_project_store()?
         .chats
         .into_iter()
@@ -328,6 +348,9 @@ mod persistent_scope_tests {
         );
         assert!(scope("unknown", &json!({})).is_none());
         assert!(scope("browser", &json!({"mode":"chrome","tool":"browser_click"})).is_none());
+        assert!(!auto_approves("browser", &json!({"mode":"chrome"})));
+        assert!(auto_approves("browser", &json!({"mode":"builtin"})));
+        assert!(auto_approves("item/commandExecution/requestApproval", &json!({})));
         let g = |kind: &str, scope: Value| Grant {
             project: "p".into(),
             provider: "browser".into(),

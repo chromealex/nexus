@@ -77,29 +77,34 @@ function FlatSelect({value, onChange, children, disabled = false, className = ''
     const place = () => {
       const r = trigger.current?.getBoundingClientRect();
       if (!r) return;
-      const width = Math.min(Math.max(r.width, 220), window.innerWidth - 16),
-        below = window.innerHeight - r.bottom - 12,
-        above = r.top - 12,
-        desired = Math.min(300, options.length * 36 + 12),
-        up = below < desired && above > below,
-        maxHeight = Math.max(60, Math.min(300, up ? above : below));
-      // A dialog with transform/filter/backdrop-filter becomes the containing block for position:fixed,
-      // so viewport coordinates are shifted by the dialog's own offset.
+      // A dialog with transform/filter/backdrop-filter becomes the containing block for position:fixed
+      // (and clips with overflow:hidden), so the list is placed and sized inside that dialog.
       const host = trigger.current?.closest('[role="dialog"]'),
         style = host && getComputedStyle(host),
-        contained =
+        contained = !!(
           style &&
           (style.transform !== 'none' ||
             style.filter !== 'none' ||
             (style.backdropFilter && style.backdropFilter !== 'none') ||
             (style.webkitBackdropFilter && style.webkitBackdropFilter !== 'none') ||
-            /paint|layout|strict|content/.test(style.contain || '')),
-        box = contained ? host.getBoundingClientRect() : {left: 0, top: 0},
-        scrollX = contained ? host.scrollLeft : 0,
-        scrollY = contained ? host.scrollTop : 0;
+            /paint|layout|strict|content/.test(style.contain || ''))
+        ),
+        box = contained
+          ? host.getBoundingClientRect()
+          : {left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight};
+      const top = Math.max(0, box.top),
+        bottom = Math.min(window.innerHeight, box.bottom),
+        width = Math.min(Math.max(r.width, 220), box.right - box.left - 16),
+        below = bottom - r.bottom - 12,
+        above = r.top - top - 12,
+        desired = Math.min(300, options.length * 36 + 12),
+        up = below < desired && above > below,
+        maxHeight = Math.max(60, Math.min(300, up ? above : below)),
+        left = Math.max(box.left + 8, Math.min(r.left, box.right - width - 8)),
+        y = up ? Math.max(top + 8, r.top - 6 - Math.min(desired, maxHeight)) : r.bottom + 6;
       setPosition({
-        left: Math.max(8, Math.min(r.left, window.innerWidth - width - 8)) - box.left + scrollX,
-        top: (up ? Math.max(8, r.top - 6 - Math.min(desired, maxHeight)) : r.bottom + 6) - box.top + scrollY,
+        left: contained ? left - box.left + host.scrollLeft : left,
+        top: contained ? y - box.top + host.scrollTop : y,
         width,
         maxHeight,
       });

@@ -192,14 +192,14 @@ export function classifyTask(
     webdev,
     hasFiles,
     hasImages,
-    needsTools: executionMode === 'execute' || hasFiles || projectInspection,
+    needsTools: executionMode === 'execute' || executionMode === 'auto' || hasFiles || projectInspection,
     reason: projectInspection
       ? 'Нужен агент с доступом к файлам проекта.'
       : hasImages
         ? 'Нужен адаптер с передачей изображений.'
         : hasFiles
           ? 'Нужен доступ к приложенным файлам.'
-          : executionMode === 'execute'
+          : executionMode === 'execute' || executionMode === 'auto'
             ? 'Нужен агент с инструментами выполнения.'
             : complex
               ? 'Запрос содержит несколько этапов.'
