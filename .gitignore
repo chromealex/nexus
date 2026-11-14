@@ -26,3 +26,10 @@
 /.backups/
 # Compatibility link to app/ for tools that still use the old path
 /v0.20.2
+
+# Signing material never goes into git
+.signing/
+*.p12
+*.p8
+*.cer
+*.mobileprovision
