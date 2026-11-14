@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {folderChatCount,projectChatCount} from '../src/navigation-counts.js';
+const folders=[{id:'a',projectId:'p'},{id:'b',projectId:'p',parentId:'a'},{id:'foreign',projectId:'other',parentId:'a'}];
+let chats=[{id:'1',projectId:'p',folderId:'a'},{id:'2',projectId:'p',folderId:'b'},{id:'3',projectId:'p',folderId:'a',parentChatId:'1'},{id:'4',projectId:'other',folderId:'foreign'},{id:'5',projectId:'p',folderId:'a',archived:true},{id:'6',projectId:'p',folderId:'a',deletedAt:'now'}];
+assert.equal(folderChatCount(chats,folders,'p','a'),3);assert.equal(folderChatCount(chats,folders,'p','b'),1);assert.equal(projectChatCount(chats,'p'),3);
+chats.push({id:'new',projectId:'p',folderId:'a'});assert.equal(folderChatCount(chats,folders,'p','a'),4);
+chats=chats.map(c=>c.id==='new'?{...c,folderId:null}:c);assert.equal(folderChatCount(chats,folders,'p','a'),3);assert.equal(projectChatCount(chats,'p'),4);
+chats=chats.map(c=>c.id==='1'||c.id==='3'?{...c,archived:true}:c);assert.equal(folderChatCount(chats,folders,'p','a'),1);
+chats=chats.map(c=>c.id==='1'||c.id==='3'?{...c,archived:false}:c);assert.equal(folderChatCount(chats,folders,'p','a'),3);
+assert.equal(folderChatCount(chats,[...folders,{id:'a',projectId:'p',parentId:'b'}],'p','a'),3);
+console.log('Navigation counts: nested chats/folders, ownership, create, move, archive, restore and cycles passed.');

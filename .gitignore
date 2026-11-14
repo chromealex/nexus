@@ -1,0 +1,24 @@
+# Generated dependencies and builds
+**/node_modules/
+**/target/
+**/dist/
+**/.DS_Store
+*.dmg
+*.app/
+*.log
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+**/*.pem
+**/*.key
+**/credentials.json
+**/auth.json
+# Downloaded tooling; source assets stay versioned
+/add-on-mpfb-*.zip
+# Generated Tauri schemas and local agent backups
+**/src-tauri/gen/schemas/
+**/.nexus-backup-*/

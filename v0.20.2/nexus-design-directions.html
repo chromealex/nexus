@@ -1,0 +1,101 @@
+<div id="nexus-design-directions">
+  <style>
+    #nexus-design-directions{--nx-accent:#a2c8d9;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#e7e7e7}
+    #nexus-design-directions *{box-sizing:border-box}
+    #nexus-design-directions .nx-window{height:560px;display:grid;grid-template-columns:160px minmax(0,1fr);grid-template-rows:38px minmax(0,1fr);background:#202020;border:1px solid #444;border-radius:15px;overflow:hidden;font-size:12px}
+    #nexus-design-directions .nx-chrome{grid-column:1/-1;display:flex;align-items:center;gap:7px;padding:0 14px;color:#888;font-size:11px;border-bottom:1px solid #303030}
+    #nexus-design-directions .nx-light{width:7px;height:7px;border-radius:50%;background:#777}
+    #nexus-design-directions .nx-chrome strong{margin:auto;font-size:10px;font-weight:500;letter-spacing:3px;color:#aaa}
+    #nexus-design-directions .nx-nav{background:#191919;padding:18px 10px;display:flex;flex-direction:column;gap:7px;min-width:0}
+    #nexus-design-directions .nx-nav label{font-size:10px;color:#777;margin:18px 8px 7px;letter-spacing:.4px}
+    #nexus-design-directions button{font:inherit;cursor:pointer;border:0;color:#bbb;background:transparent;padding:9px 8px;border-radius:7px;display:flex;align-items:center;gap:8px;text-align:left;min-width:0}
+    #nexus-design-directions button:hover{background:#353535;color:#eee}
+    #nexus-design-directions button:focus-visible{outline:2px solid var(--nx-accent);outline-offset:2px}
+    #nexus-design-directions .nx-nav button{font-size:11px;width:100%;overflow:hidden;white-space:nowrap}
+    #nexus-design-directions .nx-nav .nx-selected{background:#303030;color:#eee}
+    #nexus-design-directions .nx-nav .nx-sub{padding-left:24px;mask-image:linear-gradient(to right,#000 calc(100% - 18px),transparent)}
+    #nexus-design-directions .nx-nav-bottom{margin-top:auto;border-top:1px solid #333;padding-top:9px}
+    #nexus-design-directions .nx-center{display:flex;flex-direction:column;min-width:0;padding:18px 25px 16px}
+    #nexus-design-directions .nx-topline{display:flex;justify-content:space-between;align-items:center;gap:12px;color:#888;font-size:11px}
+    #nexus-design-directions .nx-topline b{color:#bbb;font-weight:400}
+    #nexus-design-directions .nx-start{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;min-height:0;text-align:center}
+    #nexus-design-directions .nx-start h2{font-size:24px;font-weight:400;letter-spacing:-.5px;margin:17px 0 10px;color:#e7e7e7;line-height:1.25}
+    #nexus-design-directions .nx-start p{font-size:12px;color:#999;line-height:1.7;margin:0;max-width:330px}
+    #nexus-design-directions .nx-kicker{font-size:9px;letter-spacing:3px;color:var(--nx-accent);margin-top:14px}
+    #nexus-design-directions .nx-persona{position:relative;width:130px;height:150px;flex-shrink:0;filter:drop-shadow(0 0 18px #8dc3e226)}
+    #nexus-design-directions .nx-persona:before{content:"";position:absolute;top:15px;left:45px;width:43px;height:59px;border-radius:46% 46% 42% 42%;border:1px solid #a7c9d477;background:repeating-linear-gradient(0deg,transparent 0 3px,#aedbea55 3px 4px),radial-gradient(ellipse at 32% 24%,#b3d8d877,#38657d55);transform:rotate(-7deg)}
+    #nexus-design-directions .nx-persona:after{content:"";position:absolute;top:83px;left:15px;width:104px;height:65px;border-radius:50% 50% 20% 20%;background:repeating-linear-gradient(0deg,transparent 0 3px,#8eb9d055 3px 4px),radial-gradient(ellipse at 50% 0%,#afd4de77,#30455355);mask-image:linear-gradient(#000,transparent)}
+    #nexus-design-directions .nx-orbit{position:absolute;inset:0;border:1px solid #88b5ca22;border-radius:50%;transform:rotate(-20deg) scaleX(.86)}
+    #nexus-design-directions .nx-base{position:absolute;bottom:0;left:22px;width:90px;height:10px;border:1px solid #9fc8d466;border-radius:50%;box-shadow:0 0 20px #8fc4d444}
+    #nexus-design-directions .nx-composer{border:1px solid #444;border-radius:19px;background:#2c2c2c;padding:14px 14px 10px;min-width:0;margin-top:20px}
+    #nexus-design-directions .nx-composer input{font:12px/1.6 inherit;background:transparent;color:#eee;border:0;width:100%;padding:1px 0 15px;outline:0}
+    #nexus-design-directions .nx-compose-tools{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+    #nexus-design-directions .nx-compose-tools button{font-size:10px;padding:4px;color:#999}
+    #nexus-design-directions .nx-compose-tools .nx-send{margin-left:auto;width:27px;height:27px;border-radius:50%;background:#ddd;color:#222;justify-content:center}
+    #nexus-design-directions .nx-hints{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap;justify-content:center}
+    #nexus-design-directions .nx-hints button{border:1px solid #3f3f3f;font-size:10px;padding:8px 9px}
+    #nexus-design-directions .nx-preview-caption{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-top:12px;color:#999;font-size:12px}
+    #nexus-design-directions .nx-preview-caption span{line-height:1.6}
+    #nexus-design-directions .nx-pick{border:1px solid #555;color:#ddd;white-space:nowrap;font-size:11px;flex-shrink:0}
+    #nexus-design-directions .nx-mission{display:grid;grid-template-columns:145px minmax(0,1fr);align-items:center;gap:10px;flex:1;padding:20px 0}
+    #nexus-design-directions .nx-mission h2{font-size:21px;font-weight:400;letter-spacing:-.4px;line-height:1.35;margin:8px 0 13px}
+    #nexus-design-directions .nx-mission p{font-size:11px;color:#999;line-height:1.8;margin:0}
+    #nexus-design-directions .nx-goal{border-left:2px solid var(--nx-accent);padding:0 0 0 13px;margin-top:23px}
+    #nexus-design-directions .nx-goal small{font-size:10px;color:#999;display:block;margin-bottom:6px}
+    #nexus-design-directions .nx-goal strong{font-size:12px;font-weight:400;line-height:1.7}
+    #nexus-design-directions .nx-taskline{display:flex;gap:8px;align-items:center;font-size:10px;color:#aaa;line-height:1.7;margin-top:11px}
+    #nexus-design-directions .nx-dot{width:5px;height:5px;border-radius:50%;background:var(--nx-accent);flex-shrink:0}
+    #nexus-design-directions .nx-taskbar{display:flex;gap:16px;border-top:1px solid #3b3b3b;padding-top:13px;flex-wrap:wrap}
+    #nexus-design-directions .nx-taskbar div{min-width:95px;flex:1;font-size:10px;line-height:1.7;color:#aaa}
+    #nexus-design-directions .nx-taskbar strong{display:block;font-size:10px;font-weight:400;color:#ddd;margin-bottom:6px}
+    #nexus-design-directions .nx-studio{display:grid;grid-template-columns:minmax(0,1fr) 170px;min-width:0;flex:1;min-height:0;margin-top:15px;gap:18px}
+    #nexus-design-directions .nx-chat-body{display:flex;flex-direction:column;min-width:0}
+    #nexus-design-directions .nx-goal-strip{font-size:10px;color:#a8bbc4;border-bottom:1px solid #383838;padding:0 0 12px;display:flex;gap:7px;align-items:center}
+    #nexus-design-directions .nx-mini-avatar{display:flex;align-items:center;gap:8px;margin:25px 0 5px;color:#aaa;font-size:10px}
+    #nexus-design-directions .nx-mini-avatar .nx-persona{transform:scale(.32);transform-origin:center;width:46px;height:43px;margin:-32px 0 0 -34px}
+    #nexus-design-directions .nx-user{align-self:flex-end;background:#303030;border-radius:14px;padding:11px 13px;font-size:11px;line-height:1.7;max-width:90%;margin-top:18px}
+    #nexus-design-directions .nx-agent-text{font-size:11px;color:#bbb;line-height:1.9;margin-top:12px}
+    #nexus-design-directions .nx-activity{font-size:10px;color:#888;margin-top:15px}
+    #nexus-design-directions .nx-studio .nx-composer{margin-top:auto}
+    #nexus-design-directions .nx-worklist{border-left:1px solid #383838;padding:0 0 0 15px;min-width:0}
+    #nexus-design-directions .nx-worklist h3{font-size:11px;font-weight:400;margin:0 0 18px;color:#ccc}
+    #nexus-design-directions .nx-work-item{padding:0 0 17px;margin-bottom:16px;border-bottom:1px solid #383838;font-size:11px;line-height:1.7;color:#bbb}
+    #nexus-design-directions .nx-work-item small{display:block;color:#888;font-size:10px;margin-bottom:5px}
+    #nexus-design-directions .nx-work-item .nx-working{color:var(--nx-accent)}
+    @media(max-width:650px){#nexus-design-directions .nx-window{grid-template-columns:120px minmax(0,1fr);height:600px}#nexus-design-directions .nx-center{padding:16px 15px}#nexus-design-directions .nx-nav{padding:14px 6px}#nexus-design-directions .nx-nav button{font-size:10px;gap:6px}#nexus-design-directions .nx-mission{grid-template-columns:1fr;padding:0;justify-items:center;gap:0}#nexus-design-directions .nx-mission .nx-persona{transform:scale(.7);margin:-20px 0 -15px}#nexus-design-directions .nx-mission>div:last-child{width:100%}#nexus-design-directions .nx-mission h2{font-size:18px}#nexus-design-directions .nx-goal{margin-top:12px}#nexus-design-directions .nx-studio{grid-template-columns:minmax(0,1fr)}#nexus-design-directions .nx-worklist{border-left:0;border-top:1px solid #383838;padding:12px 0 0;display:flex;gap:13px}#nexus-design-directions .nx-worklist h3{display:none}#nexus-design-directions .nx-work-item{flex:1;border:0;padding:0;margin:0;font-size:10px}#nexus-design-directions .nx-agent-text{line-height:1.7}#nexus-design-directions .nx-hints button:last-child{display:none}}
+    @media(max-width:420px){#nexus-design-directions .nx-window{grid-template-columns:42px minmax(0,1fr)}#nexus-design-directions .nx-nav button{justify-content:center;padding:9px 3px;font-size:0}#nexus-design-directions .nx-nav button i{font-size:13px}#nexus-design-directions .nx-nav label{font-size:0;margin:10px 0 0}#nexus-design-directions .nx-nav .nx-sub{padding-left:3px}#nexus-design-directions .nx-start h2{font-size:20px}#nexus-design-directions .nx-topline button{font-size:10px}#nexus-design-directions .nx-preview-caption{flex-direction:column;align-items:flex-start}#nexus-design-directions .nx-start p{font-size:11px}}
+  </style>
+  <div class="viz-carousel" aria-label="Три направления дизайна Nexus" data-previous-label="Предыдущий" data-next-label="Следующий">
+    <section data-variant="Фокус" aria-label="Дизайн Фокус">
+      <div class="nx-window">
+        <div class="nx-chrome"><span class="nx-light"></span><span class="nx-light"></span><span class="nx-light"></span><strong>NEXUS</strong></div>
+        <nav class="nx-nav" aria-label="Проекты в дизайне Фокус"><button><i data-lucide="square-pen" aria-hidden="true"></i>Новый чат</button><label>ПРОЕКТЫ</label><button><i data-lucide="folder" aria-hidden="true"></i>Project Exodus</button><button class="nx-selected"><i data-lucide="folder" aria-hidden="true"></i>Nexus</button><button class="nx-sub"><i data-lucide="message-square" aria-hidden="true"></i>Новый интерфейс</button><div class="nx-nav-bottom"><button><i data-lucide="target" aria-hidden="true"></i>Цели и задачи</button><button><i data-lucide="network" aria-hidden="true"></i>Подключения</button></div></nav>
+        <div class="nx-center"><div class="nx-topline"><b>Nexus / Новый чат</b><button>Цели и задачи <i data-lucide="chevron-right" aria-hidden="true"></i></button></div><div class="nx-start"><div class="nx-persona" aria-hidden="true"><div class="nx-orbit"></div><div class="nx-base"></div></div><div class="nx-kicker">ВАША КОМАНДА ИИ</div><h2>Что создадим сегодня?</h2><p>Начните с задачи. План и ход работы появятся в разговоре.</p><div class="nx-hints"><button>Изучить проект</button><button>Создать решение</button><button>Поставить цель</button></div></div><div class="nx-composer"><input aria-label="Поле ввода в дизайне Фокус" placeholder="Задача для вашей команды"><div class="nx-compose-tools"><button aria-label="Вложение"><i data-lucide="paperclip" aria-hidden="true"></i></button><button>Модель: Авто <i data-lucide="chevron-down" aria-hidden="true"></i></button><button>Рассуждения: Авто</button><button class="nx-send" aria-label="Отправить"><i data-lucide="arrow-up" aria-hidden="true"></i></button></div></div></div>
+      </div><div class="nx-preview-caption"><span>Минимум панелей. Цели и задачи раскрываются по запросу.</span><button class="nx-pick" data-design="Фокус">Выбрать «Фокус»</button></div>
+    </section>
+    <section data-variant="Миссия" aria-label="Дизайн Миссия" hidden>
+      <div class="nx-window">
+        <div class="nx-chrome"><span class="nx-light"></span><span class="nx-light"></span><span class="nx-light"></span><strong>NEXUS</strong></div>
+        <nav class="nx-nav" aria-label="Проекты в дизайне Миссия"><button><i data-lucide="square-pen" aria-hidden="true"></i>Новая задача</button><label>ПРОЕКТЫ</label><button class="nx-selected"><i data-lucide="folder" aria-hidden="true"></i>Project Exodus</button><button class="nx-sub"><i data-lucide="message-square" aria-hidden="true"></i>Генератор планет</button><button><i data-lucide="folder" aria-hidden="true"></i>Nexus</button><div class="nx-nav-bottom"><button><i data-lucide="target" aria-hidden="true"></i>Все цели</button><button><i data-lucide="network" aria-hidden="true"></i>Подключения</button></div></nav>
+        <div class="nx-center"><div class="nx-topline"><b>Project Exodus</b><button>Обзор проекта</button></div><div class="nx-mission"><div class="nx-persona" aria-hidden="true"><div class="nx-orbit"></div><div class="nx-base"></div></div><div><div class="nx-kicker">ПРОДОЛЖИМ РАБОТУ</div><h2>От цели —<br>к готовому результату</h2><p>Персонаж рядом с текущей целью. Контекст проекта всегда перед глазами.</p><div class="nx-goal"><small>Текущая цель</small><strong>Собрать прототип исследования планеты</strong><div class="nx-taskline"><span class="nx-dot"></span>Следующий шаг: проверить генератор</div></div></div></div><div class="nx-taskbar"><div><strong>В работе</strong>Генератор поверхности</div><div><strong>Ждёт проверки</strong>Материал планеты</div><div><strong>Запланировано</strong>Интерфейс экспедиции</div></div><div class="nx-composer"><input aria-label="Поле ввода в дизайне Миссия" placeholder="Опишите следующий результат"><div class="nx-compose-tools"><button aria-label="Вложение"><i data-lucide="paperclip" aria-hidden="true"></i></button><button>Команда: Авто</button><button>Составить план</button><button class="nx-send" aria-label="Отправить"><i data-lucide="arrow-up" aria-hidden="true"></i></button></div></div></div>
+      </div><div class="nx-preview-caption"><span>Цель и ближайшие задачи видны сразу при входе в проект.</span><button class="nx-pick" data-design="Миссия">Выбрать «Миссия»</button></div>
+    </section>
+    <section data-variant="Студия" aria-label="Дизайн Студия" hidden>
+      <div class="nx-window">
+        <div class="nx-chrome"><span class="nx-light"></span><span class="nx-light"></span><span class="nx-light"></span><strong>NEXUS</strong></div>
+        <nav class="nx-nav" aria-label="Проекты в дизайне Студия"><button><i data-lucide="square-pen" aria-hidden="true"></i>Новый чат</button><label>ПРОЕКТЫ</label><button><i data-lucide="folder" aria-hidden="true"></i>Project Exodus</button><button class="nx-selected"><i data-lucide="folder" aria-hidden="true"></i>Nexus</button><button class="nx-sub"><i data-lucide="message-square" aria-hidden="true"></i>Подключения</button><button class="nx-sub"><i data-lucide="message-square" aria-hidden="true"></i>Проверки</button><div class="nx-nav-bottom"><button><i data-lucide="network" aria-hidden="true"></i>Агенты</button><button><i data-lucide="wrench" aria-hidden="true"></i>Инструменты</button></div></nav>
+        <div class="nx-center"><div class="nx-topline"><b>Nexus / Подключения</b><button>План работы</button></div><div class="nx-studio"><div class="nx-chat-body"><div class="nx-goal-strip"><i data-lucide="target" aria-hidden="true"></i>Цель: подключать агентов без терминала</div><div class="nx-user">Добавь подключение Gemini и проверь вход.</div><div class="nx-mini-avatar"><div class="nx-persona" aria-hidden="true"><div class="nx-base"></div></div>NEXUS · команда проекта</div><div class="nx-agent-text">Начну с доступных способов авторизации. Затем проверю адаптер и покажу результат подключения.</div><div class="nx-activity">Ход работы · раскрыть</div><div class="nx-composer"><input aria-label="Поле ввода в дизайне Студия" placeholder="Сообщение или новая задача"><div class="nx-compose-tools"><button aria-label="Вложение"><i data-lucide="paperclip" aria-hidden="true"></i></button><button>Авто <i data-lucide="chevron-down" aria-hidden="true"></i></button><button>Глубоко</button><button class="nx-send" aria-label="Отправить"><i data-lucide="arrow-up" aria-hidden="true"></i></button></div></div></div><div class="nx-worklist"><h3>Задачи проекта</h3><div class="nx-work-item"><small class="nx-working">В работе</small>Авторизация Gemini</div><div class="nx-work-item"><small>Ждёт разрешения</small>Запуск проверки адаптера</div><div class="nx-work-item"><small>Запланировано</small>Визуальная проверка</div></div></div></div>
+      </div><div class="nx-preview-caption"><span>Чат, цель и очередь задач видны одновременно во время работы.</span><button class="nx-pick" data-design="Студия">Выбрать «Студия»</button></div>
+    </section>
+  </div>
+  <script>
+    const nxRoot=document.getElementById('nexus-design-directions');
+    for(const button of nxRoot.querySelectorAll('[data-design]'))button.addEventListener('click',async()=>{
+      const design=button.dataset.design;
+      if(window.openai?.sendFollowUpMessage)await window.openai.sendFollowUpMessage({prompt:'Для Nexus выбираю дизайн «'+design+'». Доработай интерфейс в этом направлении, сохранив уже реализованные подключения и навигацию.',title:'Выбрать дизайн «'+design+'»'});
+      else button.textContent='Выбран «'+design+'»';
+    });
+    const nxTuning={accent:'#a2c8d9'};
+    if(globalThis.Tweak){const tweak=new Tweak({container:nxRoot,onChange:()=>nxRoot.style.setProperty('--nx-accent',nxTuning.accent)});tweak.addColorPicker(nxTuning,'accent',{label:'Свечение персонажа',reference:'nx-accent'});}
+  </script>
+</div>

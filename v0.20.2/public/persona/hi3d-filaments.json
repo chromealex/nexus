@@ -1,0 +1,8 @@
+{
+  "paths": 144,
+  "vertices": 118704,
+  "strideFloats": 18,
+  "primitive": "triangles",
+  "source": "hi3d-head.points",
+  "style": "surface-projected cool ribbons with sparse amber accents"
+}

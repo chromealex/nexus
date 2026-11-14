@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {composerSuggestion} from '../src/composer-suggestions.js';
+assert.match(composerSuggestion(''),/^Объясни/);
+assert.match(composerSuggestion('',{hasFiles:true}),/прикреплённые файлы/);
+assert.match(composerSuggestion('',{hasHistory:true}),/^Подведи итог/);
+assert.equal(composerSuggestion('объ'),'объясни, как устроен этот проект');
+assert.equal(composerSuggestion('Мой произвольный запрос'),'');
+assert.equal(composerSuggestion('Найди\nпричину'),'');
+assert.equal(composerSuggestion('',{maxLength:3}),'');
+assert.equal(composerSuggestion('Объясни, как устроен этот проект'),'');
+console.log('Composer suggestions: context, prefix completion, arbitrary input and length limit passed.');

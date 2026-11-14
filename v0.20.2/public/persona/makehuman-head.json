@@ -1,0 +1,17 @@
+{
+  "source": "MPFB 2.0.18 / MakeHuman hm08",
+  "license": "CC0-1.0",
+  "archiveSha256": "c075b3e9b94b8e5556a5f03f4653602d02ea306de08126e8f55ed6dee28a2dad",
+  "pointCount": 177800,
+  "strideFloats": 18,
+  "triangles": 9134,
+  "vertices": 4595,
+  "morphs": {
+    "blink": "combined shipped eye-height decrease targets",
+    "smile": "shipped mouth-angles-up target"
+  },
+  "limitations": [
+    "Hair is custom procedural strands fitted to the skull",
+    "No full FACS/ARKit expression pack or lip-sync"
+  ]
+}

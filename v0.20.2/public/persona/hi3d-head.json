@@ -1,0 +1,42 @@
+{
+  "source": "Hi3D_Untitled_allparts_20261111_184233.glb",
+  "sha256": "35735ff9b5c54e266cf83fb67ed670ff9c9bc38b170da768fcd55cb633be036f",
+  "sourceVertexCount": 999830,
+  "sourceTriangleCount": 1991614,
+  "selection": "largest connected component",
+  "vertices": 288807,
+  "triangles": 577786,
+  "surfaceCount": 64000,
+  "floorCount": 1200,
+  "pointCount": 65200,
+  "strideFloats": 18,
+  "edgeFields": {
+    "curvature": 9,
+    "accent": 10
+  },
+  "hasTextures": false,
+  "hasRig": false,
+  "hasAnimations": false,
+  "hasMorphTargets": false,
+  "license": "User supplied; redistribution rights not independently verified",
+  "normalization": {
+    "center": [
+      -0.26860400289297104,
+      0.25568920001387596,
+      0.0894504114985466
+    ],
+    "scale": 3.5288847421644074
+  },
+  "bounds": {
+    "min": [
+      -0.3804982602596283,
+      0.028988681733608246,
+      -0.07248161733150482
+    ],
+    "max": [
+      -0.15670974552631378,
+      0.4823897182941437,
+      0.251382440328598
+    ]
+  }
+}
