@@ -1,8 +1,10 @@
 name: Release
 
-# Push a tag like v0.21.0 to build macOS and Windows and publish a GitHub release.
+# Push to the `release` branch (or a v* tag) to build macOS and Windows and publish a GitHub release.
+# The release tag is v<version from app/package.json>; the workflow creates it.
 on:
   push:
+    branches: [release]
     tags: ['v*']
   workflow_dispatch:
 
@@ -88,13 +90,16 @@ jobs:
           merge-multiple: true
       - name: Release notes from CHANGELOG
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          VERSION=$(node -p "require('./app/package.json').version")
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           awk -v v="## $VERSION " 'index($0, v)==1 {on=1; next} /^## / && on {exit} on' CHANGELOG.md > notes.md
           printf '\n### Установка\n- **macOS**: распакуйте `NEXUS-%s-macOS.zip` и перетащите NEXUS в «Программы». Сборка подписана Developer ID и нотаризована.\n- **Windows (превью)**: запустите `NEXUS-%s-Windows-x64-setup.exe`. Сборка без подписи Microsoft — SmartScreen предупредит, нажмите «Подробнее → Выполнить в любом случае».\n' "$VERSION" "$VERSION" >> notes.md
           cat notes.md
       - uses: softprops/action-gh-release@v2
         with:
-          name: NEXUS ${{ github.ref_name }}
+          tag_name: v${{ env.VERSION }}
+          target_commitish: ${{ github.sha }}
+          name: NEXUS v${{ env.VERSION }}
           body_path: notes.md
           files: dist/*
           fail_on_unmatched_files: true
