@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/nexus-icon.png" width="160" alt="NEXUS app icon">
+  <img src="docs/assets/nexus-banner.png" width="100%" alt="NEXUS: one chat window for Codex, Claude Code, Gemini, Grok, Qwen, Goose and ACP agents">
 </p>
 
 # NEXUS
@@ -7,6 +7,10 @@
 NEXUS is a macOS desktop app (Tauri 2 + React) that puts several AI coding agents behind one chat window. You connect the agents and accounts you already use (OpenAI Codex, Claude Code, Google Antigravity / Gemini API, Grok API, a local Qwen model through Ollama, Goose or your own ACP agent), organise work into projects, folders and chats, and NEXUS routes each request to a suitable model, shows the answer as it streams, and keeps the history locally.
 
 The source lives in [`app/`](app). Working rules for contributors and coding agents are in [`AGENTS.md`](AGENTS.md) (in Russian); version history is in [`CHANGELOG.md`](CHANGELOG.md).
+
+<p align="center">
+  <img src="docs/assets/nexus-screenshot.png" width="100%" alt="NEXUS start screen: projects and chats on the left, connected accounts with remaining limits on the right, and the message composer with model, parameters and execution mode">
+</p>
 
 ## What it does
 
@@ -40,6 +44,7 @@ The source lives in [`app/`](app). Working rules for contributors and coding age
 - An optional independent review by the local Qwen model is a second opinion, not a substitute for tests.
 
 **Look and feel**
+- Interface in English, Russian, Spanish, German, French, Portuguese, Simplified Chinese and Japanese. The macOS language is used by default (English if it is not one of these); the language picker at the bottom of the sidebar overrides it.
 - Calm dark theme with frosted-glass surfaces (`src/dialog-theme.css` holds the shared tokens for all dialogs and popups).
 - The start screen shows a real-time WebGL particle portrait built from a 3D head scan (`Hi3D_Untitled_allparts_*.glb` → `public/persona/hi3d-head.points`) with light filaments; clicking the face sends a lightning discharge through the particles. While an answer is generated, a thinking-lightning effect connects the portrait to the message. Rendering pauses when the page is hidden and respects reduced motion; the chat works without WebGL.
 
