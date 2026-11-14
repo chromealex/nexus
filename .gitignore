@@ -37,3 +37,4 @@
 # Large source assets stay local
 *.glb
 generated_images/
+*.tmp.rs
