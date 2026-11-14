@@ -249,14 +249,10 @@ function App() {
     };
   }, [activeChat]);
   const browserMode = browserState?.chatId === activeChat ? browserState.mode : 'builtin';
-  // The chat browser pane is open by default; the choice and width are remembered for the window.
-  const [browserPaneOpen, setBrowserPaneOpen] = useState(() => {
-      try {
-        return localStorage.getItem('nexus-browser-pane') !== '0';
-      } catch {
-        return true;
-      }
-    }),
+  // The chat browser pane is hidden until an agent works in the browser (or the user opens it);
+  // closing it during an answer keeps it closed until that answer ends. Width is remembered.
+  const [browserPaneOpen, setBrowserPaneOpen] = useState(false),
+    browserDismissed = useRef(false),
     [browserPaneWidth, setBrowserPaneWidth] = useState(() => {
       try {
         return Math.min(900, Math.max(360, Number(localStorage.getItem('nexus-browser-width')) || 480));
@@ -266,9 +262,7 @@ function App() {
     });
   function toggleBrowserPane(value) {
     setBrowserPaneOpen(value);
-    try {
-      localStorage.setItem('nexus-browser-pane', value ? '1' : '0');
-    } catch {}
+    browserDismissed.current = !value;
   }
   function resizeBrowserPane(value) {
     const next = Math.round(Math.min(Math.max(360, value), Math.max(360, window.innerWidth * 0.6)));
@@ -737,6 +731,18 @@ function App() {
     status: browserState?.chatId === activeChat ? browserState : null,
     agentBusy: currentChatSending,
   });
+  // Each chat starts with the pane hidden; it opens by itself when the agent starts using the browser.
+  useEffect(() => {
+    setBrowserPaneOpen(false);
+    browserDismissed.current = false;
+  }, [activeChat]);
+  useEffect(() => {
+    if (!currentChatSending) browserDismissed.current = false;
+  }, [currentChatSending]);
+  useEffect(() => {
+    if (chatBrowser.activity && currentChatSending && !browserDismissed.current) setBrowserPaneOpen(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatBrowser.activity]);
   const visibleTurns = chatMessages.filter(m => m.role !== 'system'),
     lastAnswerId = visibleTurns.at(-1)?.role === 'assistant' ? visibleTurns.at(-1).id : null,
     lastUserId =
@@ -1721,7 +1727,7 @@ function App() {
         </div>
         <div className="topright">
           <span className="status">● LOCAL SYSTEM</span>
-          {activeChat && !browserPaneShown && (
+          {activeChat && !browserPaneShown && chatBrowser.available && (
             <button title="Показать браузер чата" onClick={() => toggleBrowserPane(true)}>
               <PanelRight size={14} aria-hidden="true" /> Браузер
             </button>

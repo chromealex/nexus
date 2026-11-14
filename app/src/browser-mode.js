@@ -101,9 +101,10 @@ export function keyAction(e) {
 }
 
 // The small preview over the chat: while the pane is closed and an agent is (or just was) in the browser.
+// Only after the agent actually used the browser: during the answer, and for a short while after it.
 export function previewVisible({paneOpen, mode, agentBusy, activityAt, now = Date.now(), hasFrame}) {
-  if (paneOpen || normalizeMode(mode) !== 'builtin') return false;
-  return !!agentBusy || (!!activityAt && now - activityAt < 45000 && !!hasFrame);
+  if (paneOpen || normalizeMode(mode) !== 'builtin' || !activityAt) return false;
+  return !!agentBusy || (now - activityAt < 45000 && !!hasFrame);
 }
 
 export function tabTitle(tab) {

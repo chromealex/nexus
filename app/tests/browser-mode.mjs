@@ -49,8 +49,12 @@ assert.equal(keyAction({key: 'a', isComposing: true}), null);
 
 const now = 100000;
 assert.equal(previewVisible({paneOpen: true, mode: 'builtin', agentBusy: true, now}), false);
-assert.equal(previewVisible({paneOpen: false, mode: 'builtin', agentBusy: true, now}), true);
-assert.equal(previewVisible({paneOpen: false, mode: 'chrome', agentBusy: true, now}), false);
+assert.equal(previewVisible({paneOpen: false, mode: 'builtin', agentBusy: true, now}), false);
+assert.equal(
+  previewVisible({paneOpen: false, mode: 'builtin', agentBusy: true, activityAt: now - 1000, now}),
+  true
+);
+assert.equal(previewVisible({paneOpen: false, mode: 'chrome', agentBusy: true, activityAt: now, now}), false);
 assert.equal(
   previewVisible({paneOpen: false, mode: 'builtin', activityAt: now - 10000, hasFrame: true, now}),
   true

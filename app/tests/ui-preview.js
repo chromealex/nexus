@@ -311,12 +311,13 @@ window.__TAURI_INTERNALS__ = {
     }
     if (cmd === 'cancel_browser_install' || cmd === 'open_browser_extension_page') return;
     if (cmd === 'browser_pane_state' || cmd === 'browser_pane_open') {
-      const state = {chatId: args.chatId, running: true, ...fakeTabs};
-      if (cmd === 'browser_pane_open')
+      const state = {chatId: args.chatId, running: true, saved: true, ...fakeTabs};
+      const agent = new URLSearchParams(location.search).has('agent');
+      if (cmd === 'browser_pane_open' || agent)
         setTimeout(() => {
           emit('browser-tabs', state);
           emit('browser-frame', {chatId: args.chatId, tab: 2, ...fakePage()});
-          if (new URLSearchParams(location.search).has('agent'))
+          if (agent)
             emit('browser-activity', {
               chatId: args.chatId,
               tool: 'browser_click',

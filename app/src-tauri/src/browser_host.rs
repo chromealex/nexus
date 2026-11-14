@@ -268,6 +268,8 @@ pub fn browser_pane_state(chat_id: String) -> Value {
         .and_then(|t| t.get(&chat_id).cloned())
         .unwrap_or_else(|| json!({"chatId":chat_id,"tabs":[],"active":null}));
     state["running"] = json!(running);
+    // A chat whose browser was used before keeps its tabs on disk; the header offers to reopen it.
+    state["saved"] = json!(chat_dir(&chat_id).join("tabs.json").is_file());
     state
 }
 

@@ -53,7 +53,7 @@ export function useChatBrowser({chatId, paneOpen, status, agentBusy}) {
       lastFrames.set(p.chatId, value);
       setFrame(value);
     });
-    on('browser-tabs', p => setTabs(p));
+    on('browser-tabs', p => setTabs({...p, saved: true}));
     on('browser-activity', p => setActivity({text: p.text, asks: p.asks, at: Date.now()}));
     on('browser-notice', p => setNotice(String(p.message || '')));
     return () => {
@@ -102,7 +102,9 @@ export function useChatBrowser({chatId, paneOpen, status, agentBusy}) {
     if (!chatId) return Promise.resolve();
     return invoke('browser_pane_input', {chatId, action}).catch(e => setNotice(String(e)));
   };
-  return {tabs, frame, activity, notice, error, ready, mode, preview, input, setNotice};
+  // The header shows «Браузер» only for chats whose browser exists (running now or with saved tabs).
+  const available = ready && (tabs.running || tabs.saved || (tabs.tabs || []).length > 0);
+  return {tabs, frame, activity, notice, error, ready, mode, preview, input, setNotice, available};
 }
 
 function Viewport({frame, input, running}) {
