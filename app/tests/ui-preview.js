@@ -9,6 +9,32 @@ const browserTools = {
     extensionUrl: '',
   },
   browserModes = {};
+const previewGrants = [
+  {
+    id: 0,
+    projectId: 'preview',
+    label: 'Codex: любые команды',
+    provider: 'codex',
+    kind: 'item/commandExecution/requestApproval',
+    scope: null,
+  },
+  {
+    id: 1,
+    projectId: 'preview',
+    label: 'Claude: инструмент Write',
+    provider: 'claude',
+    kind: 'tool',
+    scope: {tool: 'Write'},
+  },
+  {
+    id: 2,
+    projectId: 'preview',
+    label: 'Браузер чата: открытие страниц docs.example.com',
+    provider: 'browser',
+    kind: 'browser',
+    scope: {tool: 'browser_navigate', host: 'docs.example.com'},
+  },
+];
 const fakeTabs = {
   tabs: [
     {id: 1, url: 'https://docs.example.com/guide', title: 'Руководство — Example Docs'},
@@ -333,6 +359,51 @@ window.__TAURI_INTERNALS__ = {
       return;
     }
     if (cmd === 'browser_pane_input') return;
+    if (cmd === 'adaptive_plan' || cmd === 'ai_adaptive_plan')
+      return {
+        warnings: cmd === 'ai_adaptive_plan' ? ['Уточнение с ИИ расходует квоту выбранного аккаунта.'] : [],
+        steps: [
+          {
+            id: 1,
+            title: 'Изучить текущий код',
+            reason: 'Нужно понять структуру',
+            prompt: 'Прочитай модули',
+            provider: 'codex',
+            model: 'default',
+            dependsOn: [],
+          },
+          {
+            id: 2,
+            title: 'Внести изменения',
+            reason: 'Основная работа',
+            prompt: 'Измени код',
+            provider: 'claude',
+            model: 'sonnet',
+            dependsOn: [1],
+          },
+          {
+            id: 3,
+            title: 'Проверить тестами',
+            reason: 'Подтвердить результат',
+            prompt: 'Запусти тесты',
+            provider: 'codex',
+            model: 'default',
+            dependsOn: [2],
+          },
+        ],
+      };
+    if (cmd === 'list_project_permissions') return previewGrants.filter(g => g.projectId === args.projectId);
+    if (cmd === 'revoke_project_permission') {
+      const i = previewGrants.findIndex(
+        g => g.kind === args.kind && JSON.stringify(g.scope) === JSON.stringify(args.scope)
+      );
+      if (i >= 0) previewGrants.splice(i, 1);
+      return;
+    }
+    if (cmd === 'reset_project_permissions') {
+      previewGrants.length = 0;
+      return;
+    }
     if (cmd === 'list_projects') return projects;
     if (cmd === 'list_project_chats')
       return chats.filter(c => c.projectId === args.projectId && !c.archived && !c.deletedAt);

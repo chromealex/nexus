@@ -269,6 +269,8 @@ pub fn run() {
             window_state::drag_main_window,
             chat_permissions::answer_agent_permission,
             chat_permissions::reset_project_permissions,
+            chat_permissions::list_project_permissions,
+            chat_permissions::revoke_project_permission,
             project_context::list_project_folders,
             project_context::save_project_settings,
             project_context::save_project_folder,

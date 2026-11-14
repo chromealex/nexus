@@ -866,7 +866,7 @@
   color: #e6c3bd;
   line-height: 1.6;
 }
-.project-tools-dialog .project-revoke-confirm button.danger {
+.project-revoke-confirm button.danger {
   background: rgba(190, 70, 60, 0.25);
   border-color: rgba(230, 110, 95, 0.6);
   color: #ffd6cf;

@@ -86,6 +86,71 @@ pub fn reset_project_permissions(project_id: String) -> Result<(), String> {
     grants.retain(|g| g.project != project_id);
     save_grants(&grants)
 }
+/// Human-readable description of a remembered rule for «Настройки проекта → Разрешения».
+fn grant_label(g: &Grant) -> String {
+    let who = match g.provider.as_str() {
+        "codex" => "Codex",
+        "claude" => "Claude",
+        "browser" => "Браузер чата",
+        "nexus" => "Nexus",
+        other => other,
+    };
+    let what = match g.kind.as_str() {
+        "item/commandExecution/requestApproval" => "любые команды".to_string(),
+        "item/fileChange/requestApproval" => "изменение файлов, включая новые".to_string(),
+        "item/permissions/requestApproval" => format!("доступ {}", g.scope),
+        "verification" => format!(
+            "проверка «{}»",
+            g.scope["command"]
+                .as_str()
+                .unwrap_or("команда")
+                .chars()
+                .take(120)
+                .collect::<String>()
+        ),
+        "tool" => format!("инструмент {}", g.scope["tool"].as_str().unwrap_or("?")),
+        "browser" => match (g.scope["tool"].as_str(), g.scope["host"].as_str()) {
+            (Some("browser_navigate"), Some(host)) => format!("открытие страниц {host}"),
+            (Some(tool), _) => format!("действие {tool}"),
+            _ => "действие в браузере".into(),
+        },
+        other => other.to_string(),
+    };
+    format!("{who}: {what}")
+}
+#[tauri::command]
+pub fn list_project_permissions(project_id: String) -> Result<Vec<Value>, String> {
+    let _guard = GRANTS_LOCK.lock().map_err(|_| "Permission storage unavailable")?;
+    Ok(load_grants()?
+        .iter()
+        .enumerate()
+        .filter(|(_, g)| g.project == project_id)
+        .map(|(i, g)| json!({"id":i,"label":grant_label(g),"provider":g.provider,"kind":g.kind,"scope":g.scope}))
+        .collect())
+}
+/// Revokes one remembered rule; the full rule is matched, so a stale list never removes another one.
+#[tauri::command]
+pub fn revoke_project_permission(
+    project_id: String,
+    provider: String,
+    kind: String,
+    scope: Value,
+) -> Result<(), String> {
+    let _guard = GRANTS_LOCK.lock().map_err(|_| "Permission storage unavailable")?;
+    let mut grants = load_grants()?;
+    let target = Grant {
+        project: project_id,
+        provider,
+        kind,
+        scope,
+    };
+    let before = grants.len();
+    grants.retain(|g| *g != target);
+    if grants.len() == before {
+        return Err("Разрешение уже отозвано".into());
+    }
+    save_grants(&grants)
+}
 static PENDING: LazyLock<Mutex<HashMap<String, Pending>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
 struct Cleanup {
     app: tauri::AppHandle,
@@ -263,6 +328,17 @@ mod persistent_scope_tests {
         );
         assert!(scope("unknown", &json!({})).is_none());
         assert!(scope("browser", &json!({"mode":"chrome","tool":"browser_click"})).is_none());
+        let g = |kind: &str, scope: Value| Grant {
+            project: "p".into(),
+            provider: "browser".into(),
+            kind: kind.into(),
+            scope,
+        };
+        assert_eq!(
+            grant_label(&g("browser", json!({"tool":"browser_navigate","host":"a.com"}))),
+            "Браузер чата: открытие страниц a.com"
+        );
+        assert!(grant_label(&g("tool", json!({"tool":"Write"}))).ends_with("инструмент Write"));
         assert_ne!(
             scope(
                 "browser",

@@ -1,4 +1,5 @@
 import {CustomSelect} from './custom-select.jsx';
+import {ProjectPermissions} from './project-permissions.jsx';
 import {folderChatCount, projectChatCount} from './navigation-counts.js';
 import {countLabel} from './locale-format.js';
 import {SavedChats} from './saved-chats.jsx';
@@ -19,7 +20,6 @@ import {
   ChevronRight,
   ChevronDown,
   Network,
-  SlidersHorizontal,
   X,
   FileText,
   Link,
@@ -46,7 +46,6 @@ export function ProjectNavigation({
   disabled,
   busy,
   onConnections,
-  onTools,
 }) {
   const [chats, setChats] = useState([]),
     [folders, setFolders] = useState([]),
@@ -609,10 +608,6 @@ export function ProjectNavigation({
             <Network size={16} />
             Агенты и подключения<kbd aria-hidden="true">{shortcutText('connections')}</kbd>
           </button>
-          <button onClick={onTools}>
-            <SlidersHorizontal size={16} />
-            Инструменты
-          </button>
         </div>
       </nav>
       {savedKind && (
@@ -947,6 +942,7 @@ function ProjectEditor({editor, project, folders, chats, onClose, onSaved}) {
                 </p>
               </>
             )}
+            {type === 'project' && <ProjectPermissions projectId={item.id} />}
             {error && (
               <p className="nav-error" role="alert">
                 {error}

@@ -6,7 +6,7 @@ import {ROUTING_PRIORITIES} from './model-benchmarks.js';
 import {RoutingPreview} from './routing-preview.jsx';
 import {CustomSelect} from './custom-select.jsx';
 import {mergeLatestMessages, prependMessages} from './chat-history.js';
-import {ProjectTools} from './project-tools.jsx';
+import {ComposerPlan} from './composer-plan.jsx';
 import {ConnectionsDialog} from './connections-dialog.jsx';
 import {ProjectBoard} from './project-board.jsx';
 import {WelcomeScreen} from './welcome-screen.jsx';
@@ -33,6 +33,7 @@ import {
   ArrowRight,
   PanelLeft,
   PanelRight,
+  ListChecks,
   Square,
   Bookmark,
   FileDown,
@@ -123,7 +124,7 @@ function App() {
     [routeOffer, setRouteOffer] = useState(null),
     [executionMode, setExecutionMode] = useState('discuss');
   const routeApproval = useRef(null);
-  const [toolsOpen, setToolsOpen] = useState(false),
+  const [planOpen, setPlanOpen] = useState(false),
     [navCollapsed, setNavCollapsed] = useState(false),
     [agentPermission, setAgentPermission] = useState(null);
   const pendingChatRef = useRef(null),
@@ -735,6 +736,7 @@ function App() {
   useEffect(() => {
     setBrowserPaneOpen(false);
     browserDismissed.current = false;
+    setPlanOpen(false);
   }, [activeChat]);
   useEffect(() => {
     if (!currentChatSending) browserDismissed.current = false;
@@ -1687,7 +1689,6 @@ function App() {
           setOpen(true);
           setTab('accounts');
         }}
-        onTools={() => setToolsOpen(true)}
       />
       <header
         onMouseDown={e => {
@@ -2347,6 +2348,17 @@ function App() {
                       >
                         <Paperclip size={20} />
                       </button>
+                      <button
+                        type="button"
+                        className={'attach-button composer-plan-toggle' + (planOpen ? ' is-active' : '')}
+                        title="План задачи: этапы по тексту запроса, без отправки"
+                        aria-label="План задачи"
+                        aria-expanded={planOpen}
+                        disabled={!activeProject || chatSending}
+                        onClick={() => setPlanOpen(v => !v)}
+                      >
+                        <ListChecks size={18} />
+                      </button>
                       <CustomSelect
                         modelTree
                         value={modelChoice}
@@ -2468,6 +2480,11 @@ function App() {
                       <CustomSelect
                         className="reasoning-mode"
                         aria-label="Режим работы"
+                        title={
+                          executionMode === 'execute'
+                            ? 'Выполнение: агент меняет файлы и запускает команды с вашим подтверждением, затем Nexus предлагает запустить проверки проекта (тесты, линтер, типы) — тоже с подтверждением'
+                            : 'Обсуждение: агент отвечает и читает файлы, ничего не меняя'
+                        }
                         value={executionMode}
                         disabled={chatSending}
                         onChange={e => setExecutionMode(e.target.value)}
@@ -2517,6 +2534,17 @@ function App() {
                       </button>
                     )}
                   </div>
+                  {planOpen && (
+                    <ComposerPlan
+                      task={chatDraft}
+                      workspace={workspace}
+                      onClose={() => setPlanOpen(false)}
+                      onUse={text => {
+                        setChatDraft(text);
+                        setPlanOpen(false);
+                      }}
+                    />
+                  )}
                   <TeamPlanPreview
                     plan={teamPreview}
                     integrator={modelChoices.find(m => m.id === routePreview.choice)?.label || 'Авто'}
@@ -2532,20 +2560,6 @@ function App() {
             }
           </section>
         }
-        {toolsOpen && (
-          <ProjectTools
-            projectId={activeProject}
-            onClose={() => setToolsOpen(false)}
-            initialTask={chatDraft || chatMessages.filter(m => m.role === 'user').at(-1)?.content || ''}
-            workspace={workspace}
-            onPlanToChat={setChatDraft}
-            onConnections={() => {
-              setToolsOpen(false);
-              setConnectionTarget(null);
-              setOpen(true);
-            }}
-          />
-        )}
       </section>
       {browserPaneShown && (
         <BrowserPane
