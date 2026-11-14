@@ -235,3 +235,8 @@
 .project-revoke-confirm{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:6px;padding:12px;border:1px solid rgba(230,110,95,.35);border-radius:10px;background:rgba(190,70,60,.08)}
 .project-revoke-confirm span{flex:1 1 100%;color:#e6c3bd;line-height:1.6}
 .project-tools-dialog .project-revoke-confirm button.danger{background:rgba(190,70,60,.25);border-color:rgba(230,110,95,.6);color:#ffd6cf}
+
+/* One composer chip style on the start screen and in chats. */
+.composer-tools .nexus-select-trigger{border:1px solid #ffffff1c;background:#ffffff05;border-radius:9px;padding:6px 9px}
+.composer-tools .nexus-select-trigger:hover{background:var(--surface-hover,#ffffff10);border-color:#ffffff30}
+.composer-tools .attach-button{border:1px solid #ffffff25;border-radius:10px}

@@ -82,12 +82,15 @@ cargo test --offline --manifest-path src-tauri/Cargo.toml --lib
 # Development
 npm run tauri:dev
 
-# Release bundle (ad-hoc signed)
-npm run tauri:build -- --bundles app -- --offline
+# One-time: create a local code-signing certificate in the login keychain
+npm run setup:signing
+
+# Release bundle (signed with the local certificate, or ad hoc if it is missing)
+npm run build:mac
 codesign --verify --deep --strict src-tauri/target/release/bundle/macos/NEXUS.app
 ```
 
-The result is `v0.20.2/src-tauri/target/release/bundle/macos/NEXUS.app`. The bundle is signed ad hoc (`signingIdentity: "-"`); it is not Developer ID signed or notarized.
+The result is `v0.20.2/src-tauri/target/release/bundle/macos/NEXUS.app`. A stable local signature lets macOS remember "Always Allow" for NEXUS Keychain items across rebuilds; without it the bundle is signed ad hoc and Keychain prompts come back after each build. Neither is Developer ID signing or notarization.
 
 ### Isolated UI preview
 

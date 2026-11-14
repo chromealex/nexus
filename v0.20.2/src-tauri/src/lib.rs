@@ -1502,7 +1502,21 @@ async fn unified_chat_send(app:tauri::AppHandle,chat_id:String,text:String,strat
  outcome
 }
 
-pub fn run(){tauri::Builder::default().setup(|app|{window_state::restore(app.handle());Ok(())}).on_window_event(|window,event|{if matches!(event,tauri::WindowEvent::Moved(_)|tauri::WindowEvent::Resized(_)|tauri::WindowEvent::CloseRequested{..}){window_state::save(window);}}).manage(State{install_lock:Arc::new(Mutex::new(())),jobs:Arc::new(Mutex::new(HashMap::new())),cancels:Arc::new(Mutex::new(HashMap::new())),auth_jobs:Arc::new(Mutex::new(HashMap::new())),auth_cancels:Arc::new(Mutex::new(HashMap::new()))}).invoke_handler(tauri::generate_handler![provider_connections::local_qwen_status,chat_history::chat_message_page,chat_lifecycle::change_chat_state,chat_lifecycle::list_saved_chats,provider_connections::setup_local_qwen,provider_connections::cancel_local_qwen,custom_agents::cancel_agent_connection,agent_registry::agent_registry,project_board::project_board,project_board::save_project_goal,project_board::remove_project_goal,provider_connections::list_provider_connections,provider_connections::connect_provider,provider_connections::check_provider_connection,provider_connections::provider_limits,provider_connections::remove_provider_connection,provider_connections::pull_local_qwen,custom_agents::connect_agent_manifest,custom_agents::disconnect_custom_agent,custom_agents::list_custom_agents,custom_agents::connect_custom_agent,mark_chat_read,window_state::drag_main_window,chat_permissions::answer_agent_permission,chat_permissions::reset_project_permissions,project_context::list_project_folders,project_context::save_project_settings,project_context::save_project_folder,project_context::organize_chat,agents,install_agent,install_status,cancel_install,run_task,run_task_account,auto_pick,list_accounts,add_account,remove_account,account_login,auth_status,cancel_auth,check_account,account_quota,account_isolation,integrations,open_external,open_codex_device_page,usage_bridge_token,usage_bridge_snapshot,claude_accessibility_usage,nexus_diagnostics,claude_statusline_install,claude_statusline_read,claude_statusline_remove,adaptive_plan,adaptive_execute_step,list_projects,create_project,remove_project,list_project_chats,create_project_chat,list_chat_messages,append_chat_message,rate_chat_message,model_registry,ai_adaptive_plan,adaptive_execute_with_context,unified_chat_send,attachments::upload_attachment,attachments::read_attachment,chat_questions::answer_agent_question,question_history::save_question_selection,chat_runs::cancel_chat_generation,chat_models::list_chat_models,save_chat_model,save_chat_routing_priority,save_chat_team]).run(tauri::generate_context!()).expect("NEXUS failed to start");}
+// An app started from Finder/Dock gets launchd's PATH (/usr/bin:/bin:/usr/sbin:/sbin).
+// npm-installed CLIs such as Codex start with `#!/usr/bin/env node`, so without the
+// Node.js directory on PATH every login/status/run fails with "env: node: No such file".
+fn cli_search_path(current:Option<std::ffi::OsString>)->Option<std::ffi::OsString>{
+ let h=home();
+ let mut dirs:Vec<PathBuf>=Vec::new();
+ if let Some(n)=node_bin(){dirs.push(n)}
+ dirs.extend([app_bin(),h.join(".local/bin"),h.join(".volta/bin"),h.join(".asdf/shims"),h.join("Library/pnpm"),h.join(".bun/bin"),PathBuf::from("/opt/homebrew/bin"),PathBuf::from("/usr/local/bin")]);
+ let mut out:Vec<PathBuf>=Vec::new();
+ for d in dirs{if d.is_dir()&&!out.contains(&d){out.push(d)}}
+ if let Some(cur)=current{for d in std::env::split_paths(&cur){if !out.contains(&d){out.push(d)}}}
+ for d in ["/usr/bin","/bin","/usr/sbin","/sbin"].map(PathBuf::from){if !out.contains(&d){out.push(d)}}
+ std::env::join_paths(out).ok()
+}
+pub fn run(){if let Some(path)=cli_search_path(std::env::var_os("PATH")){std::env::set_var("PATH",path);}tauri::Builder::default().setup(|app|{window_state::restore(app.handle());Ok(())}).on_window_event(|window,event|{if matches!(event,tauri::WindowEvent::Moved(_)|tauri::WindowEvent::Resized(_)|tauri::WindowEvent::CloseRequested{..}){window_state::save(window);}}).manage(State{install_lock:Arc::new(Mutex::new(())),jobs:Arc::new(Mutex::new(HashMap::new())),cancels:Arc::new(Mutex::new(HashMap::new())),auth_jobs:Arc::new(Mutex::new(HashMap::new())),auth_cancels:Arc::new(Mutex::new(HashMap::new()))}).invoke_handler(tauri::generate_handler![provider_connections::local_qwen_status,chat_history::chat_message_page,chat_lifecycle::change_chat_state,chat_lifecycle::list_saved_chats,provider_connections::setup_local_qwen,provider_connections::cancel_local_qwen,custom_agents::cancel_agent_connection,agent_registry::agent_registry,project_board::project_board,project_board::save_project_goal,project_board::remove_project_goal,provider_connections::list_provider_connections,provider_connections::connect_provider,provider_connections::check_provider_connection,provider_connections::provider_limits,provider_connections::remove_provider_connection,provider_connections::pull_local_qwen,custom_agents::connect_agent_manifest,custom_agents::disconnect_custom_agent,custom_agents::list_custom_agents,custom_agents::connect_custom_agent,mark_chat_read,window_state::drag_main_window,chat_permissions::answer_agent_permission,chat_permissions::reset_project_permissions,project_context::list_project_folders,project_context::save_project_settings,project_context::save_project_folder,project_context::organize_chat,agents,install_agent,install_status,cancel_install,run_task,run_task_account,auto_pick,list_accounts,add_account,remove_account,account_login,auth_status,cancel_auth,check_account,account_quota,account_isolation,integrations,open_external,open_codex_device_page,usage_bridge_token,usage_bridge_snapshot,claude_accessibility_usage,nexus_diagnostics,claude_statusline_install,claude_statusline_read,claude_statusline_remove,adaptive_plan,adaptive_execute_step,list_projects,create_project,remove_project,list_project_chats,create_project_chat,list_chat_messages,append_chat_message,rate_chat_message,model_registry,ai_adaptive_plan,adaptive_execute_with_context,unified_chat_send,attachments::upload_attachment,attachments::read_attachment,chat_questions::answer_agent_question,question_history::save_question_selection,chat_runs::cancel_chat_generation,chat_models::list_chat_models,save_chat_model,save_chat_routing_priority,save_chat_team]).run(tauri::generate_context!()).expect("NEXUS failed to start");}
 
 #[cfg(test)]mod system_project_tests{
  use super::*;
@@ -1511,6 +1525,16 @@ pub fn run(){tauri::Builder::default().setup(|app|{window_state::restore(app.han
  let mut a=c.clone();a.team_enabled=true;a.routing_priority=Some("economy".into());a.model_choice=Some("agent-auto:codex".into());let restored:NexusChat=serde_json::from_value(serde_json::to_value(&a).unwrap()).unwrap();assert!(restored.team_enabled);assert_eq!(restored.routing_priority.as_deref(),Some("economy"));assert_eq!(restored.model_choice.as_deref(),Some("agent-auto:codex"));assert!(c.model_choice.is_none());}
 }
 
+#[cfg(test)]mod cli_path_tests{
+ use super::*;
+ #[test]fn keeps_system_dirs_and_existing_path_without_duplicates(){
+  let p=cli_search_path(Some(std::ffi::OsString::from("/usr/bin:/custom/bin"))).unwrap();
+  let v:Vec<_>=std::env::split_paths(&p).collect();
+  assert!(v.contains(&PathBuf::from("/custom/bin")));
+  assert_eq!(v.iter().filter(|d|**d==PathBuf::from("/usr/bin")).count(),1);
+  assert!(v.contains(&PathBuf::from("/bin")));
+ }
+}
 #[cfg(test)]mod claude_rate_limit_tests{
  use super::*;
  #[test]fn unified_windows_become_percentages(){

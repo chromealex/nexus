@@ -25,9 +25,14 @@ fn endpoint(provider:&str,value:&str)->Result<String,String>{
 mod secrets{
  use std::ffi::{CString,CStr,c_char};
  unsafe extern "C"{fn nexus_secret_set(account:*const c_char,secret:*const c_char)->i32;fn nexus_secret_get(account:*const c_char)->*mut c_char;fn nexus_secret_delete(account:*const c_char)->i32;fn nexus_secret_free(value:*mut c_char);}
- pub fn set(id:&str,key:&str)->Result<(),String>{let id=CString::new(id).map_err(|_|"Некорректный ID")?;let key=CString::new(key).map_err(|_|"Некорректный ключ")?;if unsafe{nexus_secret_set(id.as_ptr(),key.as_ptr())}==0{Ok(())}else{Err("Не удалось сохранить ключ в связке ключей macOS".into())}}
- pub fn get(id:&str)->Result<String,String>{let id=CString::new(id).map_err(|_|"Некорректный ID")?;let p=unsafe{nexus_secret_get(id.as_ptr())};if p.is_null(){return Err("Ключ недоступен в связке ключей macOS. Подключите аккаунт заново.".into())}let key=unsafe{CStr::from_ptr(p)}.to_string_lossy().into_owned();unsafe{nexus_secret_free(p)};Ok(key)}
- pub fn delete(id:&str)->Result<(),String>{let id=CString::new(id).map_err(|_|"Некорректный ID")?;if unsafe{nexus_secret_delete(id.as_ptr())}==0{Ok(())}else{Err("Не удалось удалить ключ из связки ключей".into())}}
+ pub fn set(id:&str,key:&str)->Result<(),String>{let cid=CString::new(id).map_err(|_|"Некорректный ID")?;let ckey=CString::new(key).map_err(|_|"Некорректный ключ")?;if unsafe{nexus_secret_set(cid.as_ptr(),ckey.as_ptr())}==0{remember(id,Some(key));Ok(())}else{Err("Не удалось сохранить ключ в связке ключей macOS".into())}}
+ // Keys are read from Keychain at most once per launch (each read may show a macOS prompt).
+ // The cache lives only in process memory and is never written or logged.
+ static CACHE:std::sync::Mutex<Option<std::collections::HashMap<String,String>>>=std::sync::Mutex::new(None);
+ fn cached(id:&str)->Option<String>{CACHE.lock().ok()?.as_ref()?.get(id).cloned()}
+ fn remember(id:&str,key:Option<&str>){if let Ok(mut c)=CACHE.lock(){let map=c.get_or_insert_with(Default::default);match key{Some(k)=>{map.insert(id.into(),k.into());}None=>{map.remove(id);}}}}
+ pub fn get(id:&str)->Result<String,String>{if let Some(k)=cached(id){return Ok(k)}let cid=CString::new(id).map_err(|_|"Некорректный ID")?;let p=unsafe{nexus_secret_get(cid.as_ptr())};if p.is_null(){return Err("Ключ недоступен в связке ключей macOS. Разрешите доступ NEXUS или подключите аккаунт заново.".into())}let key=unsafe{CStr::from_ptr(p)}.to_string_lossy().into_owned();unsafe{nexus_secret_free(p)};remember(id,Some(&key));Ok(key)}
+ pub fn delete(id:&str)->Result<(),String>{remember(id,None);let cid=CString::new(id).map_err(|_|"Некорректный ID")?;if unsafe{nexus_secret_delete(cid.as_ptr())}==0{Ok(())}else{Err("Не удалось удалить ключ из связки ключей".into())}}
 }
 #[cfg(not(target_os="macos"))]
 mod secrets{pub fn set(_: &str,_:&str)->Result<(),String>{Err("Хранилище API-ключей доступно только в macOS".into())}pub fn get(_:&str)->Result<String,String>{Err("Хранилище API-ключей недоступно".into())}pub fn delete(_:&str)->Result<(),String>{Ok(())}}
@@ -84,14 +89,16 @@ pub async fn run(choice:&chat_models::Choice,prompt:&str,app:&tauri::AppHandle,c
  if !row.models.contains(&choice.model){return Err("Модель не найдена в подключении".into())}
  let key=if row.provider=="local"{String::new()}else{secrets::get(&row.id)?};let endpoint=endpoint(&row.provider,&row.endpoint)?;
  let body=json!({"model":choice.model,"stream":true,"messages":[{"role":"user","content":prompt}]});
- let mut child=curl().spawn().map_err(|_|"Не удалось запустить HTTP-клиент")?;
+ let mut cmd=curl();if row.provider=="grok"{cmd.args(["--dump-header","-"]);}
+ let mut child=cmd.spawn().map_err(|_|"Не удалось запустить HTTP-клиент")?;
  child.stdin.take().ok_or("Нет входного канала")?.write_all(config(&format!("{endpoint}/chat/completions"),&key,Some(&body)).as_bytes()).await.map_err(|_|"Ошибка запроса")?;
  let mut lines=BufReader::new(child.stdout.take().ok_or("Нет выходного канала")?).lines();
  control.metadata(&format!("Route: {}\nModel: {}\nEffort: provider-default",row.name,choice.model));
  let operation=async{
-  let mut answer=String::new();let mut bytes=0usize;let mut status=0u16;let mut reported=choice.model.clone();let mut done=false;let mut invalid=false;
+  let mut answer=String::new();let mut bytes=0usize;let mut status=0u16;let mut reported=choice.model.clone();let mut done=false;let mut invalid=false;let mut limit_headers=Vec::new();
   while let Some(line)=lines.next_line().await.map_err(|_|"Соединение с API прервано")?{
    bytes+=line.len();if bytes>8_388_608{return Err("Ответ API слишком большой".into())}
+   if row.provider=="grok"&&!line.starts_with("data:"){if let Some((k,v))=line.split_once(':'){let k=k.trim().to_ascii_lowercase();if k.starts_with("x-ratelimit-")&&limit_headers.len()<12{limit_headers.push((k,v.trim().to_string()));}}if line.trim().is_empty()&&!limit_headers.is_empty(){remember_limit_headers(&row.id,&limit_headers);}}
    if let Some(code)=line.strip_prefix("NEXUS_STATUS:"){status=code.parse().unwrap_or(0);continue}
    let Some(data)=line.strip_prefix("data:").map(str::trim)else{continue};if data=="[DONE]"{done=true;continue}
    let v:Value=serde_json::from_str(data).map_err(|_|"Повреждён поток ответа API")?;
@@ -154,6 +161,10 @@ async fn rate_headers(url:&str,key:&str)->Result<(u16,Vec<(String,String)>),Stri
  let text=String::from_utf8_lossy(&out.stdout);let (raw,status)=text.rsplit_once("\nNEXUS_STATUS:").ok_or("Ошибка сети: API недоступен")?;
  Ok((status.trim().parse().unwrap_or(0),parse_headers(raw)))
 }
+// Rate-limit headers seen on the latest Grok chat response (memory only; headers carry no secrets).
+static CHAT_LIMITS:std::sync::Mutex<Option<HashMap<String,(Vec<(String,String)>,u64)>>>=std::sync::Mutex::new(None);
+fn remember_limit_headers(id:&str,headers:&[(String,String)]){if let Ok(mut m)=CHAT_LIMITS.lock(){m.get_or_insert_with(Default::default).insert(id.into(),(headers.to_vec(),now()));}}
+fn chat_limit_headers(id:&str)->Option<(Vec<(String,String)>,u64)>{CHAT_LIMITS.lock().ok()?.as_ref()?.get(id).cloned()}
 fn balance(v:&Value,name:&str)->Option<f64>{v.get(name).and_then(|n|n.as_f64().or_else(||n.as_str().and_then(|s|s.parse().ok()))).filter(|n|n.is_finite())}
 #[tauri::command]pub async fn provider_limits(id:String)->Result<Value,String>{
  let row=load()?.into_iter().find(|a|a.id==id).ok_or("Подключение не найдено")?;
@@ -162,13 +173,14 @@ fn balance(v:&Value,name:&str)->Option<f64>{v.get(name).and_then(|n|n.as_f64().o
  let (code,headers)=rate_headers(&format!("{base}/models"),&key).await?;
  if !(200..300).contains(&code)&&code!=429{return Err(http_error(code))}
  let info=request(&format!("{base}/api-key"),&key,None).await.ok();
- let requests=rate_window(&headers,"requests");let tokens=rate_window(&headers,"tokens");
+ let mut requests=rate_window(&headers,"requests");let mut tokens=rate_window(&headers,"tokens");let mut source="xAI API: заголовки x-ratelimit-* и /v1/api-key".to_string();let mut checked=now();
+ if requests.is_none()&&tokens.is_none(){if let Some((h,at))=chat_limit_headers(&id){requests=rate_window(&h,"requests");tokens=rate_window(&h,"tokens");if requests.is_some()||tokens.is_some(){source="xAI API: заголовки x-ratelimit-* последнего ответа Grok в чате".into();checked=at;}}}
  let blocked=info.as_ref().map(|v|v["api_key_blocked"]==true||v["api_key_disabled"]==true||v["team_blocked"]==true).unwrap_or(false);
  let credits=info.as_ref().and_then(|v|balance(v,"remaining_balance").map(|r|json!({"remaining":r,"spent":balance(v,"spent_balance"),"total":balance(v,"total_granted")})));
  let available=requests.is_some()||tokens.is_some()||credits.is_some();
  let status=if available{"available"}else{"unavailable"};let limited=code==429;
- let detail=if available{"Лимиты API-ключа. Лимиты подписки SuperGrok через API недоступны."}else{"xAI не передал заголовки лимитов в этом ответе."};
- Ok(json!({"status":status,"source":"xAI API: заголовки x-ratelimit-* и /v1/api-key","limited":limited,"blocked":blocked,"requests":requests,"tokens":tokens,"credits":credits,"detail":detail,"checkedAt":now()}))
+ let detail=if available{"Лимиты API-ключа. Лимиты подписки SuperGrok через API недоступны."}else{"xAI не передал лимиты при проверке. Они появятся после ответа Grok в чате, если xAI их пришлёт."};
+ Ok(json!({"status":status,"source":source,"limited":limited,"blocked":blocked,"requests":requests,"tokens":tokens,"credits":credits,"detail":detail,"checkedAt":checked}))
 }
 #[cfg(test)]mod tests{use super::*;
  #[test]fn endpoint_and_header_safety(){assert!(endpoint("openai-compatible","http://evil.example/v1").is_err());assert!(endpoint("openai-compatible","https://user:pass@host/v1").is_err());assert!(endpoint("openai-compatible","https://host/v1?key=secret").is_err());assert!(endpoint("openai-compatible","http://127.0.0.1:1234/v1").is_ok());assert_eq!(endpoint("grok","https://evil.example").unwrap(),"https://api.x.ai/v1");let cfg=config("https://host/v1","secret",Some(&json!({"x":"\"\nurl=evil"})));assert_eq!(cfg.lines().count(),5);}
