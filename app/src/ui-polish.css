@@ -4263,3 +4263,42 @@ a.file-link {
 .welcome-connections {
   background: rgba(22, 31, 37, 0.8);
 }
+
+/* Dialogs are near-opaque flat surfaces: a blurred dark scene showing through translucent glass (and blurred
+   again by every card inside) posterizes into visible 8-bit blotches. Cards inside dialogs and popovers
+   therefore do not blur again and use a flat tint. */
+:root {
+  --glass-body: rgba(15, 23, 29, 0.97);
+  --dialog-surface: rgba(17, 25, 31, 0.97);
+  --popover-surface: rgba(21, 30, 37, 0.98);
+}
+:is(
+  .project-settings,
+  .project-tools-dialog,
+  .connections-dialog,
+  .saved-chats-dialog,
+  .file-preview,
+  .model-picker,
+  .project-import
+) {
+  background: var(--glass-body) !important;
+}
+:is(
+    [role='dialog'],
+    .connections-dialog,
+    .model-picker,
+    .project-settings,
+    .nexus-select-popup,
+    .nav-menu,
+    .composer-params-popover
+  )
+  * {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+.settings-overlay,
+.model-picker-backdrop {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  background: rgba(6, 10, 13, 0.72) !important;
+}
