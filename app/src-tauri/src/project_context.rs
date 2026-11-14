@@ -157,6 +157,35 @@ pub(super) fn save_project_folder(
     save_project_store(&db)?;
     Ok(folder)
 }
+/// Removes a folder without losing anything: its chats and subfolders move up to the folder's parent
+/// (or the project root).
+#[tauri::command]
+pub(super) fn remove_project_folder(project_id: String, id: String) -> Result<(), String> {
+    let _guard = PROJECTS_LOCK.lock().map_err(|_| "Storage lock failed")?;
+    let mut db = load_project_store()?;
+    let parent = db
+        .folders
+        .iter()
+        .find(|f| f.id == id && f.project_id == project_id)
+        .ok_or("Папка не найдена")?
+        .parent_id
+        .clone();
+    lift_folder(&mut db, &project_id, &id, parent);
+    save_project_store(&db)
+}
+pub(super) fn lift_folder(db: &mut ProjectStore, project_id: &str, id: &str, parent: Option<String>) {
+    for c in db.chats.iter_mut() {
+        if c.project_id == project_id && c.folder_id.as_deref() == Some(id) {
+            c.folder_id = parent.clone();
+        }
+    }
+    for f in db.folders.iter_mut() {
+        if f.project_id == project_id && f.parent_id.as_deref() == Some(id) {
+            f.parent_id = parent.clone();
+        }
+    }
+    db.folders.retain(|f| !(f.id == id && f.project_id == project_id));
+}
 fn project_id_fn() -> String {
     super::project_id()
 }
@@ -291,6 +320,29 @@ pub(super) fn prompt(db: &ProjectStore, chat: &NexusChat, project: &NexusProject
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn removing_a_folder_lifts_its_contents() {
+        let mut db: ProjectStore = serde_json::from_value(serde_json::json!({
+            "projects": [],
+            "chats": [
+                {"id": "c1", "projectId": "p", "title": "a", "createdAt": "0", "folderId": "inner"},
+                {"id": "c2", "projectId": "p", "title": "b", "createdAt": "0", "folderId": "outer"}
+            ],
+            "messages": [],
+            "folders": [
+                {"id": "outer", "projectId": "p", "parentId": null, "name": "o"},
+                {"id": "inner", "projectId": "p", "parentId": "outer", "name": "i"},
+                {"id": "deep", "projectId": "p", "parentId": "inner", "name": "d"}
+            ]
+        }))
+        .unwrap();
+        lift_folder(&mut db, "p", "inner", Some("outer".into()));
+        assert_eq!(db.chats[0].folder_id.as_deref(), Some("outer"));
+        assert_eq!(db.chats[1].folder_id.as_deref(), Some("outer"));
+        assert!(!db.folders.iter().any(|f| f.id == "inner"));
+        let deep = db.folders.iter().find(|f| f.id == "deep").unwrap();
+        assert_eq!(deep.parent_id.as_deref(), Some("outer"));
+    }
     #[test]
     fn source_count_limit() {
         let note = |i: usize| Source {

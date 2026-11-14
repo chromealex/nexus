@@ -4,7 +4,7 @@
   font-size: 25px;
   font-weight: 400;
   letter-spacing: 7px;
-  color: #eee;
+  color: #dbeefa;
 }
 .app {
   background: #171b1e;
@@ -54,7 +54,7 @@
 .cinematic-home .project-work-strip button:first-child {
   max-width: 100%;
   font-size: 12px;
-  color: #ddd;
+  color: #cbdde8;
 }
 .cinematic-home .project-work-strip button + button {
   font-size: 10px;
@@ -109,7 +109,7 @@
   right: 15%;
   top: 45%;
   font-size: 13px;
-  color: #aaa;
+  color: #9caab2;
   text-align: center;
 }
 .welcome-connections {
@@ -126,7 +126,7 @@
   background: linear-gradient(130deg, #303639a6, #191e21c9);
   backdrop-filter: blur(20px);
   box-shadow: 0 20px 60px #0003;
-  color: #ddd;
+  color: #cbdde8;
 }
 .welcome-connections-heading {
   display: flex;
@@ -164,8 +164,8 @@
   color: #a8afb3;
 }
 .welcome-connections-tabs span {
-  border-bottom: 2px solid #ddd;
-  color: #eee;
+  border-bottom: 2px solid #d0dbe1;
+  color: #dbeefa;
 }
 .welcome-account {
   padding: 17px 0;
@@ -218,8 +218,8 @@
   gap: 6px;
   width: 100%;
   margin-top: 18px;
-  border: 1px solid #eee;
-  background: linear-gradient(#f4f4f4, #d9dcdd);
+  border: 1px solid #e0ecf3;
+  background: linear-gradient(#e5f2f9, #d9dcdd);
   color: #23272a;
   font-size: 12px;
   padding: 11px;
@@ -231,7 +231,7 @@
   top: 110px;
   background: #ffffff08;
   border: 1px solid #ffffff26;
-  color: #ddd;
+  color: #cbdde8;
   font-size: 12px;
 }
 .cinematic-home .chat-composer {
@@ -250,7 +250,7 @@
 .cinematic-home .chat-composer textarea {
   font-size: 20px;
   min-height: 62px;
-  color: #eee;
+  color: #dbeefa;
 }
 .cinematic-home .chat-composer textarea::placeholder {
   color: #c1c8cc;

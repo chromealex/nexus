@@ -2232,7 +2232,7 @@
   font-size: 0.86em;
   padding: 0.12em 0.4em;
   border-radius: 5px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(196, 226, 242, 0.08);
   color: #e9dcc0;
 }
 .chat-bubble .chat-markdown hr {
@@ -2396,7 +2396,7 @@
   pointer-events: none;
   border-radius: 7px;
   border: 1px solid rgba(158, 200, 220, 0.5);
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(196, 226, 242, 0.07);
   box-shadow: 0 0 12px rgba(92, 184, 215, 0.15);
 }
 @media (max-width: 1180px) {
@@ -2483,7 +2483,7 @@
 }
 .chat-bubble .chat-markdown :not(pre) > code {
   color: #e2e8ea;
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(196, 226, 242, 0.07);
 }
 
 /* Surfaces: one quiet layer. No multi-colour edge, no inner glare, slightly more opaque so particles do not shimmer through. */
@@ -2508,7 +2508,7 @@
 /* Blocks inside an answer: no borders of their own, just a faint tint. */
 .chat-markdown .nexus-widget {
   border: 0 !important;
-  background: rgba(255, 255, 255, 0.03) !important;
+  background: rgba(196, 226, 242, 0.03) !important;
 }
 .chat-markdown .code-block {
   border: 0 !important;
@@ -2596,7 +2596,7 @@
 .more-menu hr {
   border: 0;
   height: 1px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(196, 226, 242, 0.08);
   margin: 6px 2px;
 }
 .menu-toggle {
@@ -2666,14 +2666,14 @@
   padding: 0 10px;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(196, 226, 242, 0.05);
   color: var(--text-strong, #eef2f4);
   font: inherit;
   font-size: 12px;
   cursor: pointer;
 }
 .browser-param .browser-actions button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(196, 226, 242, 0.1);
 }
 .browser-param .browser-actions button:disabled {
   opacity: 0.5;
@@ -2685,7 +2685,7 @@
   margin: 8px 0 4px;
   padding: 10px 12px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(196, 226, 242, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.07);
 }
 .permission-browser.is-own {
@@ -2836,7 +2836,7 @@
 .browser-tab-new:hover,
 .browser-pane-close:hover,
 .browser-address button:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(196, 226, 242, 0.08);
   color: var(--text-strong, #eef2f4);
 }
 .browser-address {
@@ -3036,7 +3036,7 @@
 /* ---------- «Инструменты» moved into the chat and project settings (14 Nov 2026) ---------- */
 .composer-plan-toggle.is-active {
   color: var(--text-strong, #eef2f4);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(196, 226, 242, 0.08);
 }
 .composer-plan {
   display: grid;
@@ -3044,7 +3044,7 @@
   margin-top: 10px;
   padding: 12px 14px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.035);
+  background: rgba(196, 226, 242, 0.035);
   border: 1px solid rgba(255, 255, 255, 0.07);
   font-size: 12px;
   color: var(--text-body, #d6dde1);
@@ -3075,7 +3075,7 @@
   cursor: pointer;
 }
 .composer-plan header button:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(196, 226, 242, 0.08);
 }
 .composer-plan-actions {
   display: flex;
@@ -3088,7 +3088,7 @@
   padding: 0 12px;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(196, 226, 242, 0.05);
   color: var(--text-strong, #eef2f4);
   font: inherit;
   cursor: pointer;
@@ -3151,7 +3151,7 @@
   gap: 10px;
   padding: 8px 10px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.035);
+  background: rgba(196, 226, 242, 0.035);
   font-size: 12px;
   color: var(--text-body, #d6dde1);
 }
@@ -3234,11 +3234,11 @@ button.side-panel-tab {
 }
 .side-panel-tab:hover {
   color: var(--text-strong, #eef2f4);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(196, 226, 242, 0.05);
 }
 .side-panel-tab.is-active {
   color: var(--text-strong, #eef2f4);
-  background: rgba(255, 255, 255, 0.09);
+  background: rgba(196, 226, 242, 0.09);
 }
 .side-panel-tab-close {
   display: inline-grid;
@@ -3252,7 +3252,7 @@ button.side-panel-tab {
   cursor: pointer;
 }
 .side-panel-tab-close:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(196, 226, 242, 0.1);
 }
 .side-panel-bar .browser-pane-close {
   margin: 0 0 0 auto;
@@ -3284,7 +3284,7 @@ button.side-panel-tab {
   padding: 0 12px;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(196, 226, 242, 0.05);
   color: var(--text-strong, #eef2f4);
   font: inherit;
   cursor: pointer;
@@ -3325,7 +3325,7 @@ button.side-panel-tab {
 }
 .file-view-bar > button:hover,
 .file-view-bar > a:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(196, 226, 242, 0.08);
   color: var(--text-strong, #eef2f4);
 }
 .file-view-toggle {
@@ -3347,7 +3347,7 @@ button.side-panel-tab {
   cursor: pointer;
 }
 .file-view-toggle button.is-active {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(196, 226, 242, 0.1);
   color: var(--text-strong, #eef2f4);
 }
 .file-view-message,
@@ -3654,7 +3654,7 @@ a.file-link {
   padding: 0 10px;
   border-radius: 7px;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(196, 226, 242, 0.06);
   color: var(--text-strong, #eef2f4);
   font: inherit;
   font-size: 12px;
@@ -3674,7 +3674,7 @@ a.file-link {
 }
 .app-toast-close:hover,
 .app-toast-action:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(196, 226, 242, 0.1);
   color: var(--text-strong, #eef2f4);
 }
 @keyframes app-toast-in {
@@ -3763,7 +3763,7 @@ a.file-link {
   padding: 0 12px;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(196, 226, 242, 0.05);
   color: var(--text-strong, #eef2f4);
   font: inherit;
   font-size: 12px;
@@ -3771,7 +3771,7 @@ a.file-link {
   cursor: pointer;
 }
 .path-pick:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(196, 226, 242, 0.1);
 }
 .path-pick:disabled {
   opacity: 0.5;
@@ -3874,17 +3874,7 @@ a.file-link {
 .app:not(.cinematic-home) .chat-scroll-area {
   position: relative;
 }
-.app:not(.cinematic-home) .chat-scroll-area::before {
-  content: '';
-  position: absolute;
-  z-index: 1;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 28px;
-  pointer-events: none;
-  background: linear-gradient(to bottom, #171b1e, rgba(23, 27, 30, 0));
-}
+
 .app:not(.cinematic-home) .chat-bubble.assistant,
 .app:not(.cinematic-home) .chat-bubble.user {
   backdrop-filter: blur(26px) saturate(140%) !important;
@@ -3913,7 +3903,7 @@ a.file-link {
   width: 44px;
   height: 44px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(196, 226, 242, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--text-muted, #9aa6ad);
 }
@@ -3933,7 +3923,7 @@ a.file-link {
   padding: 0 10px;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(196, 226, 242, 0.05);
   color: var(--text-strong, #eef2f4);
   font: inherit;
   font-size: 12px;
@@ -3957,7 +3947,7 @@ a.file-link {
   gap: 8px;
   padding: 0 10px;
   border-radius: 9px;
-  background: var(--dialog-raised, rgba(255, 255, 255, 0.05));
+  background: var(--dialog-raised, rgba(196, 226, 242, 0.05));
   border: 1px solid var(--dialog-border, rgba(255, 255, 255, 0.08));
   color: var(--text-muted, #9aa6ad);
 }
@@ -3983,7 +3973,7 @@ a.file-link {
   cursor: pointer;
 }
 .project-import-list li:hover label {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(196, 226, 242, 0.04);
 }
 .project-import-list li.is-added label {
   cursor: default;
@@ -4047,4 +4037,241 @@ a.file-link {
 .project-import .settings-body .project-import-list label > input {
   width: auto;
   flex: none;
+}
+
+/* ---------- One button language: accent glass for primary actions, quiet glass for the rest ---------- */
+:root {
+  --btn-accent-fill: linear-gradient(180deg, rgba(150, 214, 238, 0.26), rgba(96, 164, 196, 0.16));
+  --btn-accent-fill-hover: linear-gradient(180deg, rgba(160, 222, 244, 0.36), rgba(106, 176, 208, 0.24));
+  --btn-accent-edge: rgba(168, 226, 246, 0.42);
+  --btn-accent-text: #effbff;
+  --btn-quiet-fill: rgba(176, 214, 234, 0.07);
+  --btn-quiet-fill-hover: rgba(176, 214, 234, 0.13);
+  --btn-quiet-edge: rgba(190, 226, 244, 0.16);
+}
+.app
+  :is(
+    .settings-actions button.primary,
+    .connections-dialog button.connection-primary,
+    .project-import button.primary,
+    .message-editor button.primary,
+    .composer-plan-actions button.primary,
+    .question-actions button,
+    .accountactions button.login-account,
+    .permission-actions button:last-child,
+    .agent-connect-card > button,
+    .welcome-connections .welcome-connect-action,
+    .model-picker .model-facts-choose
+  ),
+:is(
+  .settings-actions button.primary,
+  .connections-dialog button.connection-primary,
+  .project-import button.primary
+) {
+  background: var(--btn-accent-fill) !important;
+  border: 1px solid var(--btn-accent-edge) !important;
+  color: var(--btn-accent-text) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 4px 14px rgba(0, 0, 0, 0.18);
+  font-weight: 500;
+  border-radius: 9px;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.app
+  :is(
+    .settings-actions button.primary,
+    .connections-dialog button.connection-primary,
+    .project-import button.primary,
+    .message-editor button.primary,
+    .composer-plan-actions button.primary,
+    .question-actions button,
+    .accountactions button.login-account,
+    .permission-actions button:last-child,
+    .agent-connect-card > button,
+    .welcome-connections .welcome-connect-action,
+    .model-picker .model-facts-choose
+  ):hover:not(:disabled),
+:is(
+    .settings-actions button.primary,
+    .connections-dialog button.connection-primary,
+    .project-import button.primary
+  ):hover:not(:disabled) {
+  background: var(--btn-accent-fill-hover) !important;
+  border-color: rgba(190, 236, 252, 0.6) !important;
+  color: #fff !important;
+}
+.app :is(.settings-actions, .connections-dialog, .project-import, .model-picker) button:disabled {
+  opacity: 0.45;
+}
+.app .nexus-select-trigger:not(.model-choice):not(.execution-mode) {
+  background: var(--btn-quiet-fill);
+  border-color: var(--btn-quiet-edge);
+}
+.app .nexus-select-trigger:hover {
+  background: var(--btn-quiet-fill-hover);
+}
+
+/* Message actions: round quiet icons, highlighted only on hover or keyboard focus. */
+.app .message-actions button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #9fb4c0;
+  outline: none;
+}
+.app .message-actions button:hover,
+.app .message-actions button:focus-visible,
+.app .message-actions button[aria-pressed='true'] {
+  background: var(--btn-quiet-fill-hover);
+  border-color: var(--btn-quiet-edge);
+  color: #eaf7fd;
+}
+.app .jump-latest {
+  background: rgba(24, 36, 45, 0.55);
+  border: 1px solid var(--btn-accent-edge);
+  color: #e6f6fd;
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 6px 18px rgba(0, 0, 0, 0.3);
+}
+.app .jump-latest:hover {
+  background: rgba(40, 62, 76, 0.6);
+}
+
+/* ---------- Model picker: the list and the details scroll separately, details stay in view ---------- */
+.model-picker {
+  height: 88dvh;
+}
+.model-picker-body {
+  flex: 1;
+  overflow: hidden !important;
+  align-items: stretch !important;
+  padding-bottom: 0 !important;
+}
+.model-picker-body > .model-tree,
+.model-picker-body > .model-facts {
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: 16px;
+}
+.model-picker-body > .model-tree {
+  padding-right: 6px;
+}
+.model-facts-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 0 10px;
+}
+.model-facts-head strong {
+  font-size: 14px;
+  min-width: 0;
+}
+.model-picker .model-facts-choose {
+  flex: none;
+  white-space: nowrap;
+}
+
+/* ---------- Projects list: scrollbar only when there is something to scroll, at the panel edge ---------- */
+.app .nav-scroll {
+  padding-bottom: 12px !important;
+  margin-right: -8px;
+  padding-right: 2px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* ---------- Chat history: content dissolves at the edges (masks are set per element by chat-edge-fade.js) ---------- */
+.particle-persona:before {
+  content: none !important;
+}
+
+/* Invisible dithering (dither.js): one texel per physical pixel, overlay blend ≈ ±1 step. Breaks bands in
+   dark gradients and glass without visible grain. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  pointer-events: none;
+  background-image: var(--dither-image, none);
+  background-size: var(--dither-size, 128px) var(--dither-size, 128px);
+  image-rendering: pixelated;
+  mix-blend-mode: overlay;
+}
+@media (prefers-reduced-transparency: reduce) {
+  body::after {
+    content: none;
+  }
+}
+
+/* Second click confirms removing a folder. */
+.app .nav-menu button.danger,
+.app .nav-menu button.danger:hover {
+  color: #ffb4a8 !important;
+  background: rgba(220, 110, 90, 0.16) !important;
+}
+
+/* «Перенести переписку» sits on the left of the import dialog footer. */
+.project-import .settings-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.project-import .project-import-chats {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: auto;
+  color: var(--text-body, #c9d4da);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* Start screen: the goals/tasks block and the connections panel share the right edge of the content.
+   The start screen has no minimap, so the history keeps no gutter for it. */
+.app.cinematic-home .chat-scroll-area .chat-thread {
+  padding-right: 0 !important;
+}
+.cinematic-home .project-work-strip {
+  right: 0;
+  align-items: flex-end;
+  text-align: right;
+}
+@media (max-width: 650px), (max-height: 620px) {
+  .cinematic-home .project-work-strip {
+    right: auto;
+    align-self: flex-end;
+    margin-left: auto;
+  }
+}
+
+/* Send / Stop use the accent glass too; an empty composer dims the button instead of turning it grey. */
+.app .composer-bottom :is(button[type='submit'], .stop-generation) {
+  background: var(--btn-accent-fill);
+  border: 1px solid var(--btn-accent-edge);
+  color: var(--btn-accent-text);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 4px 14px rgba(0, 0, 0, 0.2);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.app .composer-bottom :is(button[type='submit'], .stop-generation):hover:not(:disabled) {
+  background: var(--btn-accent-fill-hover);
+  border-color: rgba(190, 236, 252, 0.6);
+}
+.app .composer-bottom :is(button[type='submit'], .stop-generation):disabled {
+  background: rgba(150, 214, 238, 0.08);
+  border-color: rgba(168, 226, 246, 0.2);
+  color: rgba(225, 245, 252, 0.55);
+  opacity: 1;
 }

@@ -6,6 +6,12 @@ Short history of NEXUS Desktop. The original per-version notes (in Russian) are 
 - Interface languages: English, Russian, Spanish, German, French, Portuguese, Simplified Chinese and Japanese. The macOS language is used by default (English if it is not supported); a language picker sits at the bottom of the sidebar.
 - New app icon; README banner and screenshot.
 - AGENTS.md, CHANGELOG and release notes are now written in English.
+- Import from Claude Code and Codex brings the conversations too: each session becomes a chat of the project (your messages and the agent's text answers; tool calls, injected context and keys are left out). Importing again adds only new sessions; already added projects can be picked to import their chats.
+- Folders in the sidebar can be deleted; their chats and subfolders move one level up.
+- Chat history dissolves at the top and bottom edges instead of a dark band (no fade at the very top), and the blur under messages still works.
+- Visual cleanup: no neutral grey left in the theme, primary buttons (send, connect, import, choose model) use one accent glass style, invisible per-pixel dithering instead of visible grain against banding in gradients.
+- Model picker: the list and the model details scroll separately; “Choose this model” is at the top right of the details.
+- Sidebar scrollbar appears only when the list overflows and sits at the panel edge; on the start screen the goals block and the connections panel share the right edge.
 
 ## 0.21.0 (14 November 2026)
 - First public builds: macOS (Apple Silicon and Intel, signed with Developer ID and notarized) and a Windows preview.

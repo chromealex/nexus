@@ -297,14 +297,17 @@ export function ModelTreeSelect({
                 <div className="model-facts" role="region" aria-label={loc('Характеристики модели')}>
                   {inspect ? (
                     <>
-                      <strong>{inspect.label}</strong>
-                      <button
-                        type="button"
-                        disabled={!!incompatibleReason(inspect, task, reasoningMode, connections)}
-                        onClick={() => choose(inspect.id)}
-                      >
-                        {loc('Выбрать эту модель')}
-                      </button>
+                      <div className="model-facts-head">
+                        <strong>{inspect.label}</strong>
+                        <button
+                          type="button"
+                          className="model-facts-choose"
+                          disabled={!!incompatibleReason(inspect, task, reasoningMode, connections)}
+                          onClick={() => choose(inspect.id)}
+                        >
+                          {loc('Выбрать эту модель')}
+                        </button>
+                      </div>
                       <p>{profile.role}</p>
                       <small>{loc('Назначение по источнику; не сравнительный рейтинг')}</small>
                       {profile.evidence && <small>{profile.evidence}</small>}

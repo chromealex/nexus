@@ -61,6 +61,7 @@ export function ProjectNavigation({
     [editor, setEditor] = useState(null),
     [error, setError] = useState(''),
     [menu, setMenu] = useState(null),
+    [confirmRemove, setConfirmRemove] = useState(null),
     [creating, setCreating] = useState(null),
     [folderName, setFolderName] = useState(''),
     [activity, setActivity] = useState({}),
@@ -191,6 +192,21 @@ export function ProjectNavigation({
     setCreating({projectId, parentId});
     setFolderName('');
     setExpanded(v => ({...v, ['p' + projectId]: true, ...(parentId ? {['f' + parentId]: true} : {})}));
+  }
+  // A folder is only a grouping: removing it moves its chats and subfolders one level up.
+  async function removeFolder(folder) {
+    if (confirmRemove !== folder.id) {
+      setConfirmRemove(folder.id);
+      return;
+    }
+    setMenu(null);
+    setConfirmRemove(null);
+    try {
+      await invoke('remove_project_folder', {projectId: folder.projectId, id: folder.id});
+      await refresh();
+    } catch (e) {
+      setError(String(e));
+    }
   }
   async function saveFolder(e) {
     e.preventDefault();
@@ -344,7 +360,10 @@ export function ProjectNavigation({
           aria-label={loc('Действия: ') + (item.name || item.title)}
           aria-expanded={menu === key}
           title={loc('Действия')}
-          onClick={() => setMenu(menu === key ? null : key)}
+          onClick={() => {
+            setConfirmRemove(null);
+            setMenu(menu === key ? null : key);
+          }}
         >
           <MoreHorizontal size={16} />
         </button>
@@ -402,6 +421,21 @@ export function ProjectNavigation({
               <Settings size={14} />
               {type === 'chat' ? loc('Название и расположение') : loc('Настройки и контекст')}
             </button>
+            {type === 'folder' && (
+              <>
+                <hr />
+                <button
+                  role="menuitem"
+                  className={confirmRemove === item.id ? 'danger' : undefined}
+                  disabled={busy}
+                  title={loc('Чаты и вложенные папки переместятся на уровень выше')}
+                  onClick={() => removeFolder(item)}
+                >
+                  <Trash2 size={14} />
+                  {confirmRemove === item.id ? loc('Точно удалить папку?') : loc('Удалить папку')}
+                </button>
+              </>
+            )}
             {type === 'chat' && (
               <>
                 <hr />

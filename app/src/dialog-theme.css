@@ -82,7 +82,7 @@
   border-radius: 9px;
   border: 1px solid var(--dialog-border);
   background: var(--dialog-raised);
-  color: #dedede;
+  color: #ccdee9;
   padding: 8px 12px;
   min-height: 34px;
   transition:
@@ -91,7 +91,7 @@
 }
 :is(.project-settings, .project-tools-dialog, .connections-dialog, .saved-chats-dialog, .file-preview)
   button:hover:not(:disabled) {
-  background: #393939;
+  background: #2f3740;
   border-color: #ffffff30;
 }
 :is(.settings-header, .tools-header, .connections-heading) > button,
@@ -107,7 +107,7 @@
   border: 1px solid transparent;
   border-radius: 9px;
   background: transparent;
-  color: #aaa;
+  color: #9caab2;
 }
 :is(.settings-header, .tools-header, .connections-heading) > button svg,
 .file-preview > header :is(button, a) svg {
@@ -157,20 +157,20 @@
 :is(.connections-nav, .project-tool-tabs) > button:hover:not(:disabled) {
   background: transparent;
   border-color: transparent;
-  color: #eee;
+  color: #dbeefa;
 }
 :is(.connections-nav, .project-tool-tabs) > button.active,
 :is(.connections-nav, .project-tool-tabs) > button.active:hover {
   background: transparent;
-  border-bottom-color: #dedede;
-  color: #eee;
+  border-bottom-color: #d1dce2;
+  color: #dbeefa;
 }
 :is(.settings-body, .connection-form, .project-tool-body) :is(input:not([type='checkbox']), textarea),
 :is(.project-settings, .connections-dialog, .project-tools-dialog) button.nexus-select-trigger {
   font-family: inherit;
   font-size: 12px;
   line-height: 1.6;
-  color: #ededed;
+  color: #daedf9;
   background: var(--dialog-raised);
   border: 1px solid var(--dialog-border);
   border-radius: 9px;
@@ -212,9 +212,9 @@
 }
 .settings-actions button.primary,
 .connections-dialog button.connection-primary {
-  background: #e9e9e9;
-  color: #242424;
-  border-color: #e9e9e9;
+  background: #dbe7ee;
+  color: #212426;
+  border-color: #dbe7ee;
   font-weight: 500;
 }
 .settings-actions button.primary:hover:not(:disabled),
@@ -228,7 +228,7 @@
   border-radius: 12px;
   padding: 5px;
   box-shadow: 0 12px 36px #0006;
-  color: #dedede;
+  color: #ccdee9;
 }
 .nexus-select-option {
   border-radius: 7px;

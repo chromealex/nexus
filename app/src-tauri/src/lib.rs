@@ -10,6 +10,7 @@ mod browser_tools;
 mod channel_adapters;
 mod chat_continuation;
 mod chat_history;
+mod chat_import;
 mod chat_lifecycle;
 mod chat_models;
 mod chat_notify;
@@ -329,6 +330,7 @@ pub fn run() {
             project_context::list_project_folders,
             project_context::save_project_settings,
             project_context::save_project_folder,
+            project_context::remove_project_folder,
             project_context::organize_chat,
             agents,
             install_agent,

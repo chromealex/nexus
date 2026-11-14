@@ -1,6 +1,7 @@
 //! «Импорт из Claude Code и Codex»: finds project folders those agents already worked in (on this Mac
 //! and in Nexus's own isolated profiles) and adds the chosen ones as Nexus projects. Only folder paths
-//! and timestamps are read; conversations, credentials and settings of the agents are not touched.
+//! and timestamps are read here; conversations are transferred on request by `chat_import`. Credentials
+//! and settings of the agents are never touched.
 use super::*;
 use serde_json::{json, Value};
 use std::collections::BTreeMap;
@@ -181,16 +182,30 @@ pub async fn import_candidates() -> Result<Vec<Value>, String> {
                 _ => {}
             }
         }
-        let existing: Vec<String> = load_project_store()
-            .map(|db| db.projects.into_iter().map(|p| p.workspace).collect())
+        let db = load_project_store().ok();
+        let existing: Vec<(String, String)> = db
+            .as_ref()
+            .map(|db| db.projects.iter().map(|p| (p.id.clone(), p.workspace.clone())).collect())
             .unwrap_or_default();
+        let imported = |project: &str| {
+            db.as_ref()
+                .map(|db| {
+                    db.chats
+                        .iter()
+                        .filter(|c| c.project_id == project && c.imported_from.is_some())
+                        .count()
+                })
+                .unwrap_or(0)
+        };
         let mut rows: Vec<Value> = map
             .into_iter()
             .filter(|(path, _)| importable(path, &home_dir))
             .map(|(path, f)| {
                 let name = Path::new(&path).file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
-                let added = existing.iter().any(|w| w.trim_end_matches('/') == path);
-                json!({"path":path,"name":name,"sources":f.sources,"lastUsed":f.last_used,"sessions":f.sessions,"added":added})
+                let project = existing.iter().find(|(_, w)| w.trim_end_matches('/') == path);
+                let added = project.is_some();
+                let imported_chats = project.map(|(id, _)| imported(id)).unwrap_or(0);
+                json!({"path":path,"name":name,"sources":f.sources,"lastUsed":f.last_used,"sessions":f.sessions,"added":added,"importedChats":imported_chats})
             })
             .collect();
         rows.sort_by_key(|r| std::cmp::Reverse(r["lastUsed"].as_u64().unwrap_or(0)));
@@ -201,25 +216,55 @@ pub async fn import_candidates() -> Result<Vec<Value>, String> {
     .map_err(|e| e.to_string())?
 }
 
-/// Adds the chosen folders as projects named after the folder; already added folders are skipped.
+/// Adds the chosen folders as projects named after the folder (already added folders keep their project)
+/// and, with `chats`, imports their Claude Code and Codex conversations that are not in Nexus yet.
 #[tauri::command]
-pub fn import_projects(paths: Vec<String>) -> Result<Value, String> {
+pub async fn import_projects(paths: Vec<String>, chats: Option<bool>) -> Result<Value, String> {
     if paths.len() > 100 {
         return Err("Не больше 100 проектов за раз".into());
     }
-    let mut added = Vec::new();
-    let mut skipped = Vec::new();
-    for path in paths {
-        let name = Path::new(&path)
-            .file_name()
-            .map(|n| n.to_string_lossy().chars().take(120).collect::<String>())
-            .unwrap_or_else(|| "Проект".into());
-        match create_project(name, path.clone(), None) {
-            Ok(p) => added.push(json!(p)),
-            Err(e) => skipped.push(json!({"path":path,"reason":e})),
+    tokio::task::spawn_blocking(move || {
+        let mut added = Vec::new();
+        let mut skipped = Vec::new();
+        let mut chat_count = 0;
+        let index = chats.unwrap_or(false).then(chat_import::SessionIndex::scan);
+        for path in paths {
+            let existing = load_project_store()?
+                .projects
+                .into_iter()
+                .find(|p| p.workspace.trim_end_matches('/') == path.trim_end_matches('/'));
+            let project = match existing {
+                Some(p) => p,
+                None => {
+                    let name = Path::new(&path)
+                        .file_name()
+                        .map(|n| n.to_string_lossy().chars().take(120).collect::<String>())
+                        .unwrap_or_else(|| "Проект".into());
+                    match create_project(name, path.clone(), None) {
+                        Ok(p) => {
+                            added.push(json!(p));
+                            p
+                        }
+                        Err(e) => {
+                            skipped.push(json!({"path":path,"reason":e}));
+                            continue;
+                        }
+                    }
+                }
+            };
+            if let Some(index) = &index {
+                let known = chat_import::imported_keys();
+                let sessions = chat_import::new_sessions(index, &project.workspace, &known);
+                match chat_import::import_sessions(&project.id, sessions) {
+                    Ok(n) => chat_count += n,
+                    Err(e) => skipped.push(json!({"path":path,"reason":e})),
+                }
+            }
         }
-    }
-    Ok(json!({"added":added,"skipped":skipped}))
+        Ok(json!({"added":added,"skipped":skipped,"chats":chat_count}))
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 #[cfg(test)]

@@ -1473,4 +1473,18 @@ export default {
   Готово: 'Fertig',
   'Язык интерфейса': 'Sprache der Oberfläche',
   'Как в системе · {0}': 'Wie im System · {0}',
+  'Чаты и вложенные папки переместятся на уровень выше': 'Chats und Unterordner wandern eine Ebene nach oben',
+  'Точно удалить папку?': 'Ordner wirklich löschen?',
+  'Удалить папку': 'Ordner löschen',
+  'чат перенесён': 'Chat importiert',
+  'чата перенесено': 'Chats importiert',
+  'чатов перенесено': 'Chats importiert',
+  'Папки, в которых эти агенты уже работали на этом Mac, и их переписка. Вызовы инструментов, ключи и настройки агентов не переносятся.':
+    'Ordner, in denen diese Agenten auf diesem Mac gearbeitet haben, samt Unterhaltungen. Werkzeugaufrufe, Schlüssel und Agenteneinstellungen werden nicht übernommen.',
+  сессия: 'Sitzung',
+  сессии: 'Sitzungen',
+  сессий: 'Sitzungen',
+  'в Nexus · чатов перенесено: {0}': 'in Nexus · importierte Chats: {0}',
+  'Перенести переписку': 'Unterhaltungen übernehmen',
+  'Переношу проекты и переписку…': 'Projekte und Unterhaltungen werden übernommen…',
 };

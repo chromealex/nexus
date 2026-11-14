@@ -43,6 +43,10 @@ pub(crate) struct NexusChat {
     pub(crate) unread: bool,
     #[serde(default)]
     pub(crate) running: bool,
+    /// Source session of a chat imported from Claude Code or Codex ("claude:<id>", "codex:<id>"),
+    /// so a repeated import does not duplicate it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) imported_from: Option<String>,
 }
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -159,6 +163,7 @@ pub(crate) fn list_projects() -> Result<Vec<NexusProject>, String> {
             deleted_at: None,
             unread: false,
             running: false,
+            imported_from: None,
         });
         save_project_store(&db)?;
     }
@@ -265,6 +270,7 @@ pub(crate) fn create_project_chat(project_id_value: String, title: String) -> Re
         deleted_at: None,
         unread: false,
         running: false,
+        imported_from: None,
     };
     db.chats.push(chat.clone());
     save_project_store(&db)?;

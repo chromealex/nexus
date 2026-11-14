@@ -26,7 +26,10 @@ export function ProjectImport({onClose, onImported}) {
   const [rows, setRows] = useState(null),
     [picked, setPicked] = useState(() => new Set()),
     [query, setQuery] = useState(''),
-    [busy, setBusy] = useState(false);
+    [busy, setBusy] = useState(false),
+    [withChats, setWithChats] = useState(true);
+  // An added folder can still be picked to bring in conversations that are not in Nexus yet.
+  const pickable = r => !r.added || (withChats && r.sessions > (r.importedChats || 0));
   useEffect(() => {
     invoke('import_candidates')
       .then(list => {
@@ -57,6 +60,7 @@ export function ProjectImport({onClose, onImported}) {
       r => !q || r.name.toLowerCase().includes(q) || r.path.toLowerCase().includes(q)
     );
   }, [rows, query]);
+  const selected = (rows || []).filter(r => pickable(r) && picked.has(r.path)).length;
   const toggle = path =>
     setPicked(s => {
       const next = new Set(s);
@@ -66,15 +70,25 @@ export function ProjectImport({onClose, onImported}) {
   async function run() {
     setBusy(true);
     try {
-      const result = await invoke('import_projects', {paths: [...picked]});
+      const paths = [...picked].filter(p => pickable(rows.find(r => r.path === p) || {}));
+      const result = await invoke('import_projects', {paths, chats: withChats});
       const added = result.added.length,
         skipped = result.skipped.length;
       notify(
         countLabel(added, loc('проект добавлен'), loc('проекта добавлено'), loc('проектов добавлено')) +
+          (withChats
+            ? ' · ' +
+              countLabel(
+                result.chats || 0,
+                loc('чат перенесён'),
+                loc('чата перенесено'),
+                loc('чатов перенесено')
+              )
+            : '') +
           (skipped
             ? ` · ${countLabel(skipped, loc('пропущен'), loc('пропущено'), loc('пропущено'))}: ${result.skipped[0].reason}`
             : ''),
-        {tone: added ? 'success' : 'warn'}
+        {tone: added || result.chats ? 'success' : 'warn'}
       );
       await onImported(result.added);
       onClose();
@@ -96,7 +110,7 @@ export function ProjectImport({onClose, onImported}) {
             <h2>{loc('Импорт из Claude Code и Codex')}</h2>
             <small>
               {loc(
-                'Папки, в которых эти агенты уже работали на этом Mac. Переписка и настройки агентов не переносятся.'
+                'Папки, в которых эти агенты уже работали на этом Mac, и их переписка. Вызовы инструментов, ключи и настройки агентов не переносятся.'
               )}
             </small>
           </div>
@@ -125,12 +139,12 @@ export function ProjectImport({onClose, onImported}) {
           ) : (
             <ul className="project-import-list">
               {shown.map(r => (
-                <li key={r.path} className={r.added ? 'is-added' : ''}>
+                <li key={r.path} className={pickable(r) ? '' : 'is-added'}>
                   <label>
                     <input
                       type="checkbox"
-                      disabled={r.added || busy}
-                      checked={r.added || picked.has(r.path)}
+                      disabled={!pickable(r) || busy}
+                      checked={pickable(r) ? picked.has(r.path) : r.added}
                       onChange={() => toggle(r.path)}
                     />
                     <span className="project-import-main">
@@ -143,7 +157,15 @@ export function ProjectImport({onClose, onImported}) {
                           <AgentIcon provider={s} />
                         </span>
                       ))}
-                      <small>{r.added ? loc('уже в Nexus') : ago(r.lastUsed)}</small>
+                      <small>
+                        {r.sessions > 0 &&
+                          countLabel(r.sessions, loc('сессия'), loc('сессии'), loc('сессий')) + ' · '}
+                        {r.added
+                          ? r.importedChats
+                            ? loc('в Nexus · чатов перенесено: {0}', r.importedChats)
+                            : loc('уже в Nexus')
+                          : ago(r.lastUsed)}
+                      </small>
                     </span>
                   </label>
                 </li>
@@ -152,10 +174,19 @@ export function ProjectImport({onClose, onImported}) {
           )}
         </div>
         <div className="settings-actions">
+          <label className="project-import-chats">
+            <input
+              type="checkbox"
+              checked={withChats}
+              disabled={busy}
+              onChange={e => setWithChats(e.target.checked)}
+            />
+            {loc('Перенести переписку')}
+          </label>
           <button type="button" disabled={busy} onClick={onClose}>
             {loc('Отмена')}
           </button>
-          <button type="button" className="primary" disabled={busy || !picked.size} onClick={run}>
+          <button type="button" className="primary" disabled={busy || !selected} onClick={run}>
             {busy
               ? loc('Добавляю…')
               : picked.size

@@ -9,6 +9,8 @@ import {ComposerPlan} from './composer-plan.jsx';
 import {Toaster, useToastOn} from './toaster.jsx';
 import {notify} from './toasts.js';
 import {installScrollFades} from './scroll-fades.js';
+import {installChatEdgeFade} from './chat-edge-fade.js';
+import {installDither} from './dither.js';
 import {ConnectionsDialog} from './connections-dialog.jsx';
 import {ProjectBoard} from './project-board.jsx';
 import {WelcomeScreen} from './welcome-screen.jsx';
@@ -988,6 +990,8 @@ function App() {
     setExportNote(null);
   }, [exportNote]);
   useEffect(() => installScrollFades(), []);
+  useEffect(() => installChatEdgeFade(), []);
+  useEffect(() => installDither(), []);
   useToastOn(projectError, () => setProjectError(''), 'error', {
     label: loc('Подключения'),
     run: () => setOpen(true),

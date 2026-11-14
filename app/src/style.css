@@ -1380,24 +1380,24 @@ summary:focus-visible {
 }
 /* Conversation layout: quiet assistant responses and compact user bubbles. */
 body {
-  background: #212121;
-  color: #ececec;
+  background: #1b2025;
+  color: #d9ecf8;
 }
 .app {
-  background: #212121;
+  background: #1b2025;
 }
 header {
   padding: 20px 28px;
 }
 .mark {
-  color: #d8d8d8;
+  color: #c7d8e3;
 }
 .brand {
   letter-spacing: 1px;
 }
 .minor,
 .status {
-  color: #999;
+  color: #8d99a1;
 }
 .bottom {
   max-width: 1120px;
@@ -1411,19 +1411,19 @@ header {
 .chat-heading {
   border: 0;
   padding: 12px 22px;
-  color: #ddd;
+  color: #cbdde8;
 }
 .chat-heading strong {
   font-weight: 500;
 }
 .chat-routing {
-  border-color: #414141;
-  color: #b5b5b5;
+  border-color: #353f49;
+  color: #a7b5be;
 }
 .chat-thread {
   padding: 28px max(20px, calc((100% - 800px) / 2));
   gap: 30px;
-  scrollbar-color: #666 transparent;
+  scrollbar-color: #546372 transparent;
   scrollbar-width: thin;
 }
 .chat-bubble {
@@ -1433,10 +1433,10 @@ header {
   width: 100%;
   max-width: 100%;
   border-radius: 0;
-  color: #ececec;
+  color: #d9ecf8;
 }
 .chat-bubble.user {
-  background: #303030;
+  background: #272f36;
   border: 0;
   border-radius: 24px;
   padding: 13px 20px;
@@ -1452,7 +1452,7 @@ header {
   line-height: 1.8;
 }
 .chat-markdown pre {
-  background: #171717;
+  background: #13161a;
 }
 .chat-bubble.user .chat-markdown p {
   margin: 0;
@@ -1460,8 +1460,8 @@ header {
 .chat-composer {
   margin: 8px auto 0;
   width: min(800px, 100%);
-  background: #303030;
-  border: 1px solid #3b3b3b;
+  background: #272f36;
+  border: 1px solid #303942;
   border-radius: 26px;
   padding: 12px 16px;
   box-shadow: 0 5px 20px #0001;
@@ -1475,8 +1475,8 @@ header {
 .composer-bottom button[type='submit'] {
   border-radius: 50%;
   padding: 9px;
-  background: #ececec;
-  color: #202020;
+  background: #deeaf1;
+  color: #1d2022;
   display: grid;
   place-items: center;
   width: 38px;
@@ -1489,48 +1489,48 @@ header {
 }
 .composer-tools span {
   font-size: 10px;
-  color: #aaa;
+  color: #9caab2;
 }
 .composer-tools .attach-button {
   border: 0;
   background: transparent;
-  color: #ccc;
+  color: #bcccd6;
   padding: 7px;
 }
 .project-panel {
   background: transparent;
-  border-color: #3b3b3b;
+  border-color: #303942;
 }
 .legacy-tools > summary {
-  border-color: #3b3b3b;
+  border-color: #303942;
 }
 .message-actions button {
-  color: #aaa;
+  color: #9caab2;
 }
 .message-actions button:hover,
 .message-actions button[aria-pressed='true'] {
-  background: #3b3b3b;
+  background: #303942;
   color: #fff;
 }
 .message-actions time,
 .message-model {
-  color: #999;
+  color: #8d99a1;
 }
 .response-details {
-  color: #aaa;
+  color: #9caab2;
 }
 .activity-list {
-  border-color: #3b3b3b;
+  border-color: #303942;
 }
 .activity-row {
-  border-color: #363636;
+  border-color: #2c343c;
 }
 .activity-row pre {
-  background: #262626;
+  background: #1f252b;
 }
 .reply-preview {
-  background: #393939;
-  border-color: #aaa;
+  background: #2f3740;
+  border-color: #8ba5be;
 }
 .message-files,
 .draft-files {
@@ -1541,9 +1541,9 @@ header {
 }
 .file-tile {
   position: relative;
-  border: 1px solid #505050;
+  border: 1px solid #424e5a;
   border-radius: 14px;
-  background: #2b2b2b;
+  background: #232a30;
   max-width: 280px;
   min-width: 180px;
 }
@@ -1556,7 +1556,7 @@ header {
   border: 0;
   width: 100%;
   padding: 12px;
-  color: #ddd;
+  color: #cbdde8;
 }
 .file-open span {
   display: flex;
@@ -1572,7 +1572,7 @@ header {
   max-width: 200px;
 }
 .file-open small {
-  color: #999;
+  color: #8d99a1;
   font-size: 10px;
 }
 .file-open img {
@@ -1587,7 +1587,7 @@ header {
   top: -7px;
   padding: 3px;
   border-radius: 50%;
-  background: #505050;
+  background: #424e5a;
   border: 0;
   display: grid;
   place-items: center;
@@ -1605,8 +1605,8 @@ header {
 .file-preview {
   width: min(1000px, 100%);
   height: min(800px, 90dvh);
-  background: #242424;
-  border: 1px solid #555;
+  background: #1e2328;
+  border: 1px solid #46525f;
   border-radius: 18px;
   display: flex;
   flex-direction: column;
@@ -1619,7 +1619,7 @@ header {
   align-items: center;
   gap: 18px;
   padding: 18px;
-  border-bottom: 1px solid #444;
+  border-bottom: 1px solid #38424c;
 }
 .file-preview header div {
   flex: 1;
@@ -1628,11 +1628,11 @@ header {
 }
 .file-preview header small {
   display: block;
-  color: #999;
+  color: #8d99a1;
   margin-top: 5px;
 }
 .file-preview header a {
-  color: #ddd;
+  color: #cbdde8;
 }
 .file-preview-close {
   border: 0;
@@ -1679,21 +1679,21 @@ header {
 .file-no-preview {
   text-align: center;
   padding: 60px 20px;
-  color: #aaa;
+  color: #9caab2;
 }
 .file-no-preview a {
-  color: #ddd;
+  color: #cbdde8;
 }
 .agent-question {
-  border: 1px solid #494949;
+  border: 1px solid #3c4752;
   border-radius: 18px;
-  background: #282828;
+  background: #21272d;
   padding: 18px;
   width: min(800px, 100%);
   margin: 12px auto;
 }
 .question-caption {
-  color: #999;
+  color: #8d99a1;
   font-size: 11px;
   margin-bottom: 16px;
 }
@@ -1717,25 +1717,25 @@ header {
   flex-direction: column;
   text-align: left;
   gap: 6px;
-  background: #303030;
-  border-color: #4b4b4b;
-  color: #ddd;
+  background: #272f36;
+  border-color: #3d4954;
+  color: #cbdde8;
   padding: 13px 16px;
 }
 .question-options button.selected {
-  border-color: #ddd;
-  background: #414141;
+  border-color: #d0dbe1;
+  background: #353f49;
 }
 .question-options small {
-  color: #aaa;
+  color: #9caab2;
   line-height: 1.5;
 }
 .agent-question input {
   margin-top: 10px;
   width: 100%;
-  background: #242424;
-  color: #eee;
-  border: 1px solid #555;
+  background: #1e2328;
+  color: #dbeefa;
+  border: 1px solid #46525f;
   border-radius: 9px;
   padding: 12px;
   font-size: 13px;
@@ -1745,17 +1745,17 @@ header {
   gap: 8px;
 }
 .question-actions button {
-  background: #ddd;
-  color: #222;
+  background: #d0dbe1;
+  color: #1f2224;
   border: 0;
 }
 .question-actions button + button {
-  background: #404040;
-  color: #ddd;
+  background: #343e48;
+  color: #cbdde8;
 }
 .pending-details {
   background: transparent;
-  border-color: #444;
+  border-color: #38424c;
 }
 .file-preview-overlay ~ header {
   pointer-events: none;
@@ -1817,7 +1817,7 @@ header {
 .compact-question .question-options .own-choice {
   background: transparent;
   border-color: transparent;
-  color: #aaa;
+  color: #9caab2;
 }
 .compact-question input {
   padding: 8px 11px;
@@ -1834,7 +1834,7 @@ header {
 }
 .compact-question > small {
   display: block;
-  color: #999;
+  color: #8d99a1;
   margin-top: 6px;
 }
 .compact-question p[role='alert'] {
@@ -1857,15 +1857,15 @@ header {
   border-radius: 8px;
   font-size: 13px;
   line-height: 1.4;
-  color: #ddd;
+  color: #cbdde8;
   cursor: pointer;
 }
 .question-option:hover {
-  background: #303030;
+  background: #272f36;
 }
 .question-option.selected {
-  background: #363636;
-  border-color: #565656;
+  background: #2c343c;
+  border-color: #475360;
 }
 .compact-question .question-option input {
   appearance: auto;
@@ -1883,7 +1883,7 @@ header {
 }
 .question-option small {
   display: block;
-  color: #999;
+  color: #8d99a1;
   font-size: 11px;
   margin-top: 3px;
 }
@@ -1896,12 +1896,12 @@ header {
 .multiple-hint {
   display: block;
   margin-top: 3px;
-  color: #999;
+  color: #8d99a1;
   font-size: 11px;
   font-weight: 400;
 }
 .question-option:has(input:focus-visible) {
-  outline: 2px solid #bbb;
+  outline: 2px solid #99b5d1;
   outline-offset: 1px;
 }
 /* Text entry stays quiet; choice controls follow the app's neutral palette. */
@@ -1921,8 +1921,8 @@ input:not([type='checkbox']):not([type='radio']):focus-visible {
   width: 15px;
   height: 15px;
   min-width: 15px;
-  border: 1.5px solid #858585;
-  background: #292929;
+  border: 1.5px solid #6d8195;
+  background: #22282e;
   border-radius: 4px;
   box-shadow: none;
   outline: none;
@@ -1935,8 +1935,8 @@ input:not([type='checkbox']):not([type='radio']):focus-visible {
   border-radius: 50%;
 }
 .compact-question .question-option input:checked {
-  background: #dedede;
-  border-color: #dedede;
+  background: #d1dce2;
+  border-color: #d1dce2;
 }
 .compact-question .question-option input[type='checkbox']:checked:after {
   content: '';
@@ -1945,7 +1945,7 @@ input:not([type='checkbox']):not([type='radio']):focus-visible {
   top: 1px;
   width: 4px;
   height: 8px;
-  border: solid #242424;
+  border: solid #1e2328;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
@@ -1954,10 +1954,10 @@ input:not([type='checkbox']):not([type='radio']):focus-visible {
   position: absolute;
   inset: 3px;
   border-radius: 50%;
-  background: #242424;
+  background: #1e2328;
 }
 .compact-question .question-option:has(input:focus-visible) {
-  outline: 1px solid #777;
+  outline: 1px solid #627385;
   outline-offset: 1px;
 }
 .compact-question fieldset:disabled .question-option {
@@ -1969,8 +1969,8 @@ input:not([type='checkbox']):not([type='radio']):focus-visible {
   align-items: center;
   justify-content: center;
   gap: 7px;
-  background: #ececec;
-  color: #202020;
+  background: #deeaf1;
+  color: #1d2022;
   border: 0;
   border-radius: 20px;
   padding: 9px 14px;
@@ -1980,7 +1980,7 @@ input:not([type='checkbox']):not([type='radio']):focus-visible {
 .generation-stopped {
   margin-top: 10px;
   font-size: 12px;
-  color: #999;
+  color: #8d99a1;
 }
 .composer-bottom .stop-generation:disabled {
   opacity: 0.65;
@@ -1992,33 +1992,33 @@ input:not([type='checkbox']):not([type='radio']):focus-visible {
 .continue-generation {
   margin-left: 8px;
   padding: 5px 10px;
-  border: 1px solid #515151;
+  border: 1px solid #424f5b;
   background: transparent;
-  color: #ddd;
+  color: #cbdde8;
   border-radius: 8px;
   font-size: 12px;
 }
 .continue-generation:hover {
-  background: #343434;
-  border-color: #888;
+  background: #2b323a;
+  border-color: #708498;
 }
 .reasoning-mode {
   background: transparent;
-  border: 1px solid #505050;
+  border: 1px solid #424e5a;
   border-radius: 16px;
-  color: #ccc;
+  color: #bcccd6;
   padding: 5px 10px;
   font: 12px inherit;
   max-width: 130px;
 }
 .reasoning-mode option {
-  background: #303030;
-  color: #eee;
+  background: #272f36;
+  color: #dbeefa;
 }
 .message-mode {
   font-size: 11px;
-  color: #aaa;
-  border-left: 1px solid #555;
+  color: #9caab2;
+  border-left: 1px solid #46525f;
   padding-left: 8px;
   margin-left: 4px;
 }
@@ -2074,7 +2074,7 @@ html {
   color-scheme: dark;
 }
 * {
-  scrollbar-color: #5a5a5a transparent;
+  scrollbar-color: #4a5765 transparent;
   scrollbar-width: thin;
 }
 ::-webkit-scrollbar {
@@ -2085,13 +2085,13 @@ html {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #565656;
+  background: #475360;
   border: 2px solid transparent;
   background-clip: padding-box;
   border-radius: 20px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #777;
+  background-color: #627385;
 }
 ::-webkit-scrollbar-corner {
   background: transparent;
@@ -2109,15 +2109,15 @@ html {
   padding: 4px 0;
 }
 .pending-details .spinner {
-  border-color: #4a4a4a;
-  border-top-color: #ccc;
+  border-color: #3d4853;
+  border-top-color: #c0cad0;
 }
 .pending-details summary {
   padding: 4px 0;
 }
 .pending-details p {
   margin: 7px 0;
-  color: #999;
+  color: #8d99a1;
 }
 .composer-input-wrap {
   position: relative;
@@ -2150,7 +2150,7 @@ html {
 .composer-ghost {
   position: absolute;
   inset: 0;
-  color: #888;
+  color: #7d888f;
   pointer-events: none;
   overflow: hidden;
   max-height: 100%;
@@ -2165,9 +2165,9 @@ html {
   top: 10px;
   padding: 1px 5px;
   font: 10px/1.5 inherit;
-  border: 1px solid #626262;
+  border: 1px solid #505f6e;
   border-radius: 4px;
-  color: #aaa;
+  color: #9caab2;
   pointer-events: none;
   z-index: 2;
 }
@@ -2226,26 +2226,26 @@ html {
   display: grid;
   place-items: center;
   padding: 0;
-  background: #303030;
-  color: #eee;
-  border: 1px solid #505050;
+  background: #272f36;
+  color: #dbeefa;
+  border: 1px solid #424e5a;
   box-shadow: 0 3px 12px #0005;
   z-index: 2;
 }
 .jump-latest:hover {
-  background: #404040;
-  border-color: #777;
+  background: #343e48;
+  border-color: #627385;
 }
 .app aside {
-  background: #242424;
-  color: #ececec;
-  border-left: 1px solid #3b3b3b;
+  background: #1e2328;
+  color: #d9ecf8;
+  border-left: 1px solid #303942;
   box-shadow: -16px 0 60px #0004;
   width: min(480px, 100vw);
 }
 aside .asidehead {
   padding: 24px;
-  border-color: #393939;
+  border-color: #2f3740;
 }
 aside h2 {
   font-size: 21px;
@@ -2253,47 +2253,47 @@ aside h2 {
   letter-spacing: -0.4px;
 }
 aside small {
-  color: #a3a3a3 !important;
+  color: #96a3ab !important;
 }
 aside button {
-  background: #303030;
-  border-color: #454545;
-  color: #ddd;
+  background: #272f36;
+  border-color: #39434d;
+  color: #cbdde8;
 }
 aside button:hover {
-  background: #393939;
-  border-color: #666;
+  background: #2f3740;
+  border-color: #546372;
 }
 aside .tabs {
-  border-color: #3b3b3b;
+  border-color: #303942;
   padding: 8px 22px 18px;
   gap: 6px;
 }
 aside .tabs button {
   border: 0;
   background: transparent;
-  color: #999;
+  color: #8d99a1;
 }
 aside .tabs button.active {
-  background: #3b3b3b;
+  background: #303942;
   color: #fff;
 }
 .accountv7 .accountcard {
-  background: #292929;
-  border: 1px solid #414141;
+  background: #22282e;
+  border: 1px solid #353f49;
   border-radius: 18px;
   padding: 18px;
 }
 .accountavatar {
-  background: #3a3a3a;
-  color: #eee;
+  background: #303841;
+  color: #dbeefa;
   border-radius: 12px;
 }
 .accountidentity strong {
   font-size: 14px;
 }
 .accountidentity strong span {
-  color: #aaa;
+  color: #9caab2;
 }
 .accountidentity small {
   font-size: 11px;
@@ -2301,7 +2301,7 @@ aside .tabs button.active {
 }
 .authpill {
   background: transparent;
-  color: #999;
+  color: #8d99a1;
   font-size: 10px;
 }
 .authpill.ok {
@@ -2322,8 +2322,8 @@ aside .tabs button.active {
   padding: 8px 11px;
 }
 .accountactions button.login-account {
-  background: #ececec;
-  color: #222;
+  background: #deeaf1;
+  color: #1f2224;
   border-color: transparent;
 }
 .accountactions button.login-account:hover {
@@ -2332,7 +2332,7 @@ aside .tabs button.active {
 .accountv7 .authmodal {
   background: transparent;
   border: 0;
-  border-top: 1px solid #414141;
+  border-top: 1px solid #353f49;
   border-radius: 0;
   padding: 16px 0 0;
   margin-top: 16px;
@@ -2341,18 +2341,18 @@ aside .tabs button.active {
   font-size: 13px;
 }
 .authmodal p {
-  color: #bbb;
+  color: #acbbc4;
   font-size: 12px;
   line-height: 1.6;
 }
 .authmodalhead button {
   border: 0;
   background: transparent;
-  color: #aaa;
+  color: #9caab2;
 }
 .google-signin,
 .deviceauth {
-  background: #303030;
+  background: #272f36;
   border: 0;
   border-radius: 14px;
   padding: 18px;
@@ -2360,7 +2360,7 @@ aside .tabs button.active {
 }
 .google-signin > .accountavatar {
   margin-bottom: 12px;
-  background: #454545;
+  background: #39434d;
 }
 .google-signin > strong {
   font-size: 16px;
@@ -2369,7 +2369,7 @@ aside .tabs button.active {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #aaa;
+  color: #9caab2;
   font-size: 12px;
   margin-top: 18px;
 }
@@ -2380,7 +2380,7 @@ aside .tabs button.active {
 }
 .connection-technical {
   margin: 16px 0;
-  color: #aaa;
+  color: #9caab2;
   font-size: 12px;
 }
 .connection-technical summary {
@@ -2389,7 +2389,7 @@ aside .tabs button.active {
 }
 .accountv7 .quota-details {
   background: transparent;
-  border-color: #414141;
+  border-color: #353f49;
   border-radius: 12px;
   margin-top: 10px;
 }
@@ -2403,8 +2403,8 @@ aside .tabs button.active {
   padding: 7px 9px;
 }
 .authdiagnostics {
-  background: #202020;
-  color: #bbb;
+  background: #1a1f24;
+  color: #acbbc4;
   max-height: none;
   overflow: visible;
   white-space: pre-wrap;
@@ -2413,30 +2413,30 @@ aside .tabs button.active {
 }
 aside .accountform input,
 aside .accountform select {
-  background: #303030;
-  border-color: #454545;
-  color: #eee;
+  background: #272f36;
+  border-color: #39434d;
+  color: #dbeefa;
   min-width: 0;
   flex: 1;
 }
 .addaccount {
-  border-color: #414141 !important;
+  border-color: #353f49 !important;
   padding-top: 22px;
 }
 .addaccount h3 {
   font-size: 14px;
 }
 .asidefoot {
-  border-color: #393939;
-  color: #999;
+  border-color: #2f3740;
+  color: #8d99a1;
   font-size: 11px;
 }
 .agentlist .agent {
-  background: #292929;
-  border-color: #414141;
+  background: #22282e;
+  border-color: #353f49;
 }
 .agenticon {
-  color: #ddd;
+  color: #cbdde8;
 }
 .agentname small {
   overflow-wrap: anywhere;
@@ -2479,7 +2479,7 @@ aside .accountform select {
   font-size: 10px;
   border: 0;
   background: transparent;
-  color: #999;
+  color: #8d99a1;
 }
 .app > .bottom {
   grid-column: 2;
@@ -2503,7 +2503,7 @@ aside .accountform select {
   padding: 10px 22px 18px;
 }
 .chat-heading span {
-  color: #999;
+  color: #8d99a1;
 }
 .chat-thread-content .chat-bubble.user {
   align-self: flex-end;
@@ -2515,12 +2515,12 @@ aside .accountform select {
 .project-nav {
   grid-row: 1/3;
   grid-column: 1;
-  background: #191919;
+  background: #14181c;
   display: flex;
   flex-direction: column;
   padding: 16px 10px 10px;
   min-height: 0;
-  border-right: 1px solid #292929;
+  border-right: 1px solid #22282e;
 }
 .nav-brand {
   display: flex;
@@ -2528,7 +2528,7 @@ aside .accountform select {
   gap: 10px;
   padding: 4px 12px 22px;
   font-size: 18px;
-  color: #ddd;
+  color: #cbdde8;
 }
 .nav-brand strong {
   font-size: 13px;
@@ -2537,7 +2537,7 @@ aside .accountform select {
 .project-nav button {
   border: 0;
   background: transparent;
-  color: #aaa;
+  color: #9caab2;
   padding: 7px;
   border-radius: 8px;
   display: flex;
@@ -2547,20 +2547,20 @@ aside .accountform select {
   text-align: left;
 }
 .project-nav button:hover {
-  background: #303030;
-  color: #eee;
+  background: #272f36;
+  color: #dbeefa;
 }
 .new-chat-nav {
   margin: 0 4px 22px;
   font-size: 13px;
-  color: #eee !important;
+  color: #dbeefa !important;
 }
 .nav-section-title {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 12px 8px;
-  color: #888;
+  color: #7d888f;
   font-size: 11px;
 }
 .nav-scroll {
@@ -2579,7 +2579,7 @@ aside .accountform select {
   font-size: 12px;
 }
 .nav-row.selected {
-  background: #303030;
+  background: #272f36;
 }
 .nav-row.selected .nav-title {
   color: #fff;
@@ -2600,7 +2600,7 @@ aside .accountform select {
   text-overflow: ellipsis;
 }
 .project-name.current {
-  color: #eee;
+  color: #dbeefa;
 }
 .nav-row .nav-toggle {
   padding: 5px 3px;
@@ -2619,23 +2619,23 @@ aside .accountform select {
 }
 .nav-folder small {
   font-size: 9px;
-  color: #777;
+  color: #6d777d;
 }
 .nav-folder-tools {
   padding: 1px 12px 5px;
 }
 .nav-folder-tools button {
   font-size: 10px;
-  color: #777;
+  color: #6d777d;
 }
 .nav-empty {
   font-size: 11px;
-  color: #777;
+  color: #6d777d;
   padding: 5px 16px;
   line-height: 1.6;
 }
 .nav-footer {
-  border-top: 1px solid #303030;
+  border-top: 1px solid #272f36;
   padding-top: 10px;
   margin-top: 10px;
 }
@@ -2663,15 +2663,15 @@ aside .accountform select {
 }
 .project-settings,
 .tools-dialog {
-  background: #252525;
-  border: 1px solid #444;
+  background: #1e2429;
+  border: 1px solid #38424c;
   border-radius: 20px;
   width: min(680px, 100%);
   max-height: 90dvh;
   box-shadow: 0 20px 80px #0006;
   display: flex;
   flex-direction: column;
-  color: #eee;
+  color: #dbeefa;
   overflow: hidden;
 }
 .settings-header,
@@ -2680,7 +2680,7 @@ aside .accountform select {
   align-items: center;
   justify-content: space-between;
   padding: 22px 24px;
-  border-bottom: 1px solid #3b3b3b;
+  border-bottom: 1px solid #303942;
 }
 .settings-header h2,
 .tools-header h2 {
@@ -2689,7 +2689,7 @@ aside .accountform select {
 }
 .settings-header small {
   font-size: 11px;
-  color: #999;
+  color: #8d99a1;
   overflow-wrap: anywhere;
 }
 .settings-header button {
@@ -2698,7 +2698,7 @@ aside .accountform select {
   border: 0;
   background: transparent;
   padding: 6px;
-  color: #aaa;
+  color: #9caab2;
 }
 .project-settings form {
   display: flex;
@@ -2717,22 +2717,22 @@ aside .accountform select {
   flex-direction: column;
   gap: 9px;
   font-size: 12px;
-  color: #bbb;
+  color: #acbbc4;
 }
 .settings-body input,
 .settings-body select,
 .settings-body textarea {
   font: inherit;
-  color: #eee;
-  background: #303030;
-  border: 1px solid #484848;
+  color: #dbeefa;
+  background: #272f36;
+  border: 1px solid #3b4651;
   border-radius: 9px;
   padding: 10px 12px;
   width: 100%;
   outline: none;
 }
 .settings-body small {
-  color: #888;
+  color: #7d888f;
   font-size: 11px;
   line-height: 1.6;
 }
@@ -2745,8 +2745,8 @@ aside .accountform select {
   gap: 12px;
 }
 .context-source {
-  background: #2b2b2b;
-  border: 1px solid #404040;
+  background: #232a30;
+  border: 1px solid #343e48;
   border-radius: 12px;
   padding: 12px;
 }
@@ -2755,7 +2755,7 @@ aside .accountform select {
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
-  color: #aaa;
+  color: #9caab2;
 }
 .context-source-head input {
   border: 0;
@@ -2767,7 +2767,7 @@ aside .accountform select {
   border: 0;
   background: transparent;
   padding: 4px;
-  color: #999;
+  color: #8d99a1;
   display: grid;
   place-items: center;
 }
@@ -2783,9 +2783,9 @@ aside .accountform select {
 }
 .context-add button {
   font-size: 11px;
-  background: #303030;
-  border-color: #484848;
-  color: #ccc;
+  background: #272f36;
+  border-color: #3b4651;
+  color: #bcccd6;
   padding: 7px 9px;
   display: flex;
   align-items: center;
@@ -2793,7 +2793,7 @@ aside .accountform select {
 }
 .context-help {
   font-size: 11px;
-  color: #999;
+  color: #8d99a1;
   line-height: 1.7;
   margin: 0;
 }
@@ -2801,18 +2801,18 @@ aside .accountform select {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  border-top: 1px solid #3b3b3b;
+  border-top: 1px solid #303942;
   padding: 16px 24px;
 }
 .settings-actions button {
-  background: #363636;
-  color: #ccc;
+  background: #2c343c;
+  color: #bcccd6;
   border: 0;
   font-size: 12px;
 }
 .settings-actions .primary {
-  background: #eee;
-  color: #222;
+  background: #e0ecf3;
+  color: #1f2224;
 }
 .tools-dialog {
   display: block;
@@ -2835,7 +2835,7 @@ aside .accountform select {
   height: 36px;
   flex-shrink: 0;
   border-radius: 11px;
-  background: #383838;
+  background: #2e363f;
   display: grid;
   place-items: center;
 }
@@ -2902,14 +2902,14 @@ aside .accountform select {
 .mac-navigation button {
   border: 0;
   background: transparent;
-  color: #999;
+  color: #8d99a1;
   display: grid;
   place-items: center;
   padding: 7px;
 }
 .mac-navigation button:hover {
-  background: #383838;
-  color: #eee;
+  background: #2e363f;
+  color: #dbeefa;
 }
 .mac-navigation button:disabled {
   opacity: 0.35;
@@ -2923,18 +2923,18 @@ aside .accountform select {
   padding: 0;
 }
 .tools-header button {
-  background: #353535;
+  background: #2b333b;
   border: 0;
-  color: #ccc;
+  color: #bcccd6;
 }
 .permission-card {
   width: min(800px, 100%);
   margin: 10px auto;
   padding: 16px 18px;
-  background: #303030;
-  border: 1px solid #555;
+  background: #272f36;
+  border: 1px solid #46525f;
   border-radius: 14px;
-  color: #ddd;
+  color: #cbdde8;
   font-size: 12px;
   line-height: 1.6;
   max-height: 45vh;
@@ -2949,21 +2949,21 @@ aside .accountform select {
 .permission-card pre {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  background: #252525;
+  background: #1e2429;
   padding: 10px;
   border-radius: 8px;
   font-size: 11px;
 }
 .permission-card details {
   margin: 10px 0;
-  color: #aaa;
+  color: #9caab2;
 }
 .permission-card summary {
   cursor: pointer;
 }
 .permission-card small,
 .permission-note {
-  color: #999;
+  color: #8d99a1;
   font-size: 11px;
 }
 .permission-actions {
@@ -2973,13 +2973,13 @@ aside .accountform select {
 }
 .permission-actions button {
   font-size: 12px;
-  background: #414141;
-  color: #ddd;
+  background: #353f49;
+  color: #cbdde8;
   border: 0;
 }
 .permission-actions button:last-child {
-  background: #eee;
-  color: #222;
+  background: #e0ecf3;
+  color: #1f2224;
 }
 
 /* Chat activity uses a text shimmer, while unread answers keep a quiet marker. */
@@ -3003,7 +3003,7 @@ aside .accountform select {
   display: block;
 }
 .has-unread .chat-title-text {
-  color: #eee;
+  color: #dbeefa;
   font-weight: 500;
 }
 .chat-title-text {
@@ -3014,14 +3014,14 @@ aside .accountform select {
 }
 .is-thinking .chat-title-text {
   color: transparent;
-  background: linear-gradient(105deg, #777 0%, #777 35%, #eee 48%, #777 61%, #777 100%);
+  background: linear-gradient(105deg, #627385 0%, #627385 35%, #e0ecf3 48%, #627385 61%, #627385 100%);
   background-size: 240% 100%;
   background-clip: text;
   -webkit-background-clip: text;
   animation: chat-title-shimmer 2.3s linear infinite;
 }
 .is-thinking .nav-toggle {
-  color: #666;
+  color: #5e666b;
 }
 .nav-row .nav-more {
   margin-left: auto;
@@ -3032,8 +3032,8 @@ aside .accountform select {
   top: calc(100% - 1px);
   z-index: 25;
   min-width: 205px;
-  background: #2b2b2b;
-  border: 1px solid #454545;
+  background: #232a30;
+  border: 1px solid #39434d;
   border-radius: 12px;
   padding: 5px;
   box-shadow: 0 8px 28px #0007;
@@ -3044,11 +3044,11 @@ aside .accountform select {
   width: 100%;
   font-size: 12px;
   padding: 9px !important;
-  color: #ddd !important;
+  color: #cbdde8 !important;
   border-radius: 7px;
 }
 .nav-menu button:hover {
-  background: #404040 !important;
+  background: #343e48 !important;
 }
 .nav-row:has(.nav-menu) {
   z-index: 26;
@@ -3062,16 +3062,16 @@ aside .accountform select {
   gap: 4px;
   margin: 5px 8px 6px 20px;
   padding: 4px 6px;
-  background: #303030;
+  background: #272f36;
   border-radius: 8px;
-  color: #aaa;
+  color: #9caab2;
 }
 .nav-create-folder input {
   width: 100%;
   min-width: 0;
   border: 0;
   outline: none;
-  color: #eee;
+  color: #dbeefa;
   background: transparent;
   font: 12px/1.7 inherit;
 }
@@ -3088,23 +3088,23 @@ aside .accountform select {
   opacity: 0.5;
 }
 .project-nav .new-chat-nav {
-  color: #ddd !important;
+  color: #cbdde8 !important;
   margin-bottom: 20px;
 }
 .nav-empty {
   display: block !important;
   width: calc(100% - 30px);
   font-size: 11px !important;
-  color: #777 !important;
+  color: #6d777d !important;
   margin-left: 20px;
 }
 .project-nav .project-name {
   margin-top: 7px;
 }
 .agent-connect-card {
-  border: 1px solid #444;
+  border: 1px solid #38424c;
   border-radius: 15px;
-  background: #292929;
+  background: #22282e;
   padding: 18px;
   margin: 14px 0;
   max-width: 560px;
@@ -3117,21 +3117,21 @@ aside .accountform select {
 .agent-connect-title span {
   margin-left: auto;
   font-size: 10px;
-  color: #999;
+  color: #8d99a1;
 }
 .agent-connect-card p {
   font-size: 13px;
   line-height: 1.6;
-  color: #aaa;
+  color: #9caab2;
 }
 .agent-connect-package {
   font-size: 12px;
-  color: #ccc;
+  color: #bcccd6;
   margin: 10px 0;
 }
 .agent-connect-card details {
   font-size: 12px;
-  color: #aaa;
+  color: #9caab2;
   margin: 12px 0;
 }
 .agent-connect-card summary {
@@ -3145,7 +3145,7 @@ aside .accountform select {
 }
 .agent-connect-card small {
   display: block;
-  color: #888;
+  color: #7d888f;
   font-size: 11px;
   line-height: 1.6;
 }
@@ -3154,8 +3154,8 @@ aside .accountform select {
   align-items: center;
   gap: 7px;
   margin-top: 16px;
-  background: #e5e5e5;
-  color: #222;
+  background: #d7e3ea;
+  color: #1f2224;
   border: 0;
   font-size: 12px;
 }
@@ -3173,7 +3173,7 @@ aside .accountform select {
 @media (prefers-reduced-motion: reduce) {
   .is-thinking .chat-title-text {
     animation: none;
-    color: #bbb;
+    color: #acbbc4;
     background: none;
   }
   .is-thinking .chat-status-slot:before {
@@ -3181,6 +3181,6 @@ aside .accountform select {
     width: 4px;
     height: 4px;
     border-radius: 50%;
-    background: #888;
+    background: #708498;
   }
 }
