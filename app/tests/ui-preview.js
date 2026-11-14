@@ -383,7 +383,23 @@ window.__TAURI_INTERNALS__ = {
         data: btoa(bin),
       };
     }
-    if (cmd === 'reveal_project_file') return;
+    if (cmd === 'reveal_project_file' || cmd === 'open_system_target') return;
+    if (cmd === 'channels_list')
+      return ['telegram', 'discord', 'slack', 'email', 'imessage', 'github', 'linear'].map(kind => ({
+        config: {
+          kind,
+          enabled: false,
+          allowed: [],
+          projectId: 'preview',
+          notifyProgress: true,
+          allowExecute: false,
+          selfChat: false,
+        },
+        status: {state: 'off'},
+        hasSecret: false,
+      }));
+    if (cmd === 'channels_log') return [];
+    if (cmd === 'background_settings') return {enabled: false};
     if (cmd === 'read_attachment') return btoa('# Проверка вложения\n\nТекст файла.');
     if (cmd === 'adaptive_plan' || cmd === 'ai_adaptive_plan')
       return {

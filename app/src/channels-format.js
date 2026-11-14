@@ -84,13 +84,35 @@ export const CHANNELS = {
     secret: '',
     allowed: 'Телефоны или Apple ID отправителей',
     allowedHint: 'Телефон в международном формате: +79991234567.',
+    // Steps can carry buttons: open an app / a System Settings pane, focus a field or switch a toggle.
     steps: [
-      'Войдите в «Сообщения» на этом Mac.',
-      'Разрешите NEXUS «Полный доступ к диску» (чтение входящих) и «Автоматизация → Сообщения» (ответы).',
-      'Добавьте номер или Apple ID, с которого будете писать. Для переписки с самим собой включите «Чат с собой».',
+      {
+        text: 'Войдите в «Сообщения» на этом Mac.',
+        actions: [{label: 'Открыть «Сообщения»', open: 'messages'}],
+      },
+      {
+        text: 'Разрешите NEXUS «Полный доступ к диску» (чтение входящих) и «Автоматизация → Сообщения» (ответы). Пункт «Автоматизация» появится после первой попытки ответа — тогда разрешите его.',
+        actions: [
+          {label: 'Полный доступ к диску', open: 'full-disk'},
+          {label: 'Автоматизация', open: 'automation'},
+        ],
+      },
+      {
+        text: 'Добавьте номер или Apple ID, с которого будете писать. Для переписки с самим собой включите «Чат с собой».',
+        actions: [
+          {label: 'Добавить номер', focus: 'channel-allowed'},
+          {label: 'Включить «Чат с собой»', toggle: 'selfChat'},
+        ],
+      },
     ],
   },
 };
+// A step is either plain text or {text, actions}.
+export function stepParts(step) {
+  return typeof step === 'string'
+    ? {text: step, actions: []}
+    : {text: step?.text || '', actions: step?.actions || []};
+}
 export const ORDER = ['telegram', 'discord', 'slack', 'email', 'imessage', 'github', 'linear'];
 export const EXTRA = {
   api: {

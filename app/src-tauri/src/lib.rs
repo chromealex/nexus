@@ -35,6 +35,7 @@ mod provider_connections;
 mod push_notify;
 mod question_history;
 mod remote_channels;
+mod system_open;
 mod verification;
 mod window_state;
 use accounts::*;
@@ -229,6 +230,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             browser_tools::browser_tools_status,
+            system_open::open_system_target,
             file_preview::read_project_file,
             file_preview::reveal_project_file,
             browser_host::browser_pane_open,

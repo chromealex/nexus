@@ -14,8 +14,10 @@ import {
   eventLine,
   shortcutBody,
   curlExample,
+  stepParts,
 } from './channels-format.js';
 import './channels-panel.css';
+import {useToastOn} from './toaster.jsx';
 
 const ICONS = {github: GitBranch, linear: GitBranch, api: Mic, push: Bell};
 // Remote tasks: messengers, email, iMessage, issue trackers and a local API feed regular Nexus chats; push reports back.
@@ -32,6 +34,8 @@ export function ChannelsPanel() {
     [busy, setBusy] = useState(''),
     [error, setError] = useState(''),
     [notice, setNotice] = useState('');
+  useToastOn(error, () => setError(''), 'error');
+  useToastOn(notice, () => setNotice(''), 'info');
   async function refresh() {
     try {
       const [v, p, l, b] = await Promise.all([
@@ -136,9 +140,39 @@ export function ChannelsPanel() {
         </button>
         <h3>{meta.name}</h3>
         <ol className="channel-steps">
-          {meta.steps.map((s, i) => (
-            <li key={i}>{s}</li>
-          ))}
+          {meta.steps.map((step, i) => {
+            const {text, actions} = stepParts(step);
+            return (
+              <li key={i}>
+                {text}
+                {actions.length > 0 && (
+                  <span className="channel-step-actions">
+                    {actions.map(a => (
+                      <button
+                        key={a.label}
+                        type="button"
+                        disabled={!!a.toggle && !!draft?.[a.toggle]}
+                        onClick={() => {
+                          if (a.open)
+                            invoke('open_system_target', {target: a.open}).catch(e => setError(String(e)));
+                          if (a.focus) {
+                            const field = document.getElementById(a.focus);
+                            field?.scrollIntoView({block: 'center', behavior: 'smooth'});
+                            field?.focus();
+                          }
+                          if (a.toggle) set(a.toggle, true);
+                        }}
+                      >
+                        {a.toggle && draft?.[a.toggle]
+                          ? '✓ ' + a.label.replace(/^Включить /, '') + ' включён'
+                          : a.label}
+                      </button>
+                    ))}
+                  </span>
+                )}
+              </li>
+            );
+          })}
         </ol>
         {meta.secret && (
           <label>
@@ -351,6 +385,7 @@ export function ChannelsPanel() {
           <label>
             {meta.allowed}
             <textarea
+              id="channel-allowed"
               rows={3}
               value={allowed}
               onChange={e => setAllowed(e.target.value)}
@@ -419,16 +454,6 @@ export function ChannelsPanel() {
         {problems.length > 0 && (
           <p className="connection-hint" role="status">
             {problems.join(' · ')}
-          </p>
-        )}
-        {error && (
-          <p className="connection-error" role="alert">
-            {error}
-          </p>
-        )}
-        {notice && (
-          <p className="connection-hint" role="status">
-            {notice}
           </p>
         )}
         <div className="channel-actions">
@@ -615,16 +640,6 @@ export function ChannelsPanel() {
           <p>Событий пока нет.</p>
         )}
       </details>
-      {error && (
-        <p className="connection-error" role="alert">
-          {error}
-        </p>
-      )}
-      {notice && (
-        <p className="connection-hint" role="status">
-          {notice}
-        </p>
-      )}
     </div>
   );
 }

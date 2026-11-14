@@ -267,3 +267,33 @@
   margin: 8px 0 0;
   color: var(--dialog-muted);
 }
+.channel-steps li + li {
+  margin-top: 6px;
+}
+.channel-step-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 2px;
+}
+.channel-step-actions button {
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-strong, #eef2f4);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.channel-step-actions button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+}
+.channel-step-actions button:disabled {
+  opacity: 1;
+  cursor: default;
+  color: #8fd6a8;
+  border-color: rgba(143, 214, 168, 0.3);
+  background: transparent;
+}

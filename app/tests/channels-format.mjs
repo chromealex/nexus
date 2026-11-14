@@ -58,3 +58,19 @@ assert.equal(JSON.parse(shortcutBody(30)).wait, 30);
 assert.match(curlExample('http://127.0.0.1:4719', 'tok'), /Bearer tok/);
 assert.match(eventLine({at: 1000, kind: 'push', direction: 'error', summary: 'x'}, 1000_000), /Уведомления/);
 console.log('channels-format: ok');
+{
+  const {stepParts, CHANNELS: C} = await import('../src/channels-format.js');
+  assert.deepEqual(stepParts('просто текст'), {text: 'просто текст', actions: []});
+  const steps = C.imessage.steps.map(stepParts);
+  assert.ok(steps.every(s => s.text));
+  assert.deepEqual(steps.flatMap(s => s.actions.map(a => a.open)).filter(Boolean), [
+    'messages',
+    'full-disk',
+    'automation',
+  ]);
+  assert.ok(
+    steps[2].actions.some(a => a.focus === 'channel-allowed') &&
+      steps[2].actions.some(a => a.toggle === 'selfChat')
+  );
+  console.log('channels-format: iMessage step buttons ok');
+}
