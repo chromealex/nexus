@@ -317,13 +317,18 @@ export const ROUTING_PRIORITIES = {
   economy: loc('Экономия'),
   speed: loc('Скорость'),
 };
-// Which public test answers which kind of request. The first test that covers at least two
-// compatible exact versions decides; the rest are fallbacks.
+// Which public tests fit which kind of request, the most specific first. The one covering the most
+// compatible exact versions decides (ties go to the more specific test).
 export function cohortsFor(task) {
   if (task.kind === 'visual') return ['vision'];
   if (task.kind === 'code') return ['codingAgent', ...(task.webdev ? ['webdev'] : []), 'intelligence'];
   if (task.kind === 'reasoning') return ['intelligence'];
-  return [...(task.extraction ? ['gdppdf'] : []), ...(task.needsTools ? ['automation'] : []), 'text'];
+  return [
+    ...(task.extraction ? ['gdppdf'] : []),
+    ...(task.needsTools ? ['automation'] : []),
+    'text',
+    ...(task.needsTools ? ['intelligence'] : []),
+  ];
 }
 const DAY = 86400000;
 export function evidenceRow(model, cohort, {effort, records = BENCHMARKS, now = Date.now()} = {}) {
@@ -367,18 +372,24 @@ export function benchmarkChoice(
   let cohort = null,
     usedEffort = null,
     candidates = [];
-  search: for (const name of cohortsFor(task))
+  // Among the tests that fit the task, the one rating the most available models decides (scores of
+  // different tests are never mixed). A narrower test listed earlier wins ties, so it is used whenever it
+  // covers as many models; otherwise unrated models (e.g. cheaper versions) would silently drop out.
+  let covered = 0;
+  for (const name of cohortsFor(task))
     for (const e of efforts) {
       const found = models.flatMap(model => {
         const evidence = evidenceRow(model, name, {effort: e, records, now});
         return evidence ? [{model, evidence}] : [];
       });
-      if (new Set(found.map(c => benchmarkModel(c.model))).size >= 2) {
+      const size = new Set(found.map(c => benchmarkModel(c.model))).size;
+      if (size >= 2 && size > covered) {
         cohort = name;
         usedEffort = e;
         candidates = found;
-        break search;
+        covered = size;
       }
+      if (size >= 2) break;
     }
   if (!cohort) return null;
   const depthNote = effort

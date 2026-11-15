@@ -172,7 +172,7 @@ export function classifyTask(
     );
   const code =
     webdev ||
-    /(код|рефактор|программ|алгоритм|тест|code|debug|implement|test|shader|unity|rust|python|javascript)/i.test(
+    /(код|рефактор|программ|алгоритм|тест|функци|метод|класс|парс|баг|компил|сборк|скрипт|репозитор|коммит|code|debug|implement|test|function|method|class|pars|bug|compil|build|script|commit|shader|unity|rust|python|javascript|typescript|swift|c#|c\+\+)/i.test(
       text
     );
   const repair = code && /(исправ|ошибк|debug|bug|рефактор|refactor)/i.test(text);

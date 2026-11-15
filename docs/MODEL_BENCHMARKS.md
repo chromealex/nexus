@@ -426,3 +426,8 @@ used as the cost for every model (for subscriptions it reflects how fast the quo
 measured API cost per task is still preferred where the benchmark publishes it. Order inside the pool:
 cost (or time for the Speed priority), then the higher score, then the ID. With the Quality priority,
 equal scores are decided by speed.
+
+Also 2026-11-15: among the tests that fit a task, the one rating the most available models decides
+(a narrower test wins ties); scores of different tests are never mixed. Tool tasks may fall back to the
+AA Intelligence Index. Code detection also recognises functions, methods, classes, parsing, bugs,
+compilation, builds, scripts and commits.
