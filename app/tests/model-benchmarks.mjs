@@ -99,7 +99,7 @@ assert.equal(routingAdvice('Код', {models: [astra, sol], selection: 'agent-au
 assert.equal(
   routingAdvice('Исправь ошибку в коде', {models: [haiku, sonnet, opus], selection: 'agent-auto:claude'})
     .choice,
-  opus.id
+  sonnet.id // ordinary code fixes do not spend the heaviest tier
 );
 for (const r of BENCHMARKS) {
   assert.ok(COHORTS[r.cohort]);
@@ -181,7 +181,7 @@ assert.equal(
   routingAdvice('Исправь ошибку в коде', {models: [oldCli, opus], selection: oldCli.id}).error,
   oldCli.unavailable
 );
-assert.equal(routingAdvice('Исправь ошибку в коде', {models: [fable, opus, sonnet]}).choice, opus.id); // balanced: no extra credits
+assert.equal(routingAdvice('Исправь ошибку в коде', {models: [fable, opus, sonnet]}).choice, sonnet.id); // balanced: no heavy tier for ordinary work
 const quality = routingAdvice('Исправь ошибку в коде', {models: [fable, opus, sonnet], priority: 'quality'});
 assert.equal(quality.choice, fable.id); // same 58 as Opus, faster published mode (high, 31 min)
 assert.match(quality.reason, /high/);

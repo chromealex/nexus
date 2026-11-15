@@ -153,6 +153,13 @@ export const TAG_NAMES = {
   local: loc('Локально'),
   review: loc('Проверка'),
 };
+/** Cost tier of a model by its name: heavy (Opus/Fable/Mythos and other flagship tiers), light, or standard. */
+export function modelTier(model) {
+  const name = `${model.model || ''} ${model.label || ''} ${model.id || ''}`.toLowerCase();
+  if (/\b(opus|fable|mythos)\b|[-_ ](max|ultra|pro-max)\b/.test(name)) return 'heavy';
+  if (/\b(haiku|mini|nano|flash|lite|small|qwen|local|ollama)\b/.test(name)) return 'light';
+  return 'standard';
+}
 export function classifyTask(
   text = '',
   hasFiles = false,
@@ -329,6 +336,17 @@ export function routingAdvice(
         'Для пользовательского ACP подтверждён только протокол. Выберите модель агента вручную; автовыбор отключён.'
       ),
     };
+  // Spend the heaviest models only where they pay off: simple requests go to light models first,
+  // ordinary ones never reach the top tier; reasoning tasks and the “Quality” priority may use anything.
+  const allowHeavy = priority === 'quality' || task.kind === 'reasoning';
+  const tiered = eligible.filter(m => {
+    const tier = modelTier(m);
+    if (tier === 'heavy') return allowHeavy;
+    if (task.kind === 'simple' && priority !== 'quality') return tier === 'light';
+    return true;
+  });
+  const lighter = eligible.filter(m => modelTier(m) !== 'heavy');
+  const pool = tiered.length ? tiered : allowHeavy || !lighter.length ? eligible : lighter;
   const preferred =
     task.kind === 'simple' && !task.needsTools
       ? 'qwen-local'
@@ -340,7 +358,7 @@ export function routingAdvice(
   const measured =
     task.trivial && priority !== 'quality'
       ? null
-      : benchmarkChoice(eligible, task, {
+      : benchmarkChoice(pool, task, {
           reasoningMode,
           priority,
           prices: MODEL_PROFILES,
@@ -364,7 +382,7 @@ export function routingAdvice(
         measured.coverage +
         loc(' совместимых моделей.'),
     };
-  const chosen = preferredModel(eligible.filter(match)) || preferredModel(eligible);
+  const chosen = preferredModel(pool.filter(match)) || preferredModel(pool) || preferredModel(eligible);
   if (chosen)
     return {
       ...task,

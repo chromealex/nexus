@@ -7,6 +7,7 @@ Short history of NEXUS Desktop. The original per-version notes (in Russian) are 
 - New app icon, drawn in the macOS 26 squircle shape so Tahoe shows it without the grey plate; README banner and screenshot.
 - AGENTS.md, CHANGELOG and release notes are now written in English.
 - Import from Claude Code and Codex brings the conversations too: each session becomes a chat of the project (your messages and the agent's text answers; tool calls, injected context and keys are left out). Importing again adds only new sessions; already added projects can be picked to import their chats.
+- Auto model choice no longer spends the heaviest models (Opus, Fable) on simple or ordinary requests: simple ones go to light models (Haiku, local Qwen), ordinary ones to standard models; heavy ones only for reasoning tasks or with the “Quality” priority.
 - Folders in the sidebar can be deleted; their chats and subfolders move one level up.
 - Chat history dissolves at the top and bottom edges instead of a dark band (no fade at the very top), and the blur under messages still works.
 - Visual cleanup: no neutral grey left in the theme, primary buttons (send, connect, import, choose model) use one accent glass style, no noise textures anywhere; gradients are designed to stay smooth in 8 bits (hue-shifting scene, light-glass messages, near-opaque chrome and dialogs, no faint glows or large shadows); a banding meter for screenshots is in docs/tools.
