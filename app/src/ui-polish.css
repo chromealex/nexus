@@ -4826,3 +4826,40 @@ details[open] > .activity-list {
 .app.has-scene-backdrop.cinematic-home {
   background: #060a14;
 }
+
+/* ---------- Frosted glass: composer, messages, projects panel ----------
+   Dense enough to read (~.6), light enough for the blurred scene to show through. */
+:root {
+  --card-fill: rgba(10, 17, 25, 0.62);
+  --card-fill-user: rgba(22, 36, 48, 0.66);
+  --glass-blur: blur(28px) saturate(1.35);
+}
+.app .chat-bubble:is(.user, .assistant),
+.app .chat-bubble.system > .response-details {
+  background: var(--card-fill) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  backdrop-filter: var(--glass-blur) !important;
+}
+.app .chat-bubble.user {
+  background: var(--card-fill-user) !important;
+}
+.app .chat-composer,
+.cinematic-home .chat-composer {
+  background: rgba(12, 20, 28, 0.55) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  backdrop-filter: var(--glass-blur) !important;
+}
+.app > .project-nav {
+  background: rgba(9, 16, 24, 0.5) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  backdrop-filter: var(--glass-blur) !important;
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .app .chat-bubble:is(.user, .assistant),
+  .app .chat-composer,
+  .app > .project-nav {
+    background: #0c141c !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
