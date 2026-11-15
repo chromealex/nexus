@@ -71,6 +71,10 @@ export function Quota({quota, statusline, expanded = false, unsupported}) {
           {view.checking
             ? loc('Получаем данные от провайдера…')
             : unsupported || loc('Нет данных · провайдер не передал подтверждённые лимиты')}
+          {/* The provider's own answer (error or response fields) explains why there are no limits. */}
+          {!view.checking && !unsupported && quota?.detail && !expanded && (
+            <small className="quota-reason">{quota.detail}</small>
+          )}
         </p>
       )}
       {expanded && (

@@ -4381,3 +4381,10 @@ a.file-link {
 .quick-replies {
   margin-top: 40px;
 }
+.quota-unknown .quota-reason {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-faint, #8796a0);
+  font-size: 11px;
+  word-break: break-word;
+}
