@@ -4342,9 +4342,9 @@ a.file-link {
   background: rgba(16, 26, 34, 0.95) !important;
 }
 :root {
-  /* Light glass: a low tint keeps the blurred scene's steps narrow (they widen by 1 / (1 − α)). */
-  --card-fill: rgba(8, 16, 26, 0.22);
-  --card-fill-user: rgba(60, 96, 120, 0.2);
+  /* Dense dark surface (≥ .95): readable over the bright scene and, like light glass, free of banding. */
+  --card-fill: rgba(11, 18, 25, 0.95);
+  --card-fill-user: rgba(22, 35, 46, 0.96);
 }
 .app > header,
 .app > .project-nav {
