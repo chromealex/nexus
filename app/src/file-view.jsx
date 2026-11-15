@@ -73,6 +73,8 @@ function useFileData(file, chatId) {
             name,
             display: res.display || name,
             path: res.path || null,
+            alternatives: res.alternatives || [],
+            requested: res.requested || null,
             size: res.size ?? bytes.length,
             line: file.line || res.line || null,
           });
@@ -199,6 +201,33 @@ export function FileView({file, chatId}) {
   const kb = Math.max(1, Math.round(state.size / 1024));
   return (
     <div className="file-view">
+      {(state.requested || state.alternatives?.length > 0) && (
+        <div className="file-view-lookup">
+          {state.requested && (
+            <p>
+              {loc(
+                'В ответе указан путь {0} — такого файла нет. Открыт файл с тем же именем.',
+                state.requested
+              )}
+            </p>
+          )}
+          {state.alternatives?.length > 0 && (
+            <p>
+              {loc('Ещё с таким именем:')}{' '}
+              {state.alternatives.map(path => (
+                <button
+                  type="button"
+                  key={path}
+                  className="file-view-alt"
+                  onClick={() => window.dispatchEvent(new CustomEvent('nexus-open-file', {detail: {path}}))}
+                >
+                  {path}
+                </button>
+              ))}
+            </p>
+          )}
+        </div>
+      )}
       <div className="file-view-bar">
         <span className="file-view-path" title={state.path || state.display}>
           {state.display}

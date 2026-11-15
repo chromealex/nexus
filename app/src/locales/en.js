@@ -1491,4 +1491,7 @@ export default {
   'тип задачи уточнён: {0}': 'task type refined: {0}',
   'Арбитр недоступен или не ответил вовремя; оставлен выбор дерева.':
     'The arbiter is unavailable or did not answer in time; the tree’s choice was kept.',
+  'В ответе указан путь {0} — такого файла нет. Открыт файл с тем же именем.':
+    'The answer names {0}, which does not exist. A file with the same name was opened.',
+  'Ещё с таким именем:': 'Also with this name:',
 };

@@ -140,28 +140,10 @@ pub(crate) fn resolve_in(workspace: &Path, roots: &[PathBuf], raw: &str) -> Resu
     };
     let real = match candidate.canonicalize() {
         Ok(real) => real,
-        // Agents often name a file without its folder (`build_city.py`, `pipeline/run.py`):
-        // look it up in the working folder; one match opens, several are listed.
         Err(_) if !Path::new(raw).is_absolute() && !raw.starts_with("~/") && !raw.contains("..") => {
-            let found = find_by_suffix(workspace, raw);
-            match found.as_slice() {
-                [one] => one.canonicalize().map_err(|_| "Файл не найден".to_string())?,
-                [] => return Err("Файл не найден".into()),
-                many => {
-                    let base = workspace
-                        .canonicalize()
-                        .unwrap_or_else(|_| workspace.to_path_buf());
-                    let list = many
-                        .iter()
-                        .take(4)
-                        .map(|p| p.strip_prefix(&base).unwrap_or(p).to_string_lossy().to_string())
-                        .collect::<Vec<_>>()
-                        .join(", ");
-                    return Err(format!("Найдено несколько файлов с таким именем: {list}"));
-                }
-            }
+            return resolve_lookup(workspace, roots, raw).map(|(p, _, _)| p);
         }
-        Err(_) => return Err("Файл не найден".into()),
+        Err(_) => return Err(format!("Файл не найден: {raw}")),
     };
     if !roots.iter().any(|root| real.starts_with(root)) {
         return Err("Файл вне проекта: открываются только файлы рабочей папки и контекста проекта".into());
@@ -172,11 +154,52 @@ pub(crate) fn resolve_in(workspace: &Path, roots: &[PathBuf], raw: &str) -> Resu
     Ok(real)
 }
 
+/// Agents often name a file without its folder (`build_city.py`), with a partial path, or with a path
+/// that is only an example. Lookup order: path suffix, then the bare file name. The match closest to the
+/// project root opens; the others are returned as alternatives. Returns (file, alternatives, exact suffix).
+pub(crate) fn resolve_lookup(
+    workspace: &Path,
+    roots: &[PathBuf],
+    raw: &str,
+) -> Result<(PathBuf, Vec<String>, bool), String> {
+    let base = workspace
+        .canonicalize()
+        .unwrap_or_else(|_| workspace.to_path_buf());
+    let mut found = find_by_suffix(workspace, raw);
+    let exact = !found.is_empty();
+    if found.is_empty() {
+        if let Some(name) = Path::new(raw)
+            .file_name()
+            .map(|n| n.to_string_lossy().to_string())
+        {
+            if name != raw {
+                found = find_by_suffix(workspace, &name);
+            }
+        }
+    }
+    let found: Vec<PathBuf> = found
+        .into_iter()
+        .filter_map(|p| p.canonicalize().ok())
+        .filter(|p| p.is_file() && roots.iter().any(|r| p.starts_with(r)))
+        .collect();
+    let Some(first) = found.first().cloned() else {
+        return Err(format!("Файл не найден в проекте: {raw}"));
+    };
+    let rel = |p: &PathBuf| p.strip_prefix(&base).unwrap_or(p).to_string_lossy().to_string();
+    let others = found.iter().skip(1).take(6).map(rel).collect();
+    Ok((first, others, exact))
+}
 #[tauri::command]
 pub fn read_project_file(chat_id: String, path: String) -> Result<Value, String> {
     let (raw, line) = split_line(&path);
     let (workspace, roots) = roots(&chat_id)?;
-    let real = resolve_in(&workspace, &roots, &raw)?;
+    let (real, alternatives, exact) = match resolve_in(&workspace, &roots, &raw) {
+        Ok(real) => (real, vec![], true),
+        Err(_) if !Path::new(&raw).is_absolute() && !raw.starts_with("~/") && !raw.contains("..") => {
+            resolve_lookup(&workspace, &roots, &raw)?
+        }
+        Err(e) => return Err(e),
+    };
     let size = real.metadata().map_err(|e| e.to_string())?.len();
     if size > MAX_BYTES {
         return Err("Файл больше 20 МБ — откройте его в приложении".into());
@@ -193,6 +216,8 @@ pub fn read_project_file(chat_id: String, path: String) -> Result<Value, String>
         "size": size,
         "line": line,
         "data": STANDARD.encode(bytes),
+        "alternatives": alternatives,
+        "requested": if exact { Value::Null } else { json!(raw) },
     }))
 }
 
@@ -247,6 +272,14 @@ mod tests {
         assert!(find_by_suffix(&root, "other/build_city.py").is_empty());
         let roots = vec![root.canonicalize().unwrap()];
         assert!(resolve_in(&root, &roots, "build_city.py").is_ok());
+        // A path that does not exist falls back to the file name and says so.
+        let (p, _, exact) = resolve_lookup(&root, &roots, "scripts/build_city.py").unwrap();
+        assert!(p.ends_with("build_city.py") && !exact);
+        std::fs::create_dir_all(root.join("project/Builds/x")).unwrap();
+        std::fs::write(root.join("project/rules.json"), "{}").unwrap();
+        std::fs::write(root.join("project/Builds/x/rules.json"), "{}").unwrap();
+        let (p, others, _) = resolve_lookup(&root, &roots, "rules.json").unwrap();
+        assert!(p.ends_with("project/rules.json") && others.len() == 1);
         let _ = std::fs::remove_dir_all(&root);
     }
     #[test]

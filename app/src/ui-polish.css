@@ -4470,3 +4470,29 @@ a.file-link {
   -webkit-mask-image: none;
   text-overflow: ellipsis;
 }
+
+/* File opened by name lookup: what was asked for and the other matches. */
+.file-view-lookup {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--card-edge, rgba(190, 226, 244, 0.14));
+  font-size: 12px;
+  color: var(--text-muted, #9aa6ad);
+}
+.file-view-lookup p {
+  margin: 2px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: baseline;
+}
+.file-view-alt {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #9fd3ea;
+  font: inherit;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

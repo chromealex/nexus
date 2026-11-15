@@ -2,7 +2,8 @@
 
 Short history of NEXUS Desktop. The original per-version notes (in Russian) are in [docs/history](docs/history).
 
-## Unreleased
+## 0.22.0 — 2026-11-15
+- Files named in answers without their folder, with a partial path or with an example path open anyway: the match closest to the project root opens, other matches are clickable, and a note says when the exact path did not exist.
 - Interface languages: English, Russian, Spanish, German, French, Portuguese, Simplified Chinese and Japanese. The macOS language is used by default (English if it is not supported); a language picker sits at the bottom of the sidebar.
 - New app icon, drawn in the macOS 26 squircle shape so Tahoe shows it without the grey plate; README banner and screenshot.
 - AGENTS.md, CHANGELOG and release notes are now written in English.

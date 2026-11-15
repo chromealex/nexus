@@ -1503,4 +1503,7 @@ export default {
   'тип задачи уточнён: {0}': 'Aufgabentyp präzisiert: {0}',
   'Арбитр недоступен или не ответил вовремя; оставлен выбор дерева.':
     'Der Schiedsrichter ist nicht verfügbar oder antwortete nicht rechtzeitig; die Wahl des Baums bleibt.',
+  'В ответе указан путь {0} — такого файла нет. Открыт файл с тем же именем.':
+    'Die Antwort nennt {0}, das nicht existiert. Eine Datei mit demselben Namen wurde geöffnet.',
+  'Ещё с таким именем:': 'Ebenfalls mit diesem Namen:',
 };

@@ -1497,4 +1497,7 @@ export default {
   'тип задачи уточнён: {0}': 'tipo de tarefa ajustado: {0}',
   'Арбитр недоступен или не ответил вовремя; оставлен выбор дерева.':
     'O árbitro está indisponível ou não respondeu a tempo; a escolha da árvore foi mantida.',
+  'В ответе указан путь {0} — такого файла нет. Открыт файл с тем же именем.':
+    'A resposta cita {0}, que não existe. Foi aberto um arquivo com o mesmo nome.',
+  'Ещё с таким именем:': 'Também com este nome:',
 };
