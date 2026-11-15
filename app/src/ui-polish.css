@@ -4372,3 +4372,12 @@ a.file-link {
 ) {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
 }
+
+/* Composer popovers sit above the history's “jump to latest” button. */
+.app:has(.composer-params-popover, .composer-plan-popover) .jump-latest {
+  visibility: hidden;
+}
+/* Quick replies leave room for the message actions row, which hangs under the bubble. */
+.quick-replies {
+  margin-top: 40px;
+}

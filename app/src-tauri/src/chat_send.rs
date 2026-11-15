@@ -579,7 +579,7 @@ pub(crate) async fn chat_send(
                 .unwrap_or_default()
         );
         let local_review = if work {
-            tokio::select! {biased;_=control.cancelled()=>return Err(chat_runs::STOPPED.into()),v=provider_connections::local_review(&review_prompt)=>match v{Ok(Some(review))=>review,Ok(None)=>"Локальный Qwen не подключён; независимый просмотр не запускался".into(),Err(_)=>"Локальная проверка Qwen не завершена; оценки результата нет".into()}}
+            tokio::select! {biased;_=control.cancelled()=>return Err(chat_runs::STOPPED.into()),v=provider_connections::local_review(&review_prompt)=>match v{Ok(Some(review))=>review,Ok(None)=>"Локальный Qwen не подключён; независимый просмотр не запускался".into(),Err(e)=>format!("Локальная проверка Qwen не завершена: {e}; оценки результата нет")}}
         } else {
             String::new()
         };

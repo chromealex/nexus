@@ -103,14 +103,25 @@ function FlatSelect({value, onChange, children, disabled = false, className = ''
         maxHeight = Math.max(60, Math.min(300, up ? above : below)),
         left = Math.max(box.left + 8, Math.min(r.left, box.right - width - 8)),
         y = up ? Math.max(top + 8, r.top - 6 - Math.min(desired, maxHeight)) : r.bottom + 6;
-      setPosition({
-        left: contained ? left - box.left + host.scrollLeft : left,
-        top: contained ? y - box.top + host.scrollTop : y,
-        width,
-        maxHeight,
-      });
+      // The real origin of position:fixed inside the host: any ancestor with transform/filter/backdrop-filter
+      // shifts it, so it is measured instead of guessed (otherwise the list lands off screen).
+      let origin = {x: 0, y: 0};
+      const el = popup.current;
+      if (el) {
+        const prev = [el.style.left, el.style.top, el.style.transform];
+        el.style.left = '0px';
+        el.style.top = '0px';
+        el.style.transform = 'none';
+        const o = el.getBoundingClientRect();
+        origin = {x: o.left, y: o.top};
+        [el.style.left, el.style.top, el.style.transform] = prev;
+      } else if (contained) {
+        origin = {x: box.left - host.scrollLeft, y: box.top - host.scrollTop};
+      }
+      setPosition({left: left - origin.x, top: y - origin.y, width, maxHeight});
     };
     place();
+    requestAnimationFrame(place);
     const outside = e => {
       if (!trigger.current?.contains(e.target) && !popup.current?.contains(e.target)) setOpen(false);
     };
