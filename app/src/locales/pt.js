@@ -1486,4 +1486,6 @@ export default {
     'Entre opções de qualidade semelhante foi escolhida a tarifa mais barata: a cota e os tokens duram mais.',
   'Баланс: среди близких по качеству вариантов учтены тариф и остаток лимитов — задача уходит агенту, у которого квоты заметно больше.':
     'Equilíbrio: entre opções de qualidade semelhante, tarifa e limites restantes são ponderados — a tarefa vai para o agente com bem mais cota.',
+  'Подбираю модель для запроса…': 'Escolhendo um modelo para o pedido…',
+  'Модель: {0} — {1} ({2})': 'Modelo: {0} — {1} ({2})',
 };

@@ -315,7 +315,12 @@ pub fn automatic_codex(tier: &str) -> String {
         .map(|v| v.iter().filter(|m| m.provider == "codex").collect::<Vec<_>>())
         .unwrap_or_default();
     let chosen = if tier == "economy" {
-        models.iter().find(|m| m.model.contains("mini")).copied()
+        // Budget versions: “luna” in current generations, “mini” in older ones.
+        models
+            .iter()
+            .find(|m| m.model.contains("luna"))
+            .or_else(|| models.iter().find(|m| m.model.contains("mini")))
+            .copied()
     } else {
         None
     }

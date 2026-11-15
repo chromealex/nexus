@@ -1492,4 +1492,6 @@ export default {
     'Unter Optionen ähnlicher Qualität wurde der günstigere Tarif gewählt: Kontingent und Tokens reichen länger.',
   'Баланс: среди близких по качеству вариантов учтены тариф и остаток лимитов — задача уходит агенту, у которого квоты заметно больше.':
     'Balance: Unter Optionen ähnlicher Qualität zählen Tarif und verbleibende Limits – die Aufgabe geht an den Agenten mit deutlich mehr Kontingent.',
+  'Подбираю модель для запроса…': 'Modell für die Anfrage wird gewählt…',
+  'Модель: {0} — {1} ({2})': 'Modell: {0} — {1} ({2})',
 };

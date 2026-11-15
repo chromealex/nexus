@@ -1497,4 +1497,6 @@ export default {
     'Parmi des options de qualité proche, le tarif le moins cher a été choisi : le quota et les jetons durent plus longtemps.',
   'Баланс: среди близких по качеству вариантов учтены тариф и остаток лимитов — задача уходит агенту, у которого квоты заметно больше.':
     'Équilibre : parmi des options de qualité proche, le tarif et les limites restantes sont pris en compte — la tâche va à l’agent qui a nettement plus de quota.',
+  'Подбираю модель для запроса…': 'Choix du modèle pour la demande…',
+  'Модель: {0} — {1} ({2})': 'Modèle : {0} — {1} ({2})',
 };

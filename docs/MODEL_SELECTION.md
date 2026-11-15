@@ -116,5 +116,18 @@ flowchart TD
   J2 --> K
   J3 --> K
   J4 --> K
-  K --> L[Backend runs it on the first ready account of that agent;\na usage-limit error retries another account]
+  K --> R{At send: shortlist of 2+ and not a short plain request?}
+  R -- yes --> S[Arbiter: local Qwen, else the cheapest cloud model\n(Claude Haiku / Codex Luna) on the account with most limit left.\nReturns kind, needsActions, pick + why]
+  S --> S1{Same kind and needsActions as the rules?}
+  S1 -- yes --> S2[Take its pick from the shortlist]
+  S1 -- no --> S3[Re-run the tree with its kind/needsActions; take the tree's top]
+  R -- no --> L
+  S2 --> L
+  S3 --> L
+  L[Backend runs it on the first ready account of that agent;\na usage-limit error retries another account]
 ```
+
+The arbiter never sees anything the tree did not compute: it gets the request (as untrusted data) and up
+to four candidates with score, relative tariff and limit left, answers in a fixed JSON schema, and any
+invalid answer, timeout (local 6 s, cloud 40 s) or missing model keeps the tree's choice. The live
+preview under the composer stays rule-based; the arbiter runs only at send time.

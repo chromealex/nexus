@@ -90,3 +90,21 @@ console.log('Protocol-only ACP: automatic fallback excluded; explicit manual cho
 
 assert.equal(classifyTask('Объясни, как устроен этот проект').needsTools, true);
 assert.equal(routingAdvice('Объясни, как устроен этот проект', {models: [local, fixture]}).offer, true);
+
+// Routing arbiter: it may refine the task type; files and images keep their requirements.
+{
+  const {applyOverride, arbiterCandidates} = await import('../src/agent-catalog.js');
+  const t = classifyTask('Поможешь с парсером?', false, {executionMode: 'execute'});
+  const code = applyOverride(t, {kind: 'code', needsActions: true});
+  assert.equal(code.kind, 'code');
+  assert.equal(code.needsTools, true);
+  const files = applyOverride(classifyTask('Посмотри', true), {kind: 'text', needsActions: false});
+  assert.equal(files.needsTools, true); // attachments still need an agent with file access
+  assert.equal(applyOverride(t, {kind: 'poetry'}), t);
+  const list = arbiterCandidates(
+    {comparison: [{id: 'codex/x', label: 'Codex', quality: 'AA 55', cost: 0.04}]},
+    {codex: 51}
+  );
+  assert.match(list[0].summary, /limit left 51%/);
+  console.log('Routing arbiter: overrides keep file/image requirements, shortlist carries limits.');
+}

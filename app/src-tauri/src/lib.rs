@@ -300,6 +300,7 @@ pub fn run() {
             remote_channels::channels_test,
             remote_channels::channels_remove,
             remote_channels::channels_log,
+            provider_connections::route_arbiter,
             provider_connections::local_qwen_status,
             chat_history::chat_message_page,
             chat_lifecycle::change_chat_state,

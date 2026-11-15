@@ -122,3 +122,22 @@ export function quotaLeftByProvider(accounts = [], quotas = {}, statuslines = {}
   }
   return out;
 }
+
+/** The signed-in account of these providers with the most limit left (for one cheap routing call). */
+export function roomiestAccount(
+  accounts = [],
+  quotas = {},
+  statuslines = {},
+  providers = ['claude', 'codex']
+) {
+  let best = null;
+  for (const a of accounts) {
+    if (!providers.includes(a.provider)) continue;
+    const used = quotaView(quotas[a.id], statuslines[a.id])
+      .windows.map(w => w.used)
+      .filter(Number.isFinite);
+    const left = used.length ? 100 - Math.max(...used) : 50;
+    if (left >= 3 && (!best || left > best.left)) best = {id: a.id, left};
+  }
+  return best?.id || null;
+}

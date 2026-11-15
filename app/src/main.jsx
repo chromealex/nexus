@@ -3,7 +3,7 @@ import {TeamPlanPreview} from './team-plan-preview.jsx';
 import {chatErrorMessage} from './chat-errors.js';
 import {ROUTING_PRIORITIES} from './model-benchmarks.js';
 import {RoutingPreview} from './routing-preview.jsx';
-import {quotaLeftByProvider} from './quota-format.js';
+import {quotaLeftByProvider, roomiestAccount} from './quota-format.js';
 import {CustomSelect} from './custom-select.jsx';
 import {mergeLatestMessages, prependMessages} from './chat-history.js';
 import {ComposerPlan} from './composer-plan.jsx';
@@ -16,7 +16,7 @@ import {ProjectBoard} from './project-board.jsx';
 import {WelcomeScreen} from './welcome-screen.jsx';
 import {ParticlePersona} from './particle-persona.jsx';
 import {ThinkingLightning} from './thinking-lightning.jsx';
-import {routingAdvice, classifyTask, pendingRequestMatches} from './agent-catalog.js';
+import {routingAdvice, classifyTask, pendingRequestMatches, arbiterCandidates} from './agent-catalog.js';
 import {PermissionCard} from './permission-card.jsx';
 import {ProjectNavigation} from './project-navigation.jsx';
 import {useChatScroll} from './use-chat-scroll.js';
@@ -1135,7 +1135,37 @@ function App() {
         });
         return;
       }
-      if (advice.choice) routeApproval.current = {text: input, choice: advice.choice};
+      let choice = advice.choice;
+      // Arbiter: a cheap model (local Qwen, else the cheapest cloud model on the roomiest account) refines
+      // the task type and picks from the tree's shortlist. Any failure keeps the tree's choice.
+      const candidates = choice && !advice.trivial ? arbiterCandidates(advice, routeOptions.quotaLeft) : [];
+      if (candidates.length >= 2) {
+        notify(loc('Подбираю модель для запроса…'));
+        const verdict = await invoke('route_arbiter', {
+          text: input,
+          candidates: candidates.map(c => ({summary: c.summary})),
+          accountId: roomiestAccount(accounts, quotaReports, statuslineReports),
+        }).catch(() => null);
+        if (verdict) {
+          const refined = routingAdvice(input, {
+            ...routeOptions,
+            override: {kind: verdict.kind, needsActions: verdict.needsActions},
+          });
+          const same = refined.kind === advice.kind && refined.needsTools === advice.needsTools;
+          const picked = candidates[verdict.pick]?.id;
+          choice = same && picked ? picked : refined.choice || choice;
+          if (choice && verdict.why)
+            notify(
+              loc(
+                'Модель: {0} — {1} ({2})',
+                modelChoices.find(m => m.id === choice)?.label || choice,
+                verdict.why,
+                verdict.by
+              )
+            );
+        }
+      }
+      if (choice) routeApproval.current = {text: input, choice};
     }
     return sendChat(override, continueMessageId);
   }

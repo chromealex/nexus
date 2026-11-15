@@ -285,6 +285,44 @@ export function incompatibleReason(model, task, reasoningMode = 'auto', connecti
 export function usesExtraCredits(model) {
   return model.provider === 'claude' && /^claude-fable-/.test(model.model);
 }
+// The routing arbiter (a cheap model) may refine what the rules guessed: the kind of work and whether
+// actions are needed. Files, images and project inspection still require tools whatever it says.
+const OVERRIDE_KINDS = {
+  code: {kind: 'code'},
+  reasoning: {kind: 'reasoning'},
+  visual: {kind: 'visual'},
+  text: {kind: 'simple'},
+  translation: {kind: 'simple', translation: true},
+  editing: {kind: 'simple', editing: true},
+  extraction: {kind: 'simple', extraction: true},
+};
+export function applyOverride(task, override) {
+  const shape = override && OVERRIDE_KINDS[override.kind];
+  if (!shape || (task.hasImages && shape.kind !== 'visual')) return task;
+  return {
+    ...task,
+    ...shape,
+    complex: shape.kind === 'reasoning' || task.complex,
+    needsTools: !!override.needsActions || task.hasFiles || task.projectInspection,
+    trivial: false,
+  };
+}
+/** Shortlist the arbiter sees: the tree's candidates with the numbers it already computed. */
+export function arbiterCandidates(advice, quotaLeft = {}) {
+  return (advice.comparison || []).slice(0, 4).map(c => {
+    const provider = c.id.split('/')[0];
+    const left = quotaLeft[provider];
+    return {
+      id: c.id,
+      summary: [
+        c.label,
+        c.quality,
+        Number.isFinite(c.cost) ? `relative tariff ${c.cost}` : 'tariff unknown',
+        Number.isFinite(left) ? `limit left ${left}%` : 'limit unknown',
+      ].join(' · '),
+    };
+  });
+}
 export function automaticModelAllowed(model) {
   return !model.provider.startsWith('custom-') && model.autoEligible !== false;
 }
@@ -309,9 +347,10 @@ export function routingAdvice(
     priority = 'balanced',
     effort = null,
     quotaLeft = {},
+    override = null,
   } = {}
 ) {
-  const task = classifyTask(text, hasFiles, {hasImages, executionMode});
+  const task = applyOverride(classifyTask(text, hasFiles, {hasImages, executionMode}), override);
   const scoped = selection.startsWith('agent-auto:')
     ? models.filter(m => m.provider === selection.slice(11))
     : models;
