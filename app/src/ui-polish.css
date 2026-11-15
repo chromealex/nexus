@@ -4496,3 +4496,87 @@ a.file-link {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+/* ---------- Icon buttons in the side panel, file viewer and browser: one quiet style, icon centred ---------- */
+.side-panel
+  :is(
+    .browser-tab-close,
+    .browser-tab-new,
+    .browser-pane-close,
+    .browser-address button,
+    .file-view-bar button:not(.file-view-toggle button),
+    .side-panel-tab-close
+  ) {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  line-height: 0;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-muted, #9aa6ad);
+}
+.side-panel :is(.browser-tab-close, .side-panel-tab-close) {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+}
+.side-panel
+  :is(
+    .browser-tab-close,
+    .browser-tab-new,
+    .browser-pane-close,
+    .browser-address button,
+    .file-view-bar button:not(.file-view-toggle button),
+    .side-panel-tab-close
+  ):hover:not(:disabled) {
+  background: var(--btn-quiet-fill-hover, rgba(176, 214, 234, 0.13));
+  border-color: var(--btn-quiet-edge, rgba(190, 226, 244, 0.16));
+  color: var(--text-strong, #eef2f4);
+}
+.side-panel :is(.browser-tab-close, .side-panel-tab-close) svg,
+.side-panel .browser-tab-new svg {
+  display: block;
+}
+/* Browser tabs match the panel tabs: attached to the edge, the active one opens into the page. */
+.side-panel .browser-tabs {
+  align-items: flex-end;
+  gap: 4px;
+  padding: 6px 8px 0;
+  border-bottom: 1px solid var(--card-edge, rgba(190, 226, 244, 0.14));
+}
+.side-panel .browser-tab {
+  height: 30px;
+  margin-bottom: -1px;
+  padding-right: 4px;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 9px 9px 0 0;
+  gap: 2px;
+}
+.side-panel .browser-tab.is-active,
+.side-panel .browser-address {
+  background: var(--side-panel-body, #0f171e);
+}
+.side-panel .browser-tab.is-active {
+  border-color: var(--card-edge, rgba(190, 226, 244, 0.14));
+}
+.side-panel .browser-tab > button:first-child {
+  padding: 0 6px 0 12px;
+  background: none;
+  border: 0;
+}
+.side-panel .browser-tab-new {
+  align-self: center;
+  margin-left: 2px;
+}
+.side-panel .side-panel-bar .browser-pane-close {
+  margin-left: auto !important; /* the shared icon-button reset above has higher specificity */
+  align-self: center;
+}
