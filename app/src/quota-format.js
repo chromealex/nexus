@@ -111,6 +111,11 @@ export function quotaLeftByProvider(accounts = [], quotas = {}, statuslines = {}
   for (const a of accounts) {
     const view = quotaView(quotas[a.id], statuslines[a.id], now);
     const used = view.windows.map(w => w.used).filter(Number.isFinite);
+    // Business/Enterprise workspaces without usage windows: unlimited credits mean nothing runs out.
+    if (!used.length && view.credits?.unlimited) {
+      out[a.provider] = 100;
+      continue;
+    }
     if (!used.length) continue;
     const left = Math.max(0, 100 - Math.max(...used));
     out[a.provider] = Math.max(out[a.provider] ?? 0, left);
