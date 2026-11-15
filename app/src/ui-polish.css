@@ -4580,3 +4580,206 @@ a.file-link {
   margin-left: auto !important; /* the shared icon-button reset above has higher specificity */
   align-self: center;
 }
+
+/* ======================= Motion & effects (15 Nov 2026) ======================= */
+/* Thinking beam: a smooth arc of light from the persona to the message being written. */
+.thinking-lightning {
+  transition: opacity 0.35s ease;
+}
+.thinking-beam-halo {
+  fill: none;
+  stroke-width: 7;
+  stroke-linecap: round;
+  opacity: 0.32;
+  filter: blur(5px);
+}
+.thinking-beam-core {
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  opacity: 0.9;
+}
+.thinking-beam-pulses {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-dasharray: 0.035 0.215;
+  opacity: 0.85;
+  filter: drop-shadow(0 0 4px #b9a8ff);
+}
+.thinking-beam-spark,
+.thinking-beam-source {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: beam-spark 1.6s ease-in-out infinite;
+}
+.thinking-beam-source {
+  animation-duration: 2.2s;
+}
+@keyframes beam-spark {
+  0%,
+  100% {
+    transform: scale(0.85);
+    opacity: 0.75;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 1;
+  }
+}
+
+/* Aurora rim on the message being written: a slowly turning gradient border with a soft halo. */
+@property --aurora-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+.chat-thread [data-thinking-target='true'] {
+  position: relative;
+}
+.chat-thread [data-thinking-target='true']::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1.5px;
+  pointer-events: none;
+  background: conic-gradient(from var(--aurora-angle), #6fe0f0, #8fb4ff, #b59bff, #e3a6ff, #8fb4ff, #6fe0f0);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.9;
+  animation: aurora-turn 4s linear infinite;
+}
+.chat-thread [data-thinking-target='true'] {
+  animation: aurora-breathe 2.4s ease-in-out infinite;
+}
+@keyframes aurora-turn {
+  to {
+    --aurora-angle: 360deg;
+  }
+}
+@keyframes aurora-breathe {
+  0%,
+  100% {
+    box-shadow:
+      0 0 18px -6px rgba(111, 224, 240, 0.35),
+      0 0 34px -10px rgba(181, 155, 255, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 26px -4px rgba(143, 180, 255, 0.5),
+      0 0 46px -8px rgba(227, 166, 255, 0.38);
+  }
+}
+
+/* Smooth state changes everywhere. */
+:where(
+  button,
+  a,
+  input,
+  textarea,
+  select,
+  [role='tab'],
+  [role='option'],
+  [role='menuitem'],
+  .nexus-select-trigger,
+  .nav-item,
+  .chat-bubble,
+  .question-option,
+  .agent-connect-card,
+  summary
+) {
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.22s ease,
+    opacity 0.18s ease,
+    transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+:where(button:not(:disabled), [role='tab'], .nexus-select-trigger):active {
+  transform: scale(0.97);
+}
+
+/* Dialogs, overlays, menus and panels arrive instead of popping in. */
+@keyframes nx-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes nx-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+}
+@keyframes nx-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+}
+@keyframes nx-slide-left {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+@keyframes nx-message {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+:is(.settings-overlay, .connections-overlay, .file-preview-overlay, .model-picker-backdrop) {
+  animation: nx-fade 0.2s ease both;
+}
+:is(
+  .settings-overlay > [role='dialog'],
+  .connections-overlay > *,
+  .model-picker,
+  .project-import,
+  .project-settings,
+  .saved-chats-dialog
+) {
+  animation: nx-rise 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+:is(.nexus-select-popup, .nav-menu, .composer-params-popover, .composer-plan-popover, .welcome-connections) {
+  animation: nx-drop 0.18s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transform-origin: top center;
+}
+.side-panel {
+  animation: nx-slide-left 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.side-panel-body > *,
+.file-view {
+  animation: nx-fade 0.22s ease both;
+}
+/* New messages rise into place (only the latest few, so switching chats stays calm). */
+.chat-thread-content > :nth-last-child(-n + 3) .chat-bubble,
+.chat-thread-content > .chat-bubble:nth-last-child(-n + 3),
+.streaming-answer,
+.pending-details {
+  animation: nx-message 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.response-details[open] > :not(summary),
+details[open] > .activity-list {
+  animation: nx-drop 0.22s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .thinking-beam-pulses {
+    display: none;
+  }
+}

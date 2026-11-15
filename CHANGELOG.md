@@ -2,6 +2,11 @@
 
 Short history of NEXUS Desktop. The original per-version notes (in Russian) are in [docs/history](docs/history).
 
+## Unreleased
+- New answering effect: a smooth arc of light with travelling pulses from the persona to the message, and a turning aurora rim with a soft glow around the message being written (replaces the jagged lightning).
+- Smooth motion everywhere: state transitions on buttons, tabs and fields, dialogs and menus animate in, the side panel slides in, new messages rise into place; respects “Reduce motion”.
+- Side panel icon buttons share one quiet style; browser tabs match the panel tabs.
+
 ## 0.22.0 — 2026-11-15
 - Files named in answers without their folder, with a partial path or with an example path open anyway: the match closest to the project root opens, other matches are clickable, and a note says when the exact path did not exist.
 - Interface languages: English, Russian, Spanish, German, French, Portuguese, Simplified Chinese and Japanese. The macOS language is used by default (English if it is not supported); a language picker sits at the bottom of the sidebar.

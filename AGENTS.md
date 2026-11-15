@@ -97,6 +97,11 @@ A short list of the rules in force. The full history of decisions and earlier wo
 - Email: `dmarc=pass`, or `dkim=pass` with a signing domain matching the sender's domain (`mail_authenticated`).
 - Local API: off by default, 127.0.0.1; from the network only “Discussion”. No unauthenticated routes except `/health`.
 
+## Motion
+
+- While NEXUS answers, `thinking-lightning.jsx` draws a smooth breathing arc (`thinking-beam.js`, cubic curve, cyan→violet gradient, travelling light pulses, sparks at both ends) from the persona to the message being written; the message itself (`[data-thinking-target]`) gets a turning aurora rim (conic gradient, `@property --aurora-angle`) and a breathing outer glow. No jagged lightning.
+- Every interactive element changes state smoothly (shared transitions, press scale .97); overlays fade, dialogs rise, menus and popovers drop in, the side panel slides in, the latest messages rise into place. `prefers-reduced-motion` turns motion off.
+
 ## Persona
 
 - The portrait is a still WebGL particle model from the Hi3D scan (`public/persona/hi3d-head.points`, filaments `hi3d-filaments.bin`), with no rotation. Clicking the face fires lightning and excites the particles for 8 seconds. The assets are rebuilt with `scripts/build-hi3d-persona.mjs` and `build-persona-filaments.mjs`.
