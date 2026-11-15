@@ -1476,4 +1476,6 @@ export default {
   'Перенести переписку': 'Import conversations',
   'Переношу проекты и переписку…': 'Importing projects and conversations…',
   'Для этого сообщения:': 'For this message:',
+  'Среди близких по качеству вариантов выбран более дешёвый тариф: квота и токены расходуются медленнее.':
+    'Among options of similar quality the cheaper tariff was chosen: quota and tokens last longer.',
 };

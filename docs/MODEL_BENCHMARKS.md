@@ -417,3 +417,12 @@ AutomationBench-AA и GDP.pdf взяты из зеркал результато�
 - Sonnet 5.5 и Haiku 5.5 нет в Arena Text; у Haiku 5.5 нет Arena Vision и AutomationBench.
 - Grok 4.20, Grok 4.3, grok-build-0.1, gemini-3.1-flash-lite, gpt-reserve, qwen3:4b — без сопоставимых результатов (причины выше).
 - В «Авто» сравниваются лучшие опубликованные режимы, а Claude Code по умолчанию работает на medium. Для точного соответствия выберите глубину вручную.
+
+## Addendum 2026-11-15: cost inside close groups
+
+Subscription agents (Claude Code, Codex) used to have an unknown cost, so a group of close scores was
+decided by model ID and Opus beat a better-scoring Sonnet. Now the list tariff from the model card is
+used as the cost for every model (for subscriptions it reflects how fast the quota is spent); the
+measured API cost per task is still preferred where the benchmark publishes it. Order inside the pool:
+cost (or time for the Speed priority), then the higher score, then the ID. With the Quality priority,
+equal scores are decided by speed.

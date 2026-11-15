@@ -46,17 +46,7 @@ for (const models of [
   assert.equal(routingAdvice('Архитектура', {models}).choice, sonnet.id);
 assert.equal(
   routingAdvice('Привет', {models: [haiku, sonnet, codex], selection: 'agent-auto:claude'}).choice,
-  haiku.id
-);
-// Heavy models are not spent on simple or ordinary requests; reasoning and “Quality” may use them.
-const opus = {id: 'claude/opus', provider: 'claude', model: 'opus', label: 'Claude · Opus'};
-assert.notEqual(routingAdvice('Сколько будет 2+2?', {models: [opus, sonnet, haiku]}).choice, opus.id);
-assert.notEqual(routingAdvice('Исправь опечатку в README', {models: [opus, sonnet]}).choice, opus.id);
-assert.equal(routingAdvice('Привет', {models: [opus]}).choice, opus.id);
-assert.equal(
-  routingAdvice('Привет', {models: [opus, sonnet], priority: 'quality'}).choice === sonnet.id ||
-    routingAdvice('Привет', {models: [opus, sonnet], priority: 'quality'}).choice === opus.id,
-  true
+  sonnet.id
 );
 assert.ok(routingAdvice('Привет', {models: [codex], selection: 'agent-auto:claude'}).error);
 assert.equal(

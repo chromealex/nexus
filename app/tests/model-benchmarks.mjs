@@ -74,10 +74,10 @@ assert.equal(benchmarkChoice([astra, sol], web, {now}).cohort, 'codingAgent');
 const apiWeb = benchmarkChoice([m('gpt-6-astra', 'api-x'), m('gpt-6.1-sol', 'api-x')], web, {now});
 assert.equal(apiWeb.cohort, 'webdev');
 assert.equal(apiWeb.model.model, 'gpt-6-astra'); // different category different winner
-assert.equal(benchmarkChoice([astra, sol], classifyTask('Напиши письмо'), {now}).model.id, astra.id);
+assert.equal(benchmarkChoice([astra, sol], classifyTask('Напиши письмо'), {now}).model.id, sol.id); // close scores: the cheaper tariff wins
 assert.equal(
   benchmarkChoice([astra, sol], classifyTask('Фото', true, {hasImages: true}), {now}).model.id,
-  astra.id
+  sol.id // overlapping Arena intervals: the cheaper tariff wins
 );
 // Document extraction and tool workflows read their own tests.
 const pdf = classifyTask('Извлеки суммы из таблицы в PDF', true);
@@ -99,7 +99,7 @@ assert.equal(routingAdvice('Код', {models: [astra, sol], selection: 'agent-au
 assert.equal(
   routingAdvice('Исправь ошибку в коде', {models: [haiku, sonnet, opus], selection: 'agent-auto:claude'})
     .choice,
-  sonnet.id // ordinary code fixes do not spend the heaviest tier
+  sonnet.id // Opus 58 vs Sonnet 56 are within tolerance: the cheaper tariff wins
 );
 for (const r of BENCHMARKS) {
   assert.ok(COHORTS[r.cohort]);
@@ -181,7 +181,7 @@ assert.equal(
   routingAdvice('Исправь ошибку в коде', {models: [oldCli, opus], selection: oldCli.id}).error,
   oldCli.unavailable
 );
-assert.equal(routingAdvice('Исправь ошибку в коде', {models: [fable, opus, sonnet]}).choice, sonnet.id); // balanced: no heavy tier for ordinary work
+assert.equal(routingAdvice('Исправь ошибку в коде', {models: [fable, opus, sonnet]}).choice, sonnet.id); // balanced: no extra credits, cheaper of the close scores
 const quality = routingAdvice('Исправь ошибку в коде', {models: [fable, opus, sonnet], priority: 'quality'});
 assert.equal(quality.choice, fable.id); // same 58 as Opus, faster published mode (high, 31 min)
 assert.match(quality.reason, /high/);

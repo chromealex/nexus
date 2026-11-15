@@ -1488,4 +1488,6 @@ export default {
   'Перенести переписку': 'Unterhaltungen übernehmen',
   'Переношу проекты и переписку…': 'Projekte und Unterhaltungen werden übernommen…',
   'Для этого сообщения:': 'Für diese Nachricht:',
+  'Среди близких по качеству вариантов выбран более дешёвый тариф: квота и токены расходуются медленнее.':
+    'Unter Optionen ähnlicher Qualität wurde der günstigere Tarif gewählt: Kontingent und Tokens reichen länger.',
 };

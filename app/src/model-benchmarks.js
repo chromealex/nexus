@@ -404,14 +404,9 @@ export function benchmarkChoice(
     const p = prices[benchmarkModel(c.model)];
     return Number.isFinite(p?.input) && Number.isFinite(p?.output) ? p.input * 0.01 + p.output * 0.002 : null;
   };
-  const cost = c =>
-    !api(c)
-      ? null
-      : cohort === 'intelligence'
-        ? (c.evidence.cost ?? null)
-        : cohort === 'codingAgent'
-          ? null
-          : tariff(c);
+  // Measured API cost per task where the benchmark publishes it; otherwise the model's list tariff from its
+  // card. For subscription agents (Claude Code, Codex) the tariff is a proxy for how fast the quota is spent.
+  const cost = c => (api(c) && cohort === 'intelligence' ? (c.evidence.cost ?? null) : null) ?? tariff(c);
   const time = c => c.evidence.minutes ?? null;
   let pool = close,
     metric = null,
@@ -429,9 +424,15 @@ export function benchmarkChoice(
     explanation = loc('Минимальное время задачи в том же тесте; качество может быть ниже.');
   } else if (close.length === 1) {
     explanation = loc('Лучший результат в этом тесте с отрывом больше допуска.');
+  } else if (priority === 'quality' && complete(close, time)) {
+    // “Quality” spends limits freely: equal scores are decided by speed, not by tariff.
+    metric = time;
+    explanation = loc('Среди близких по качеству вариантов выбрано меньшее время задачи в тесте.');
   } else if (complete(close, cost)) {
     metric = cost;
-    explanation = loc('Среди близких по качеству вариантов выбран меньший API-расход.');
+    explanation = loc(
+      'Среди близких по качеству вариантов выбран более дешёвый тариф: квота и токены расходуются медленнее.'
+    );
   } else if (complete(close, time)) {
     metric = time;
     explanation = loc('Среди близких по качеству вариантов выбрано меньшее время задачи в тесте.');
@@ -442,8 +443,12 @@ export function benchmarkChoice(
   )
     explanation =
       loc('Приоритет не удалось полностью применить: сопоставимые данные неполны. ') + explanation;
+  // Inside the pool: the chosen metric (cost or time), then the better score, and only then a stable ID.
   pool = [...pool].sort(
-    (a, b) => (metric ? metric(a) - metric(b) : 0) || a.model.id.localeCompare(b.model.id)
+    (a, b) =>
+      (metric ? metric(a) - metric(b) : 0) ||
+      b.evidence.score - a.evidence.score ||
+      a.model.id.localeCompare(b.model.id)
   );
   const chosen = pool[0];
   const describe = c => ({

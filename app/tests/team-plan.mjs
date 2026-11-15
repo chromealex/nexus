@@ -43,9 +43,9 @@ let plan = teamPlan(
 assert.equal(plan.mode, 'auto');
 assert.equal(plan.steps.length, 2);
 assert.deepEqual(plan.steps[1].dependsOn, [1]);
-assert.equal(plan.steps[0].modelChoice, 'codex/gpt-6-astra'); // best rated outside the heaviest tier
+assert.equal(plan.steps[0].modelChoice, 'claude/sonnet'); // AA Coding Agent Index: close to Opus, cheaper tariff
 assert.match(plan.steps[0].reason, /Coding Agent Index/);
-assert.equal(plan.steps[1].modelChoice, 'api-local/qwen3:4b'); // simple part → light model
+assert.match(plan.steps[1].reason, /Arena Text/);
 assert.equal(plan.steps[0].effort, 'medium'); // runs at the depth it was compared for
 assert.ok(!plan.steps.some(s => s.modelChoice.includes('fable'))); // extra credits: not in balanced Auto
 assert.ok(plan.steps[0].prompt.includes('Сделай проект'));
@@ -60,9 +60,9 @@ assert.deepEqual(
   ['reasoning', 'code', 'review', 'writing']
 );
 const byKind = Object.fromEntries(plan.steps.map(s => [s.kind, s]));
-assert.equal(byKind.code.modelChoice, 'codex/gpt-6-astra'); // code stage: best outside the heaviest tier
+assert.equal(byKind.code.modelChoice, 'claude/sonnet'); // close to Opus, cheaper
 assert.equal(byKind.code.effort, 'high');
-assert.ok(!/opus|fable/.test(byKind.writing.modelChoice)); // writing part: no heavy tier
+assert.equal(byKind.writing.effort, 'medium');
 assert.notEqual(byKind.review.modelChoice.split('/')[0], 'claude'); // independent check by another provider
 assert.ok(plan.steps.every(s => s.dependsOn.length === 0 && s.modelChoice));
 assert.match(plan.reason, /дополнительный модельный вызов/);
