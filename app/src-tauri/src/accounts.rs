@@ -616,10 +616,45 @@ pub(crate) async fn account_quota(id: String) -> Result<QuotaReport, String> {
     let _ = child.wait().await;
     Ok(match result {
         Ok(Ok(Ok(report))) => report,
-        Ok(Ok(Err(shape))) => quota_unavailable("Codex app-server", &shape),
+        Ok(Ok(Err(shape))) => {
+            if auth_rejected(&shape) {
+                mark_auth_expired(&account.id, &account.config_dir);
+            }
+            quota_unavailable("Codex app-server", &shape)
+        }
         Ok(Err(e)) => quota_unavailable("Codex app-server", e),
         Err(_) => quota_unavailable("Codex app-server", "Timed out after 10 seconds"),
     })
+}
+/// The provider rejected the stored sign-in (expired or revoked token), although the local login file exists.
+pub(crate) fn auth_rejected(detail: &str) -> bool {
+    let d = detail.to_lowercase();
+    d.contains("401 unauthorized")
+        || d.contains("authentication token has exp")
+        || d.contains("token_expired")
+}
+/// Accounts whose sign-in the server rejected, with the auth file time at that moment: a new sign-in
+/// rewrites the file and lifts the mark by itself.
+static AUTH_EXPIRED: std::sync::Mutex<Vec<(String, Option<std::time::SystemTime>)>> =
+    std::sync::Mutex::new(Vec::new());
+fn auth_file_time(config_dir: &str) -> Option<std::time::SystemTime> {
+    std::fs::metadata(PathBuf::from(config_dir).join("auth.json"))
+        .and_then(|m| m.modified())
+        .ok()
+}
+fn mark_auth_expired(id: &str, config_dir: &str) {
+    if let Ok(mut list) = AUTH_EXPIRED.lock() {
+        list.retain(|(a, _)| a != id);
+        list.push((id.to_string(), auth_file_time(config_dir)));
+    }
+}
+pub(crate) fn auth_expired(id: &str, config_dir: &str) -> bool {
+    let Ok(mut list) = AUTH_EXPIRED.lock() else {
+        return false;
+    };
+    let now = auth_file_time(config_dir);
+    list.retain(|(a, t)| a != id || *t == now);
+    list.iter().any(|(a, _)| a == id)
 }
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -656,6 +691,12 @@ pub(crate) async fn check_account(id: String) -> Result<AccountCheck, String> {
         .ok_or("Account not found")?;
     if account.provider == "gemini" {
         return Ok(gemini_auth::check(&account).await);
+    }
+    if auth_expired(&account.id, &account.config_dir) {
+        return Ok(AccountCheck {
+            status: "login_required".into(),
+            detail: "Сервер отклонил сохранённый вход (401, токен истёк). Войдите в аккаунт заново.".into(),
+        });
     }
     let exe = find_bin(&account.provider).ok_or("CLI is not installed")?;
     let mut cmd = crate::new_command(exe);
@@ -763,4 +804,15 @@ pub(crate) async fn open_external(url: String) -> Result<(), String> {
         return Err(format!("Browser open failed: {}", status));
     }
     Ok(())
+}
+#[cfg(test)]
+mod auth_tests {
+    use super::*;
+    #[test]
+    fn rejected_sign_in_is_recognised() {
+        assert!(auth_rejected(
+            "Provider error: failed: 401 Unauthorized; body={\"error\": {\"message\": \"Your authentication token has expired\"}}"
+        ));
+        assert!(!auth_rejected("Timed out after 10 seconds"));
+    }
 }
