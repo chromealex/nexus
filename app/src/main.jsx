@@ -2636,7 +2636,7 @@ function App() {
                     plan={teamPreview}
                     integrator={modelChoices.find(m => m.id === routePreview.choice)?.label || loc('Авто')}
                   />
-                  <RoutingPreview route={routePreview} models={modelChoices} />
+                  <RoutingPreview route={routePreview} models={modelChoices} draft={chatDraft} />
                   {modelLoadError && (
                     <small className="model-load-error" role="status">
                       {modelLoadError}

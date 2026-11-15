@@ -1489,4 +1489,5 @@ export default {
   'в Nexus · чатов перенесено: {0}': 'en Nexus · chats importados: {0}',
   'Перенести переписку': 'Importar conversaciones',
   'Переношу проекты и переписку…': 'Importando proyectos y conversaciones…',
+  'Для этого сообщения:': 'Para este mensaje:',
 };

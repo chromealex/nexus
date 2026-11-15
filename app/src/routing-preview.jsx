@@ -1,13 +1,13 @@
 import React from 'react';
 import {loc} from './i18n.js';
-export function RoutingPreview({route, models = []}) {
-  if (!route.choice) return null;
+export function RoutingPreview({route, models = [], draft = ''}) {
+  // A forecast for the text being typed: nothing to forecast for an empty field.
+  if (!route.choice || !draft.trim()) return null;
   const label = models.find(m => m.id === route.choice)?.label || route.choice;
   return (
     <details className="model-route-preview">
       <summary>
-        {label} · {route.taskType || loc('Запрос')} ·{' '}
-        {route.benchmark ? loc('сравнение моделей') : loc('выбор модели')}
+        {loc('Для этого сообщения:')} {label} · {route.taskType || loc('Запрос')}
       </summary>
       <p>{route.reason || loc('Модель выбрана вручную; приоритет автовыбора не применяется.')}</p>
       {route.comparison && (
