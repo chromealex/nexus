@@ -2146,7 +2146,10 @@ function App() {
                                             )
                                           : m.content
                                     }
-                                    allowQuestion={!chatSending && chatMessages.at(-1)?.id === m.id}
+                                    allowQuestion={
+                                      !currentChatSending &&
+                                      !chatMessages.slice(index + 1).some(x => x.role === 'user')
+                                    }
                                     selections={m.questionSelections}
                                     legacyReply={
                                       chatMessages[index + 1]?.role === 'user'
