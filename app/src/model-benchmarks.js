@@ -403,13 +403,16 @@ export function benchmarkChoice(
             preferEffort
           )
         : '';
+  // An agent with its limit used up cannot do the task: it is left out unless every agent is out.
+  const usable = candidates.filter(c => !(quotaLeft[c.model.provider] < 3));
+  if (usable.length) candidates = usable;
   const elo = COHORTS[cohort].scale === 'elo';
   candidates.sort((a, b) => b.evidence.score - a.evidence.score || a.model.id.localeCompare(b.model.id));
   const best = candidates[0].evidence;
   const close = candidates.filter(c =>
     elo
       ? c.evidence.score + (c.evidence.interval || 0) >= best.score - (best.interval || 0)
-      : c.evidence.score >= best.score - (priority === 'quality' ? 0 : 3)
+      : c.evidence.score >= best.score - (priority === 'quality' ? 0 : priority === 'balanced' ? 5 : 3)
   );
   const api = c => c.model.provider.startsWith('api-');
   const tariff = c => {
@@ -434,6 +437,14 @@ export function benchmarkChoice(
     pool = candidates;
     metric = time;
     explanation = loc('Минимальное время задачи в том же тесте; качество может быть ниже.');
+  } else if (priority === 'balanced' && close.length > 1 && Object.keys(quotaLeft).length) {
+    // “Balance” spreads the load: close candidates are weighed by tariff and by how much limit their
+    // agent has left, so work goes to whoever has much more quota. Unknown limit counts as half.
+    const pressure = c => 100 / Math.max(quotaLeft[c.model.provider] ?? 50, 5);
+    metric = complete(close, cost) ? c => cost(c) * pressure(c) : pressure;
+    explanation = loc(
+      'Баланс: среди близких по качеству вариантов учтены тариф и остаток лимитов — задача уходит агенту, у которого квоты заметно больше.'
+    );
   } else if (close.length === 1) {
     explanation = loc('Лучший результат в этом тесте с отрывом больше допуска.');
   } else if (priority === 'quality' && complete(close, time)) {

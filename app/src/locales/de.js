@@ -1490,4 +1490,6 @@ export default {
   'Для этого сообщения:': 'Für diese Nachricht:',
   'Среди близких по качеству вариантов выбран более дешёвый тариф: квота и токены расходуются медленнее.':
     'Unter Optionen ähnlicher Qualität wurde der günstigere Tarif gewählt: Kontingent und Tokens reichen länger.',
+  'Баланс: среди близких по качеству вариантов учтены тариф и остаток лимитов — задача уходит агенту, у которого квоты заметно больше.':
+    'Balance: Unter Optionen ähnlicher Qualität zählen Tarif und verbleibende Limits – die Aufgabe geht an den Agenten mit deutlich mehr Kontingent.',
 };

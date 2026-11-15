@@ -176,6 +176,14 @@ export function classifyTask(
       text
     );
   const repair = code && /(исправ|ошибк|debug|bug|рефактор|refactor)/i.test(text);
+  // In the execution modes tools are needed only when the request asks to do something; plain conversation
+  // ("what do you think…", "explain…") is open to every model, including text-only ones.
+  const executing = executionMode === 'execute' || executionMode === 'auto';
+  const asksAction =
+    code ||
+    /(сделай|сделать|исправ|запуст|выполн|создай|создать|измени|поменяй|удали|добавь|обнови|установ|проверь|прогони|собери|почини|перепиши файл|сохрани|открой|перенеси|переименуй|настрой|отправь|скачай|найди в|посмотри в|прочитай|run|fix|create|change|update|delete|remove|add |install|build|check|open|rename|move|save|deploy|commit|push)/i.test(
+      text
+    );
   const complex =
     text.length > 1200 ||
     bullets >= 4 ||
@@ -206,7 +214,7 @@ export function classifyTask(
     extraction,
     hasFiles,
     hasImages,
-    needsTools: executionMode === 'execute' || executionMode === 'auto' || hasFiles || projectInspection,
+    needsTools: (executing && asksAction) || hasFiles || projectInspection,
     // Short plain questions do not need the strongest rated model; ratings are skipped for them.
     trivial:
       !hasImages &&
@@ -215,8 +223,7 @@ export function classifyTask(
       !complex &&
       !translation &&
       !editing &&
-      executionMode !== 'execute' &&
-      executionMode !== 'auto' &&
+      !(executing && asksAction) &&
       !projectInspection &&
       text.trim().length < 160,
     reason: projectInspection
@@ -225,7 +232,7 @@ export function classifyTask(
         ? loc('Нужен адаптер с передачей изображений.')
         : hasFiles
           ? loc('Нужен доступ к приложенным файлам.')
-          : executionMode === 'execute' || executionMode === 'auto'
+          : executing && asksAction
             ? loc('Нужен агент с инструментами выполнения.')
             : complex
               ? loc('Запрос содержит несколько этапов.')

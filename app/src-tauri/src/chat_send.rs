@@ -229,16 +229,8 @@ pub(crate) async fn chat_send(
         _ => return Err("Неизвестный режим работы".into()),
     };
     let auto_approve = mode_name == "auto";
-    if work
-        && manual_model
-            .as_ref()
-            .is_some_and(|m| m.provider.starts_with("api-"))
-    {
-        return Err(
-            "Текстовый API не поддерживает выполнение действий. Выберите Codex, Claude или ACP-агента."
-                .into(),
-        );
-    }
+    // A text API model may be chosen in the execution modes for plain conversation: it answers in text
+    // (its prompt says it has no files or terminal), and Auto sends requests needing actions elsewhere.
     if reasoning_mode != "auto"
         && manual_model
             .as_ref()

@@ -1495,4 +1495,6 @@ export default {
   'Для этого сообщения:': 'Pour ce message :',
   'Среди близких по качеству вариантов выбран более дешёвый тариф: квота и токены расходуются медленнее.':
     'Parmi des options de qualité proche, le tarif le moins cher a été choisi : le quota et les jetons durent plus longtemps.',
+  'Баланс: среди близких по качеству вариантов учтены тариф и остаток лимитов — задача уходит агенту, у которого квоты заметно больше.':
+    'Équilibre : parmi des options de qualité proche, le tarif et les limites restantes sont pris en compte — la tâche va à l’agent qui a nettement plus de quota.',
 };

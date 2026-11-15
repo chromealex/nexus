@@ -55,7 +55,7 @@ assert.equal(
     connections: [{id: 'api-local', provider: 'local'}],
     executionMode: 'execute',
   }).choice,
-  codex.id
+  local.id // execution mode, but a greeting asks for no action: text-only models are allowed
 );
 assert.ok(routingAdvice('Файл', {models: [local], selection: local.id, hasFiles: true}).error);
 assert.ok(routingAdvice('Фото', {models: [local], selection: local.id, hasImages: true}).error);

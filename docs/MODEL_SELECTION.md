@@ -87,3 +87,34 @@
 ## Проверки реализации
 
 Автоматические проверки маршрутизации, стоимости, неизвестных версий, сохранения при переключении чата и ошибки записи — npm test. Rust проверяет обратную совместимость сериализации, выбор default и исключение неподдерживаемых моделей. Браузерный стенд tests/model-picker.html проверен отдельно от подключённых аккаунтов.
+
+## Flowchart: how Auto picks a model (2026-11-15)
+
+```mermaid
+flowchart TD
+  A[Message] --> B{Model chosen manually?}
+  B -- yes --> M[Use it as is; incompatibility is an error, never a substitution]
+  B -- no --> C[Classify the request: kind, files, images, needs actions?]
+  C --> D[Candidates: Auto or “Auto inside agent”; drop custom ACP, incompatible models,\nFable unless priority = Quality]
+  D --> E{Needs actions?\nexecution mode AND the text asks to do something, or files / project inspection}
+  E -- yes --> E1[Only agents with tools: Claude Code, Codex, ACP]
+  E -- no --> E2[All models incl. text-only API: Grok, local Qwen]
+  E1 --> F
+  E2 --> F{Short plain request?\nno code, files, translation, editing, < 160 chars, not Quality}
+  F -- yes --> T[No benchmarks: local Qwen if connected, else the agent default]
+  F -- no --> G[Pick the benchmark for the task type that rates the most candidates:\ncode → Coding Agent Index, tools → AutomationBench, text → Arena, reasoning → AA Intelligence]
+  G --> H{Two or more rated models?}
+  H -- no --> T
+  H -- yes --> X[Drop agents whose limit is used up, unless all are]
+  X --> I[Close group: within 0 points for Quality, 5 for Balance, 3 for Economy/Speed; Elo by intervals]
+  I --> J{Priority}
+  J -- Quality --> J1[Highest score; equal scores → faster]
+  J -- Economy --> J2[Cheapest tariff among all rated]
+  J -- Speed --> J3[Fastest among all rated]
+  J -- Balance --> J4[Close group ordered by tariff × 100 / remaining limit %\nunknown limit counts as 50 %]
+  J1 --> K[Ties: higher score → more limit left → ID]
+  J2 --> K
+  J3 --> K
+  J4 --> K
+  K --> L[Backend runs it on the first ready account of that agent;\na usage-limit error retries another account]
+```

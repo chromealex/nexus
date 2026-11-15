@@ -46,7 +46,7 @@ assert.equal(
 );
 assert.equal(benchmarkChoice([sol, {...sol, id: 'other/' + sol.model}], task, {now}), null); // two accounts != two models
 // Default fallback is how Anthropic serves these models everywhere, so it is labelled, not excluded.
-const withOpus = benchmarkChoice([sol, opus], task, {now});
+const withOpus = benchmarkChoice([sol, opus], task, {now, priority: 'quality'});
 assert.equal(withOpus.model.id, opus.id);
 assert.match(withOpus.reason, /резервной моделью Anthropic/);
 assert.match(withOpus.reason, /«opus» сопоставлен с claude-opus-5-5/);
@@ -62,7 +62,7 @@ assert.equal(benchmarkChoice([haiku, sonnet, opus], code, {now}).model.id, opus.
 assert.equal(benchmarkChoice([astra, sol, terra], code, {now}).model.id, sol.id); // Codex: Sol close to Astra, faster
 const mixed = benchmarkChoice([haiku, sonnet, opus, astra, sol, terra], code, {now});
 assert.equal(mixed.cohort, 'codingAgent');
-assert.equal(mixed.model.id, opus.id);
+assert.equal(mixed.model.id, astra.id); // Balance: 5-point tolerance, without tariffs the faster close one
 assert.equal(mixed.coverage, '6 из 6');
 assert.equal(
   benchmarkChoice([m('gpt-6-astra', 'api-x'), m('gpt-6.1-sol', 'api-x')], code, {now}).cohort,
@@ -199,4 +199,17 @@ console.log('Fable 5.2: exact ID, CLI version gate, extra-credit guard in Auto a
   assert.equal(pick({claude: 10, codex: 80}), 'codex');
   assert.equal(pick({claude: 80, codex: 10}), 'claude');
   console.log('Ties: remaining limit decides.');
+}
+
+// Balance: close candidates are weighed by tariff and remaining limit; an exhausted agent is skipped.
+{
+  const sonnetR = {id: 'claude/sonnet', provider: 'claude', model: 'sonnet', resolved: 'claude-sonnet-5-5'};
+  const solR = {id: 'codex/gpt-6.1-sol', provider: 'codex', model: 'gpt-6.1-sol'};
+  const task = classifyTask('Спроектируй архитектуру полностью');
+  const pick = (quotaLeft, priority = 'balanced') =>
+    benchmarkChoice([sonnetR, solR], task, {now, prices: MODEL_PROFILES, quotaLeft, priority}).model.provider;
+  assert.equal(pick({claude: 22, codex: 51}), 'codex');
+  assert.equal(pick({claude: 80, codex: 20}), 'claude');
+  assert.equal(pick({claude: 1, codex: 90}), 'codex'); // exhausted Claude is skipped
+  console.log('Balance: tariff × remaining limit, exhausted agents skipped.');
 }
