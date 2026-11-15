@@ -187,3 +187,16 @@ assert.equal(quality.choice, fable.id); // same 58 as Opus, faster published mod
 assert.match(quality.reason, /high/);
 assert.equal(routingAdvice('Код', {models: [fable, opus], selection: fable.id}).choice, fable.id); // manual always allowed
 console.log('Fable 5.2: exact ID, CLI version gate, extra-credit guard in Auto and manual choice passed.');
+
+// Equal score and tariff: the agent with more limit left wins, not the alphabet.
+{
+  const sonnetR = {id: 'claude/sonnet', provider: 'claude', model: 'sonnet', resolved: 'claude-sonnet-5-5'};
+  const solR = {id: 'codex/gpt-6.1-sol', provider: 'codex', model: 'gpt-6.1-sol'};
+  const task = classifyTask('Спроектируй архитектуру полностью');
+  const pick = left =>
+    benchmarkChoice([sonnetR, solR], task, {now, prices: MODEL_PROFILES, quotaLeft: left, preferEffort: null})
+      .model.provider;
+  assert.equal(pick({claude: 10, codex: 80}), 'codex');
+  assert.equal(pick({claude: 80, codex: 10}), 'claude');
+  console.log('Ties: remaining limit decides.');
+}

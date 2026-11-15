@@ -431,3 +431,5 @@ Also 2026-11-15: among the tests that fit a task, the one rating the most availa
 (a narrower test wins ties); scores of different tests are never mixed. Tool tasks may fall back to the
 AA Intelligence Index. Code detection also recognises functions, methods, classes, parsing, bugs,
 compilation, builds, scripts and commits.
+
+Ties after cost and score go to the agent with more limit left (best account, tightest window); the ID is only the last resort.

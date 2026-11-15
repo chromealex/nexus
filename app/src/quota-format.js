@@ -104,3 +104,16 @@ export function apiLimitsView(limits, now = Date.now()) {
     stale: !!checkedAt && now - checkedAt.getTime() > 600000,
   };
 }
+
+/** Per agent provider: the best remaining limit among its accounts, in percent of the tightest window. */
+export function quotaLeftByProvider(accounts = [], quotas = {}, statuslines = {}, now = Date.now()) {
+  const out = {};
+  for (const a of accounts) {
+    const view = quotaView(quotas[a.id], statuslines[a.id], now);
+    const used = view.windows.map(w => w.used).filter(Number.isFinite);
+    if (!used.length) continue;
+    const left = Math.max(0, 100 - Math.max(...used));
+    out[a.provider] = Math.max(out[a.provider] ?? 0, left);
+  }
+  return out;
+}

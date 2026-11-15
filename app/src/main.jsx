@@ -3,6 +3,7 @@ import {TeamPlanPreview} from './team-plan-preview.jsx';
 import {chatErrorMessage} from './chat-errors.js';
 import {ROUTING_PRIORITIES} from './model-benchmarks.js';
 import {RoutingPreview} from './routing-preview.jsx';
+import {quotaLeftByProvider} from './quota-format.js';
 import {CustomSelect} from './custom-select.jsx';
 import {mergeLatestMessages, prependMessages} from './chat-history.js';
 import {ComposerPlan} from './composer-plan.jsx';
@@ -240,6 +241,7 @@ function App() {
     executionMode,
     reasoningMode,
     selection: modelChoice,
+    quotaLeft: quotaLeftByProvider(accounts, quotaReports, statuslineReports),
   };
   const routePreview = routingAdvice(chatDraft, routeOptions);
   const activeChatRow = chats.find(c => c.id === activeChat);

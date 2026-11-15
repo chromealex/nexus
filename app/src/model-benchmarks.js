@@ -361,6 +361,7 @@ export function benchmarkChoice(
     now = Date.now(),
     records = BENCHMARKS,
     prices = {},
+    quotaLeft = {},
     preferEffort = null,
   } = {}
 ) {
@@ -454,11 +455,15 @@ export function benchmarkChoice(
   )
     explanation =
       loc('Приоритет не удалось полностью применить: сопоставимые данные неполны. ') + explanation;
-  // Inside the pool: the chosen metric (cost or time), then the better score, and only then a stable ID.
+  // Remaining limit of the agent's accounts in percent (unknown ranks below any known value).
+  const left = c => quotaLeft[c.model.provider] ?? -1;
+  // Inside the pool: the chosen metric (cost or time), then the better score, then the agent with more
+  // limit left; a stable ID only when even that is equal.
   pool = [...pool].sort(
     (a, b) =>
       (metric ? metric(a) - metric(b) : 0) ||
       b.evidence.score - a.evidence.score ||
+      left(b) - left(a) ||
       a.model.id.localeCompare(b.model.id)
   );
   const chosen = pool[0];

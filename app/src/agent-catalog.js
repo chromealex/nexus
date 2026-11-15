@@ -301,6 +301,7 @@ export function routingAdvice(
     selection = 'auto',
     priority = 'balanced',
     effort = null,
+    quotaLeft = {},
   } = {}
 ) {
   const task = classifyTask(text, hasFiles, {hasImages, executionMode});
@@ -344,6 +345,7 @@ export function routingAdvice(
           reasoningMode,
           priority,
           prices: MODEL_PROFILES,
+          quotaLeft,
           preferEffort: reasoningMode === 'auto' ? effort || autoEffort(text) : null,
         });
   if (measured)
