@@ -4783,3 +4783,27 @@ details[open] > .activity-list {
     display: none;
   }
 }
+
+/* Scene layers without filter: blur. WebKit renders large animated blurred layers at a reduced resolution
+   and scales them up, which showed as a mosaic of squares; softness now comes from the gradients alone. */
+.persona-smoke {
+  display: none;
+}
+.persona-light-drift:before {
+  filter: none;
+  background: linear-gradient(
+    117deg,
+    transparent 22%,
+    #afdae50d 27%,
+    #afdae51f 32%,
+    #afdae50d 37%,
+    transparent 42%
+  );
+}
+.persona-light-drift:after,
+.particle-persona:after {
+  filter: none;
+}
+.particle-persona:after {
+  background: radial-gradient(ellipse closest-side, #8abec930, #8abec914 55%, transparent);
+}
