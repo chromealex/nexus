@@ -16,6 +16,7 @@ import {ProjectBoard} from './project-board.jsx';
 import {WelcomeScreen} from './welcome-screen.jsx';
 import {ParticlePersona} from './particle-persona.jsx';
 import {ThinkingLightning} from './thinking-lightning.jsx';
+import {SceneBackdrop} from './scene-backdrop.jsx';
 import {routingAdvice, classifyTask, pendingRequestMatches, arbiterCandidates} from './agent-catalog.js';
 import {PermissionCard} from './permission-card.jsx';
 import {ProjectNavigation} from './project-navigation.jsx';
@@ -1785,6 +1786,7 @@ function App() {
       style={panelShown ? {'--browser-pane-width': browserPaneWidth + 'px'} : undefined}
     >
       <Toaster />
+      <SceneBackdrop />
       <div className="workspace-persona">
         <ParticlePersona interactive={chatMessages.length === 0 && !currentChatSending && !historyLoading} />
       </div>

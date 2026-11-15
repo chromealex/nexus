@@ -3,6 +3,7 @@
 Short history of NEXUS Desktop. The original per-version notes (in Russian) are in [docs/history](docs/history).
 
 ## Unreleased
+- The scene background is drawn in WebGL with sub-level smoothing: no more rings in the dark gradient; blurred mist and rays no longer show as a mosaic.
 - New answering effect: a smooth arc of light with travelling pulses from the persona to the message, and a turning aurora rim with a soft glow around the message being written (replaces the jagged lightning).
 - Smooth motion everywhere: state transitions on buttons, tabs and fields, dialogs and menus animate in, the side panel slides in, new messages rise into place; respects “Reduce motion”.
 - Side panel icon buttons share one quiet style; browser tabs match the panel tabs.
