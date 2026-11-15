@@ -576,7 +576,8 @@ pub(crate) async fn chat_send(
             String::new()
         };
         let details = format!(
-            "{}\nTier: {}\n\n{}\n{}\n{}",
+            "{}{}\nTier: {}\n\n{}\n{}\n{}",
+            control.routing(),
             metadata,
             tier,
             diagnostics,

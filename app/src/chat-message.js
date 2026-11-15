@@ -11,7 +11,8 @@ export function responseDetails(raw = '') {
     route = '',
     stopped = false,
     effort = '';
-  const technical = [];
+  const technical = [],
+    routing = [];
   const add = (title, body = '', key = title) => {
     if (!seen.has(key)) {
       seen.set(key, rows.length);
@@ -21,6 +22,11 @@ export function responseDetails(raw = '') {
     }
   };
   for (const line of raw.split('\n')) {
+    if (line.startsWith('Routing step: ')) {
+      const [title, body = ''] = line.slice(14).split('|');
+      routing.push({title, body});
+      continue;
+    }
     if (line.startsWith('Route: ')) {
       route = line.slice(7);
       continue;
@@ -83,6 +89,8 @@ export function responseDetails(raw = '') {
   if (route) rows.unshift({title: loc('Маршрут ответа'), body: route});
   if (effort) rows.unshift({title: loc('Режим рассуждений'), body: effortLabel(effort)});
   if (model && model !== 'default') rows.splice(route ? 1 : 0, 0, {title: loc('Модель'), body: model});
+  // How the model was chosen comes first: it happened before the agent started.
+  rows.unshift(...routing);
   if (stopped) {
     const completed = rows.findIndex(r => r.title === loc('Ответ сформирован'));
     if (completed >= 0) rows.splice(completed, 1);

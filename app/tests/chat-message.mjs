@@ -43,3 +43,15 @@ assert.equal(
 assert.equal(responseDetails('Model: test-model\nEffort: high').effort, 'high');
 assert.equal(effortLabel('high'), 'Глубоко');
 console.log('Continuation merge and displayed reasoning mode passed.');
+
+{
+  const {responseDetails: details} = await import('../src/chat-message.js');
+  const r = details(
+    'Routing step: Подбор модели|A, B\nRouting step: Выбрана модель: B|быстрее\nRoute: codex / W'
+  );
+  assert.deepEqual(
+    r.rows.slice(0, 2).map(x => x.title),
+    ['Подбор модели', 'Выбрана модель: B']
+  ); // model selection opens the answer's progress
+  console.log('Routing steps open the answer progress.');
+}

@@ -1499,4 +1499,13 @@ export default {
     'Équilibre : parmi des options de qualité proche, le tarif et les limites restantes sont pris en compte — la tâche va à l’agent qui a nettement plus de quota.',
   'Подбираю модель для запроса…': 'Choix du modèle pour la demande…',
   'Модель: {0} — {1} ({2})': 'Modèle : {0} — {1} ({2})',
+  'Подбираю модель: уточняю тип задачи и сравниваю {0} варианта':
+    'Choix du modèle : vérification du type de tâche et comparaison de {0} options',
+  'Подбор модели': 'Choix du modèle',
+  'Дерево выбрало кандидатов: {0}.': 'L’arbre de décision a présélectionné : {0}.',
+  'Выбрана модель: {0}': 'Modèle choisi : {0}',
+  'решил {0}': 'décidé par {0}',
+  'тип задачи уточнён: {0}': 'type de tâche précisé : {0}',
+  'Арбитр недоступен или не ответил вовремя; оставлен выбор дерева.':
+    'L’arbitre est indisponible ou n’a pas répondu à temps ; le choix de l’arbre est conservé.',
 };

@@ -1135,36 +1135,7 @@ function App() {
         });
         return;
       }
-      let choice = advice.choice;
-      // Arbiter: a cheap model (local Qwen, else the cheapest cloud model on the roomiest account) refines
-      // the task type and picks from the tree's shortlist. Any failure keeps the tree's choice.
-      const candidates = choice && !advice.trivial ? arbiterCandidates(advice, routeOptions.quotaLeft) : [];
-      if (candidates.length >= 2) {
-        notify(loc('Подбираю модель для запроса…'));
-        const verdict = await invoke('route_arbiter', {
-          text: input,
-          candidates: candidates.map(c => ({summary: c.summary})),
-          accountId: roomiestAccount(accounts, quotaReports, statuslineReports),
-        }).catch(() => null);
-        if (verdict) {
-          const refined = routingAdvice(input, {
-            ...routeOptions,
-            override: {kind: verdict.kind, needsActions: verdict.needsActions},
-          });
-          const same = refined.kind === advice.kind && refined.needsTools === advice.needsTools;
-          const picked = candidates[verdict.pick]?.id;
-          choice = same && picked ? picked : refined.choice || choice;
-          if (choice && verdict.why)
-            notify(
-              loc(
-                'Модель: {0} — {1} ({2})',
-                modelChoices.find(m => m.id === choice)?.label || choice,
-                verdict.why,
-                verdict.by
-              )
-            );
-        }
-      }
+      const choice = advice.choice;
       if (choice) routeApproval.current = {text: input, choice};
     }
     return sendChat(override, continueMessageId);
@@ -1249,6 +1220,60 @@ function App() {
         setChatMessages(v => [...v, {id: 'pending-' + Date.now(), role: 'user', content, attachments}]);
       }
       activeRunRef.current.chatId = chatId;
+      let finalChoice = resolved.choice;
+      // Routing arbiter: its work is the first stages of the answer's progress (live and saved).
+      const automatic = modelChoice === 'auto' || modelChoice.startsWith('agent-auto:');
+      const candidates =
+        automatic && !continueMessageId && !resolved.trivial && !team?.steps?.length
+          ? arbiterCandidates(resolved, routeOptions.quotaLeft)
+          : [];
+      if (candidates.length >= 2) {
+        setChatTrace(loc('Подбираю модель: уточняю тип задачи и сравниваю {0} варианта', candidates.length));
+        const verdict = await invoke('route_arbiter', {
+          text: input,
+          candidates: candidates.map(c => ({summary: c.summary})),
+          accountId: roomiestAccount(accounts, quotaReports, statuslineReports),
+        }).catch(() => null);
+        const label = id => modelChoices.find(m => m.id === id)?.label || id;
+        const steps = [
+          [
+            loc('Подбор модели'),
+            loc('Дерево выбрало кандидатов: {0}.', candidates.map(c => label(c.id)).join(', ')) +
+              ' ' +
+              resolved.reason,
+          ],
+        ];
+        if (verdict) {
+          const refined = routingAdvice(input, {
+            ...routeOptions,
+            override: {kind: verdict.kind, needsActions: verdict.needsActions},
+          });
+          const same = refined.kind === resolved.kind && refined.needsTools === resolved.needsTools;
+          const picked = candidates[verdict.pick]?.id;
+          finalChoice = (same && picked) || refined.choice || finalChoice;
+          steps.push([
+            loc('Выбрана модель: {0}', label(finalChoice)),
+            [
+              verdict.why,
+              loc('решил {0}', verdict.by),
+              same ? '' : loc('тип задачи уточнён: {0}', verdict.kind),
+            ]
+              .filter(Boolean)
+              .join(' · '),
+          ]);
+        } else {
+          steps.push([
+            loc('Выбрана модель: {0}', label(finalChoice)),
+            loc('Арбитр недоступен или не ответил вовремя; оставлен выбор дерева.'),
+          ]);
+        }
+        await invoke('set_chat_route_note', {
+          chatId,
+          requestId: activeRunRef.current.requestId,
+          steps,
+        }).catch(() => {});
+        setChatTrace(steps.at(-1)[0]);
+      }
       if (stopRequestedRef.current) await invoke('cancel_chat_generation', activeRunRef.current);
       const reply = regenerateAnswer
         ? await invoke('regenerate_chat_answer', {
@@ -1256,7 +1281,7 @@ function App() {
             messageId: continueMessageId,
             requestId: activeRunRef.current.requestId,
             reasoningMode,
-            modelChoice: resolved.choice,
+            modelChoice: finalChoice,
             executionMode,
           })
         : await invoke('unified_chat_send', {
@@ -1267,7 +1292,7 @@ function App() {
             requestId: activeRunRef.current.requestId,
             continueMessageId: continueMessageId || null,
             reasoningMode,
-            modelChoice: resolved.choice,
+            modelChoice: finalChoice,
             executionMode,
             teamAutoPlan: !!team?.autoPlan,
             teamSteps: team?.steps?.length

@@ -1496,4 +1496,13 @@ export default {
     'Equilibrio: entre opciones de calidad similar se ponderan la tarifa y los límites restantes; la tarea va al agente con bastante más cuota.',
   'Подбираю модель для запроса…': 'Eligiendo un modelo para la solicitud…',
   'Модель: {0} — {1} ({2})': 'Modelo: {0} — {1} ({2})',
+  'Подбираю модель: уточняю тип задачи и сравниваю {0} варианта':
+    'Eligiendo modelo: revisando el tipo de tarea y comparando {0} opciones',
+  'Подбор модели': 'Selección de modelo',
+  'Дерево выбрало кандидатов: {0}.': 'El árbol preseleccionó: {0}.',
+  'Выбрана модель: {0}': 'Modelo elegido: {0}',
+  'решил {0}': 'decidió {0}',
+  'тип задачи уточнён: {0}': 'tipo de tarea ajustado: {0}',
+  'Арбитр недоступен или не ответил вовремя; оставлен выбор дерева.':
+    'El árbitro no está disponible o no respondió a tiempo; se mantuvo la elección del árbol.',
 };

@@ -1494,4 +1494,13 @@ export default {
     'Balance: Unter Optionen ähnlicher Qualität zählen Tarif und verbleibende Limits – die Aufgabe geht an den Agenten mit deutlich mehr Kontingent.',
   'Подбираю модель для запроса…': 'Modell für die Anfrage wird gewählt…',
   'Модель: {0} — {1} ({2})': 'Modell: {0} — {1} ({2})',
+  'Подбираю модель: уточняю тип задачи и сравниваю {0} варианта':
+    'Modellwahl: Aufgabentyp wird geprüft, {0} Optionen werden verglichen',
+  'Подбор модели': 'Modellauswahl',
+  'Дерево выбрало кандидатов: {0}.': 'Der Entscheidungsbaum wählte vor: {0}.',
+  'Выбрана модель: {0}': 'Gewähltes Modell: {0}',
+  'решил {0}': 'entschieden von {0}',
+  'тип задачи уточнён: {0}': 'Aufgabentyp präzisiert: {0}',
+  'Арбитр недоступен или не ответил вовремя; оставлен выбор дерева.':
+    'Der Schiedsrichter ist nicht verfügbar oder antwortete nicht rechtzeitig; die Wahl des Baums bleibt.',
 };

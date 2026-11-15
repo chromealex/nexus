@@ -385,6 +385,7 @@ pub fn run() {
             chat_questions::answer_agent_question,
             question_history::save_question_selection,
             chat_runs::cancel_chat_generation,
+            chat_runs::set_chat_route_note,
             chat_models::list_chat_models,
             save_chat_model,
             save_chat_routing_priority,

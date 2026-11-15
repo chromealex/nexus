@@ -27,6 +27,8 @@ pub struct Control {
     created: Instant,
     browser: Mutex<Option<super::browser_tools::Spec>>,
     auto_approve: AtomicBool,
+    /// How the model was chosen (routing arbiter), shown as the first stages of the answer's progress.
+    routing: Mutex<String>,
 }
 impl Control {
     fn new(chat_id: String, request_id: String) -> Self {
@@ -49,6 +51,7 @@ impl Control {
             created: Instant::now(),
             browser: Mutex::new(None),
             auto_approve: AtomicBool::new(false),
+            routing: Mutex::new(String::new()),
         }
     }
     pub fn specialist(chat: &str, effort: String) -> Self {
@@ -176,9 +179,13 @@ impl Control {
             *s = value.into()
         }
     }
+    pub fn routing(&self) -> String {
+        self.routing.lock().map(|s| s.clone()).unwrap_or_default()
+    }
     pub fn details(&self) -> String {
         format!(
-            "{}\n{}",
+            "{}{}\n{}",
+            self.routing.lock().map(|s| s.clone()).unwrap_or_default(),
             self.metadata.lock().map(|s| s.clone()).unwrap_or_default(),
             self.log.lock().map(|s| s.clone()).unwrap_or_default()
         )
@@ -219,6 +226,45 @@ pub fn begin(chat: &str, id: String) -> Result<Run, String> {
         return Err("Generation already started or belongs to another chat".into());
     }
     Ok(Run(control))
+}
+/// Attaches the routing steps (made in the interface before sending) to this generation, so they become the
+/// first stages of the answer's progress. Lines are `Routing step: <title>|<detail>`; anything else is dropped.
+#[tauri::command]
+pub fn set_chat_route_note(
+    chat_id: String,
+    request_id: String,
+    steps: Vec<(String, String)>,
+) -> Result<(), String> {
+    if !valid(&request_id) {
+        return Err("Invalid generation ID".into());
+    }
+    let clean = |s: &str, n: usize| -> String {
+        s.chars()
+            .filter(|c| !c.is_control())
+            .take(n)
+            .collect::<String>()
+            .replace('|', "/")
+    };
+    let note: String = steps
+        .iter()
+        .take(4)
+        .map(|(t, d)| format!("Routing step: {}|{}\n", clean(t, 80), clean(d, 400)))
+        .collect();
+    let mut runs = RUNS.lock().map_err(|_| "Generation registry unavailable")?;
+    runs.retain(|_, c| c.started.load(Ordering::SeqCst) || c.created.elapsed().as_secs() < 900);
+    if runs.len() >= 128 && !runs.contains_key(&request_id) {
+        return Err("Too many pending generations".into());
+    }
+    let c = runs
+        .entry(request_id.clone())
+        .or_insert_with(|| Arc::new(Control::new(chat_id.clone(), request_id)));
+    if c.chat_id != chat_id {
+        return Err("Generation belongs to another chat".into());
+    }
+    if let Ok(mut r) = c.routing.lock() {
+        *r = note;
+    }
+    Ok(())
 }
 #[tauri::command]
 pub fn cancel_chat_generation(chat_id: String, request_id: String) -> Result<(), String> {

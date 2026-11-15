@@ -1482,4 +1482,13 @@ export default {
     'Balance: among options of similar quality, tariff and remaining limits are weighed — the task goes to the agent with noticeably more quota.',
   'Подбираю модель для запроса…': 'Choosing a model for the request…',
   'Модель: {0} — {1} ({2})': 'Model: {0} — {1} ({2})',
+  'Подбираю модель: уточняю тип задачи и сравниваю {0} варианта':
+    'Choosing a model: checking the task type and comparing {0} options',
+  'Подбор модели': 'Model selection',
+  'Дерево выбрало кандидатов: {0}.': 'The decision tree shortlisted: {0}.',
+  'Выбрана модель: {0}': 'Model chosen: {0}',
+  'решил {0}': 'decided by {0}',
+  'тип задачи уточнён: {0}': 'task type refined: {0}',
+  'Арбитр недоступен или не ответил вовремя; оставлен выбор дерева.':
+    'The arbiter is unavailable or did not answer in time; the tree’s choice was kept.',
 };
