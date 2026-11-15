@@ -60,6 +60,70 @@ pub(crate) fn split_line(raw: &str) -> (String, Option<u32>) {
 }
 
 /// Resolves a path inside the allowed roots; relative paths are taken from the project folder.
+/// Files under `root` whose path ends with `suffix` (whole path components). Symlinks are not followed;
+/// dependency, build and VCS folders are skipped; the walk is bounded.
+pub(crate) fn find_by_suffix(root: &Path, suffix: &str) -> Vec<PathBuf> {
+    const SKIP: &[&str] = &[
+        ".git",
+        "node_modules",
+        "target",
+        ".venv",
+        "venv",
+        "__pycache__",
+        "DerivedData",
+        "Library",
+        ".cache",
+        "dist",
+        ".next",
+        "Pods",
+    ];
+    let wanted: Vec<&str> = suffix
+        .split(['/', '\\'])
+        .filter(|p| !p.is_empty() && *p != ".")
+        .collect();
+    if wanted.is_empty() {
+        return vec![];
+    }
+    let mut out = Vec::new();
+    let mut seen = 0;
+    let mut stack = vec![(root.to_path_buf(), 0)];
+    while let Some((dir, depth)) = stack.pop() {
+        let Ok(entries) = std::fs::read_dir(&dir) else {
+            continue;
+        };
+        for e in entries.flatten() {
+            seen += 1;
+            if seen > 60_000 || out.len() > 8 {
+                return out;
+            }
+            let Ok(kind) = e.file_type() else {
+                continue;
+            };
+            let name = e.file_name().to_string_lossy().to_string();
+            if kind.is_dir() {
+                if depth < 14 && !SKIP.contains(&name.as_str()) {
+                    stack.push((e.path(), depth + 1));
+                }
+            } else if kind.is_file() && name == *wanted.last().unwrap_or(&"") {
+                let path = e.path();
+                let parts: Vec<String> = path
+                    .components()
+                    .map(|c| c.as_os_str().to_string_lossy().to_string())
+                    .collect();
+                if parts.len() >= wanted.len()
+                    && parts[parts.len() - wanted.len()..]
+                        .iter()
+                        .zip(&wanted)
+                        .all(|(a, b)| a == b)
+                {
+                    out.push(path);
+                }
+            }
+        }
+    }
+    out.sort_by_key(|p| p.components().count());
+    out
+}
 pub(crate) fn resolve_in(workspace: &Path, roots: &[PathBuf], raw: &str) -> Result<PathBuf, String> {
     if raw.is_empty() || raw.len() > 4096 || raw.chars().any(char::is_control) {
         return Err("Некорректный путь".into());
@@ -74,9 +138,31 @@ pub(crate) fn resolve_in(workspace: &Path, roots: &[PathBuf], raw: &str) -> Resu
     } else {
         workspace.join(expanded)
     };
-    let real = candidate
-        .canonicalize()
-        .map_err(|_| "Файл не найден".to_string())?;
+    let real = match candidate.canonicalize() {
+        Ok(real) => real,
+        // Agents often name a file without its folder (`build_city.py`, `pipeline/run.py`):
+        // look it up in the working folder; one match opens, several are listed.
+        Err(_) if !Path::new(raw).is_absolute() && !raw.starts_with("~/") && !raw.contains("..") => {
+            let found = find_by_suffix(workspace, raw);
+            match found.as_slice() {
+                [one] => one.canonicalize().map_err(|_| "Файл не найден".to_string())?,
+                [] => return Err("Файл не найден".into()),
+                many => {
+                    let base = workspace
+                        .canonicalize()
+                        .unwrap_or_else(|_| workspace.to_path_buf());
+                    let list = many
+                        .iter()
+                        .take(4)
+                        .map(|p| p.strip_prefix(&base).unwrap_or(p).to_string_lossy().to_string())
+                        .collect::<Vec<_>>()
+                        .join(", ");
+                    return Err(format!("Найдено несколько файлов с таким именем: {list}"));
+                }
+            }
+        }
+        Err(_) => return Err("Файл не найден".into()),
+    };
     if !roots.iter().any(|root| real.starts_with(root)) {
         return Err("Файл вне проекта: открываются только файлы рабочей папки и контекста проекта".into());
     }
@@ -146,6 +232,23 @@ pub async fn reveal_project_file(chat_id: String, path: String, open: bool) -> R
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn bare_file_names_are_found_in_the_project() {
+        let root = std::env::temp_dir().join(format!("nexus-find-{}", std::process::id()));
+        let deep = root.join("assets_src/_pipeline");
+        std::fs::create_dir_all(&deep).unwrap();
+        std::fs::create_dir_all(root.join("node_modules/x")).unwrap();
+        std::fs::write(deep.join("build_city.py"), "print(1)").unwrap();
+        std::fs::write(root.join("node_modules/x/build_city.py"), "").unwrap();
+        let found = find_by_suffix(&root, "build_city.py");
+        assert_eq!(found.len(), 1);
+        assert!(found[0].ends_with("assets_src/_pipeline/build_city.py"));
+        assert_eq!(find_by_suffix(&root, "_pipeline/build_city.py").len(), 1);
+        assert!(find_by_suffix(&root, "other/build_city.py").is_empty());
+        let roots = vec![root.canonicalize().unwrap()];
+        assert!(resolve_in(&root, &roots, "build_city.py").is_ok());
+        let _ = std::fs::remove_dir_all(&root);
+    }
     #[test]
     fn line_suffixes() {
         assert_eq!(split_line("src/a.rs:12"), ("src/a.rs".into(), Some(12)));
