@@ -5053,8 +5053,8 @@ details[open] > .activity-list {
 }
 /* The name reads as text; on hover and focus it shows the same field it turns into when clicked,
    with no shift in layout (the border and padding are always there, only transparent). */
-.account-name,
-.account-rename {
+.connections-dialog button.account-name,
+.connections-dialog input.account-rename {
   box-sizing: border-box;
   height: 24px;
   padding: 0 7px;
@@ -5063,8 +5063,11 @@ details[open] > .activity-list {
   font: inherit;
   line-height: 22px;
 }
-.account-name {
+.connections-dialog button.account-name {
   display: inline-flex;
+  min-height: 0;
+  font-size: inherit;
+  font-weight: inherit;
   align-items: center;
   gap: 6px;
   background: transparent;
@@ -5074,27 +5077,28 @@ details[open] > .activity-list {
     background-color 0.18s ease,
     border-color 0.18s ease;
 }
-.account-name > svg {
+.connections-dialog button.account-name > svg {
   opacity: 0;
   color: var(--text-muted, #9fb0bd);
   transition: opacity 0.18s ease;
 }
-.account-name:hover,
-.account-name:focus-visible,
-.account-rename {
+.connections-dialog button.account-name:hover,
+.connections-dialog button.account-name:focus-visible,
+.connections-dialog input.account-rename {
   background: rgba(10, 16, 24, 0.6);
   border-color: var(--card-edge, rgba(140, 170, 200, 0.3));
 }
-.account-name:hover > svg,
-.account-name:focus-visible > svg {
+.connections-dialog button.account-name:hover > svg,
+.connections-dialog button.account-name:focus-visible > svg {
   opacity: 1;
 }
-.account-rename {
+.connections-dialog input.account-rename {
   width: 16ch;
+  font-size: inherit;
   color: var(--text-strong, #eef4f8);
   outline: none;
 }
-.account-rename:focus {
+.connections-dialog input.account-rename:focus {
   border-color: rgba(108, 200, 255, 0.55);
 }
 
