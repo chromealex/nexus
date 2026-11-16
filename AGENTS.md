@@ -34,7 +34,7 @@ A short list of the rules in force. The full history of decisions and earlier wo
 - One send button, which turns into “Stop” while generating. Received text is never lost; “Continue” appends to the same message. The answer is shown as it streams; details are collapsed.
 - Scrolling: if the user scrolled up, generation does not pull the view down; a “Jump to latest” button appears.
 - Every dropdown is a `CustomSelect`. Scrollbars are thin, on the right, with a transparent track. No focus ring while typing text, but buttons keep a keyboard focus ring.
-- The navigation tree uses `FadeLabel` instead of `text-overflow: ellipsis`. The number next to a project/folder is its active chats (`navigation-counts.js`).
+- The navigation tree uses `FadeLabel` instead of `text-overflow: ellipsis`. Chat rows have no chat icon (only a chevron when the chat has sub-chats), so titles get the width. The number next to a project/folder is its active chats (`navigation-counts.js`).
 - Plural forms only through `src/locale-format.js`.
 - Interface languages: `src/i18n.js` (ru — the source strings; en, es, de, fr, pt, zh, ja in `src/locales/*.js`, keyed by the Russian string). Write new interface text as `loc('Текст {0}', value)` and add the translation to every dictionary — `tests/i18n.mjs` checks completeness and `{n}` placeholders. Strings compared with backend output or used as identifiers must not go through `loc`. The system language is the default (English if unsupported); the picker is at the bottom of the sidebar (`language-select.jsx`, `localStorage nexus-lang`). The Rust backend still returns messages in Russian.
 - Destructive actions (removing an account, revoking permissions, deleting a chat) need a confirmation or an “Undo”.

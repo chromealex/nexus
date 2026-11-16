@@ -522,21 +522,15 @@ export function ProjectNavigation({
                   <span className="unread-dot" role="status" aria-label={loc('Новый ответ')} />
                 ) : null}
               </span>
-              <button
-                className="nav-toggle"
-                aria-label={loc('Подчаты: ') + c.title}
-                onClick={() => toggle('c' + c.id)}
-              >
-                {chats.some(x => x.parentChatId === c.id) ? (
-                  expanded['c' + c.id] !== false ? (
-                    <ChevronDown size={12} />
-                  ) : (
-                    <ChevronRight size={12} />
-                  )
-                ) : (
-                  <MessageSquare size={14} />
-                )}
-              </button>
+              {chats.some(x => x.parentChatId === c.id) && (
+                <button
+                  className="nav-toggle"
+                  aria-label={loc('Подчаты: ') + c.title}
+                  onClick={() => toggle('c' + c.id)}
+                >
+                  {expanded['c' + c.id] !== false ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                </button>
+              )}
               <button
                 className="nav-title"
                 disabled={disabled}
