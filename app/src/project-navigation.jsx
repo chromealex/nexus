@@ -582,11 +582,11 @@ export function ProjectNavigation({
             {more('folder', f)}
           </div>
           {expanded['f' + f.id] !== false && (
-            <>
+            <div className="nav-branch">
               {folderInput(projectId, f.id)}
               {folderRows(projectId, f.id, depth + 1)}
               {chatRows(projectId, null, f.id, depth + 1)}
-            </>
+            </div>
           )}
         </React.Fragment>
       ));
@@ -694,7 +694,7 @@ export function ProjectNavigation({
                   {more('project', p)}
                 </div>
                 {expanded['p' + p.id] !== false && (
-                  <>
+                  <div className="nav-branch">
                     {folderInput(p.id, null)}
                     {folderRows(p.id)}
                     {chatRows(p.id)}
@@ -703,7 +703,7 @@ export function ProjectNavigation({
                         {loc('Начать новый чат')}
                       </button>
                     )}
-                  </>
+                  </div>
                 )}
               </div>
             ))

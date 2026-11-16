@@ -2804,6 +2804,7 @@ function App() {
       <ConnectionsDialog
         open={open}
         onClose={() => setOpen(false)}
+        onReopen={() => setOpen(true)}
         initialProvider={connectionTarget}
         agents={agents}
         accounts={accounts}

@@ -22,7 +22,15 @@ import {loc} from './i18n.js';
 
 const ICONS = {github: GitBranch, linear: GitBranch, api: Mic, push: Bell};
 // Remote tasks: messengers, email, iMessage, issue trackers and a local API feed regular Nexus chats; push reports back.
-export function ChannelsPanel() {
+const BUSY_LABEL = {
+  save: () => loc('Сохраняю настройки…'),
+  regen: () => loc('Создаю новый ключ…'),
+  test: () => loc('Проверяю подключение…'),
+  remove: () => loc('Отключаю…'),
+  bg: () => loc('Меняю фоновый режим…'),
+};
+
+export function ChannelsPanel({onBusy}) {
   const [views, setViews] = useState([]),
     [projects, setProjects] = useState([]),
     [events, setEvents] = useState([]),
@@ -34,7 +42,8 @@ export function ChannelsPanel() {
     [bg, setBg] = useState(null),
     [busy, setBusy] = useState(''),
     [error, setError] = useState(''),
-    [notice, setNotice] = useState('');
+    [notice, setNotice] = useState(''),
+    [busyKind, setBusyKind] = useState('');
   useToastOn(error, () => setError(''), 'error');
   useToastOn(notice, () => setNotice(''), 'info');
   async function refresh() {
@@ -93,6 +102,8 @@ export function ChannelsPanel() {
   const problems = config ? formProblems(edit, config, {hasSecret: view?.hasSecret, secret}) : [];
   async function work(name, fn) {
     setBusy(name);
+    setBusyKind(edit);
+    onBusy?.({name: meta.name || edit, kind: edit, label: BUSY_LABEL[name]?.() || loc('Выполняется…')});
     setError('');
     setNotice('');
     try {
@@ -101,6 +112,7 @@ export function ChannelsPanel() {
       setError(String(e));
     } finally {
       setBusy('');
+      onBusy?.(null);
     }
   }
   const set = (k, v) => setDraft(d => ({...d, [k]: v}));
@@ -138,7 +150,7 @@ export function ChannelsPanel() {
           });
         }}
       >
-        <button type="button" className="connection-back" disabled={!!busy} onClick={() => setEdit(null)}>
+        <button type="button" className="connection-back" onClick={() => setEdit(null)}>
           <ChevronLeft size={15} />
           {loc('К каналам')}
         </button>
@@ -540,6 +552,12 @@ export function ChannelsPanel() {
                 : stateLabel(v)}
               {v?.config.enabled && v.config.allowExecute ? loc(' · выполнение разрешено') : ''}
             </span>
+            {busy && busyKind === kind && (
+              <span className="channel-busy" role="status">
+                <span className="connections-activity-spinner" aria-hidden="true" />
+                {BUSY_LABEL[busy]?.() || loc('Выполняется…')}
+              </span>
+            )}
           </div>
           <button
             className={v?.config.enabled ? '' : 'connection-primary'}

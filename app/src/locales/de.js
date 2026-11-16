@@ -1519,4 +1519,11 @@ export default {
     'Zähler werden in {0} gespeichert (ohne Nachrichtentext, ohne Namen). Committen Sie den Ordner, damit das Team sie erhält. Bewertungen von Kollegen: {1}.',
   'Сейчас оценки хранятся только у вас. Ваших оценок в этом проекте: {0}.':
     'Bewertungen bleiben nur bei Ihnen. Ihre Bewertungen in diesem Projekt: {0}.',
+  Подключение: 'Verbindung',
+  'Выполняется…': 'Läuft…',
+  'Сохраняю настройки…': 'Einstellungen werden gespeichert…',
+  'Создаю новый ключ…': 'Neuer Schlüssel wird erstellt…',
+  'Проверяю подключение…': 'Verbindung wird geprüft…',
+  'Отключаю…': 'Wird getrennt…',
+  'Меняю фоновый режим…': 'Hintergrundmodus wird geändert…',
 };

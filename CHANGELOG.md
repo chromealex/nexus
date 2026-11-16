@@ -2,6 +2,11 @@
 
 Short history of NEXUS Desktop. The original per-version notes (in Russian) are in [docs/history](docs/history).
 
+## Unreleased
+
+- The projects sidebar slides in and out; tree branches unfold smoothly.
+- Downloads and checks in “Agents and connections” stay visible after leaving their page or closing the dialog, with progress and a way back.
+
 ## 0.23.0 — 2026-11-16
 - Within a provider, the account with the most usage limit left answers.
 - Model ratings can be shared with the team through the project folder (`.nexus/model-ratings/`, counts only); teammates' ratings feed Auto routing for that project.

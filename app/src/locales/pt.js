@@ -1513,4 +1513,11 @@ export default {
     'Os contadores ficam em {0} (sem texto de mensagens e sem nome). Faça commit da pasta para a equipe recebê-los. Avaliações de colegas: {1}.',
   'Сейчас оценки хранятся только у вас. Ваших оценок в этом проекте: {0}.':
     'As avaliações ficam só com você. Suas avaliações neste projeto: {0}.',
+  Подключение: 'Conexão',
+  'Выполняется…': 'Em andamento…',
+  'Сохраняю настройки…': 'Salvando configurações…',
+  'Создаю новый ключ…': 'Criando uma nova chave…',
+  'Проверяю подключение…': 'Verificando a conexão…',
+  'Отключаю…': 'Desconectando…',
+  'Меняю фоновый режим…': 'Alterando o modo em segundo plano…',
 };

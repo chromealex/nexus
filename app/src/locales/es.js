@@ -1521,4 +1521,11 @@ export default {
     'Los contadores se guardan en {0} (sin texto de mensajes ni nombre). Haz commit de la carpeta para que el equipo los reciba. Valoraciones de compañeros: {1}.',
   'Сейчас оценки хранятся только у вас. Ваших оценок в этом проекте: {0}.':
     'Las valoraciones solo se guardan en tu equipo. Tus valoraciones en este proyecto: {0}.',
+  Подключение: 'Conexión',
+  'Выполняется…': 'En curso…',
+  'Сохраняю настройки…': 'Guardando ajustes…',
+  'Создаю новый ключ…': 'Creando una clave nueva…',
+  'Проверяю подключение…': 'Comprobando la conexión…',
+  'Отключаю…': 'Desconectando…',
+  'Меняю фоновый режим…': 'Cambiando el modo en segundo plano…',
 };

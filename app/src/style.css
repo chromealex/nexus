@@ -2920,7 +2920,6 @@ aside .accountform select {
 .nav-collapsed > .project-nav {
   visibility: hidden;
   overflow: hidden;
-  padding: 0;
 }
 .tools-header button {
   background: #2b333b;

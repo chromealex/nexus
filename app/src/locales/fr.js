@@ -1524,4 +1524,11 @@ export default {
     'Les compteurs sont enregistrés dans {0} (sans texte des messages ni nom). Committez le dossier pour que l’équipe les reçoive. Évaluations des collègues : {1}.',
   'Сейчас оценки хранятся только у вас. Ваших оценок в этом проекте: {0}.':
     'Les évaluations restent sur votre ordinateur. Vos évaluations dans ce projet : {0}.',
+  Подключение: 'Connexion',
+  'Выполняется…': 'En cours…',
+  'Сохраняю настройки…': 'Enregistrement des réglages…',
+  'Создаю новый ключ…': 'Création d’une nouvelle clé…',
+  'Проверяю подключение…': 'Vérification de la connexion…',
+  'Отключаю…': 'Déconnexion…',
+  'Меняю фоновый режим…': 'Modification du mode arrière-plan…',
 };

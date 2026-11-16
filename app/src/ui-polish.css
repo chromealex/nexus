@@ -4890,3 +4890,156 @@ details[open] > .activity-list {
   color: var(--text-body, #c9d4da);
   cursor: pointer;
 }
+
+/* ---------- Sidebar motion (16 Nov 2026) ---------- */
+.app {
+  transition: grid-template-columns 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.app > .project-nav {
+  transition:
+    opacity 0.24s ease,
+    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0s;
+}
+.app.nav-collapsed > .project-nav {
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-24px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0.32s;
+}
+.nav-branch {
+  display: contents;
+}
+.nav-branch > * {
+  animation: nav-branch-in 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.nav-branch > :nth-child(2) {
+  animation-delay: 0.02s;
+}
+.nav-branch > :nth-child(3) {
+  animation-delay: 0.04s;
+}
+.nav-branch > :nth-child(n + 4) {
+  animation-delay: 0.06s;
+}
+@keyframes nav-branch-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+.nav-row,
+.nav-row > svg {
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+/* Long connection work stays visible after leaving its page or closing the dialog. */
+.connections-activity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 22px 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--card-edge, rgba(140, 170, 200, 0.22));
+  border-radius: 10px;
+  background: rgba(70, 140, 210, 0.12);
+  font-size: 12px;
+  animation: nx-fade 0.2s ease both;
+}
+.connections-activity > span:not(.connections-activity-spinner),
+.connections-activity-pill > span:last-child {
+  display: grid;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+.connections-activity strong,
+.connections-activity-pill strong {
+  color: var(--text-strong, #eef4f8);
+  font-weight: 600;
+}
+.connections-activity small,
+.connections-activity-pill small {
+  color: var(--text-muted, #9fb0bd);
+  font-size: 11px;
+}
+.connections-activity > button {
+  background: var(--btn-accent-bg, rgba(80, 150, 220, 0.3));
+  border: 1px solid var(--btn-accent-edge, rgba(120, 180, 240, 0.4));
+  color: var(--text-strong, #eef4f8);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 12px;
+}
+.connections-activity-bar {
+  display: block;
+  height: 3px;
+  margin-top: 4px;
+  border-radius: 2px;
+  background: rgba(140, 170, 200, 0.18);
+  overflow: hidden;
+}
+.connections-activity-bar > b {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #4cc3ff, #9b7bff);
+  transition: width 0.4s ease;
+}
+.connections-activity-spinner {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(140, 190, 240, 0.25);
+  border-top-color: #6cc8ff;
+  animation: nx-spin 0.9s linear infinite;
+}
+@keyframes nx-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.connections-activity-pill {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 300px;
+  padding: 9px 13px;
+  border-radius: 12px;
+  border: 1px solid var(--card-edge, rgba(140, 170, 200, 0.22));
+  background: rgba(22, 30, 40, 0.96);
+  font-size: 12px;
+  animation: nx-fade 0.2s ease both;
+}
+.channel-busy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+  font-size: 11px;
+  color: #8fd0ff;
+}
+.channel-busy > .connections-activity-spinner {
+  width: 11px;
+  height: 11px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .app,
+  .app > .project-nav,
+  .nav-branch > * {
+    transition: none;
+    animation: none;
+  }
+}

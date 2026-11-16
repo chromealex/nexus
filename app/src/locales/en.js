@@ -1506,4 +1506,11 @@ export default {
     'Counts are saved in {0} (no message text, no name). Commit the folder so the team gets them. Teammates’ ratings: {1}.',
   'Сейчас оценки хранятся только у вас. Ваших оценок в этом проекте: {0}.':
     'Ratings are kept only on your computer. Your ratings in this project: {0}.',
+  Подключение: 'Connection',
+  'Выполняется…': 'In progress…',
+  'Сохраняю настройки…': 'Saving settings…',
+  'Создаю новый ключ…': 'Creating a new key…',
+  'Проверяю подключение…': 'Checking the connection…',
+  'Отключаю…': 'Disconnecting…',
+  'Меняю фоновый режим…': 'Changing background mode…',
 };
