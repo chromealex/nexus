@@ -133,6 +133,42 @@ pub async fn run(
                         )
                         .await?;
                     }
+                    // Other MCP servers (Atlassian, GitHub…) ask before a tool call through an elicitation.
+                    // It used to be answered “not supported”, which the agent read as the user's refusal;
+                    // now it is a permission card like any other action.
+                    "mcpServer/elicitation/request" => {
+                        let server = v
+                            .pointer("/params/serverName")
+                            .and_then(Value::as_str)
+                            .unwrap_or("mcp")
+                            .to_string();
+                        let message = v
+                            .pointer("/params/message")
+                            .and_then(Value::as_str)
+                            .unwrap_or("")
+                            .to_string();
+                        let allow = if control.is_specialist() {
+                            false
+                        } else {
+                            super::chat_permissions::ask(
+                                app,
+                                chat,
+                                "codex",
+                                "tool",
+                                json!({"tool_name": format!("mcp__{server}"), "input": {"server": server, "request": message}, "description": message}),
+                            )
+                            .await?
+                        };
+                        if allow {
+                            control.mark_permission();
+                        }
+                        let result = if allow {
+                            json!({"action":"accept","content":{}})
+                        } else {
+                            json!({"action":"decline"})
+                        };
+                        write(&mut stdin, json!({"id":v["id"],"result":result})).await?;
+                    }
                     "item/tool/requestUserInput" => {
                         let response = if control.is_specialist() {
                             json!({"answers":{}})

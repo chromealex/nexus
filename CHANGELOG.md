@@ -4,6 +4,7 @@ Short history of NEXUS Desktop. The original per-version notes (in Russian) are 
 
 ## Unreleased
 
+- Fix: Codex requests to use MCP tools (Atlassian/Jira and others) now show a permission card instead of being refused silently.
 - Chat import no longer brings in Nexus's own agent runs (“You are NEXUS…”, “Original user task:”, Codex context blocks); such chats imported earlier are cleaned up when the import dialog opens.
 
 ## 0.24.1 — 2026-11-16
