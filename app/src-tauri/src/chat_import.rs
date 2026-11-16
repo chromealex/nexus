@@ -110,9 +110,30 @@ fn injected_user_text(text: &str) -> bool {
             "# AGENTS.md instructions",
             "Caveat: The messages below were generated",
             "[Request interrupted by user",
+            "<external_",
+            "<turn_aborted>",
+            "<user_shell_command>",
         ]
         .iter()
         .any(|p| t.starts_with(p))
+}
+
+/// Sessions Nexus itself started through the agents' CLIs (chat answers, team steps, the routing
+/// arbiter, plan refinement): their first “user” turn is Nexus's own prompt, not the person's.
+pub(crate) fn nexus_session(first_user: &str) -> bool {
+    let t = first_user.trim_start();
+    [
+        "You are NEXUS",
+        "You are Nexus",
+        "Original user task:",
+        "The following is the Codex agent",
+        "You are a routing arbiter",
+        "You are a task planner",
+        "You are an expert reviewer",
+        "Return ONLY",
+    ]
+    .iter()
+    .any(|p| t.starts_with(p))
 }
 
 fn push(messages: &mut Vec<(String, String, u64)>, role: &str, text: String, at: u64) {
@@ -133,6 +154,13 @@ fn push(messages: &mut Vec<(String, String, u64)>, role: &str, text: String, at:
 
 fn finish(mut s: Session) -> Option<Session> {
     if !s.messages.iter().any(|m| m.0 == "user") || !s.messages.iter().any(|m| m.0 == "assistant") {
+        return None;
+    }
+    if s.messages
+        .iter()
+        .find(|m| m.0 == "user")
+        .is_some_and(|m| nexus_session(&m.1))
+    {
         return None;
     }
     for m in s.messages.iter_mut() {
@@ -419,6 +447,7 @@ pub(crate) fn import_sessions(project_id_value: &str, sessions: Vec<Session>) ->
     if !db.projects.iter().any(|p| p.id == project_id_value) {
         return Err("Проект не найден".into());
     }
+    let removed = purge_nexus_sessions(&mut db);
     let known: HashSet<String> = db.chats.iter().filter_map(|c| c.imported_from.clone()).collect();
     let mut added = 0;
     for s in sessions {
@@ -467,10 +496,46 @@ pub(crate) fn import_sessions(project_id_value: &str, sessions: Vec<Session>) ->
         }
         added += 1;
     }
-    if added > 0 {
+    if added > 0 || removed > 0 {
         save_project_store(&db)?;
     }
     Ok(added)
+}
+
+/// Earlier imports also brought in Nexus's own agent runs and turns made only of injected context.
+/// Such imported chats (and only imported ones) are removed; their keys are kept out of the next import.
+fn purge_nexus_sessions(db: &mut ProjectStore) -> usize {
+    let junk: HashSet<String> = db
+        .chats
+        .iter()
+        .filter(|c| c.imported_from.is_some())
+        .filter(|c| {
+            db.messages
+                .iter()
+                .find(|m| m.chat_id == c.id && m.role == "user")
+                .map_or(true, |m| {
+                    nexus_session(&m.content) || injected_user_text(&m.content)
+                })
+        })
+        .map(|c| c.id.clone())
+        .collect();
+    if junk.is_empty() {
+        return 0;
+    }
+    db.chats.retain(|c| !junk.contains(&c.id));
+    db.messages.retain(|m| !junk.contains(&m.chat_id));
+    junk.len()
+}
+
+/// Cleans up previously imported junk chats in every project (run when the import dialog opens).
+pub(crate) fn purge_imported_junk() -> Result<usize, String> {
+    let _guard = PROJECTS_LOCK.lock().map_err(|_| "Project storage lock failed")?;
+    let mut db = load_project_store()?;
+    let n = purge_nexus_sessions(&mut db);
+    if n > 0 {
+        save_project_store(&db)?;
+    }
+    Ok(n)
 }
 
 /// Keys of sessions already imported into the project with this workspace.
@@ -495,6 +560,16 @@ pub(crate) fn new_sessions(index: &SessionIndex, workspace: &str, known: &HashSe
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn nexus_runs_are_not_imported() {
+        assert!(nexus_session("You are NEXUS, a helpful technical assistant"));
+        assert!(nexus_session("Original user task:\nfix it"));
+        assert!(injected_user_text(
+            "<external_codex_apps_open_page>x</external_codex_apps_open_page>"
+        ));
+        assert!(!nexus_session("Расскажи про проект коротко"));
+    }
 
     #[test]
     fn parses_times() {

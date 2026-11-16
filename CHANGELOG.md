@@ -2,6 +2,10 @@
 
 Short history of NEXUS Desktop. The original per-version notes (in Russian) are in [docs/history](docs/history).
 
+## Unreleased
+
+- Chat import no longer brings in Nexus's own agent runs (“You are NEXUS…”, “Original user task:”, Codex context blocks); such chats imported earlier are cleaned up when the import dialog opens.
+
 ## 0.24.1 — 2026-11-16
 
 - Account names (Personal, Work…) can be renamed: click the name on the account card.

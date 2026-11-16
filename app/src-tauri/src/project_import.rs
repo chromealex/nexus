@@ -168,6 +168,7 @@ pub(crate) fn importable(path: &str, home_dir: &Path) -> bool {
 
 #[tauri::command]
 pub async fn import_candidates() -> Result<Vec<Value>, String> {
+    let _ = chat_import::purge_imported_junk();
     tokio::task::spawn_blocking(|| {
         let mut map = BTreeMap::new();
         let home_dir = home();
