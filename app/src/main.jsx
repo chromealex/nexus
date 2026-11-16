@@ -32,6 +32,13 @@ import {ComposerParams, ParamRow, composerParamsSummary} from './composer-params
 import {BrowserParam} from './browser-param.jsx';
 import {BrowserView, BrowserPreview, useChatBrowser} from './browser-pane.jsx';
 import {SidePanel, panelFile} from './side-panel.jsx';
+import {ChangesView} from './changes-view.jsx';
+import {AutomationsDialog} from './automations-dialog.jsx';
+import {SkillsDialog, MemoryDialog} from './knowledge-dialogs.jsx';
+import {MessageQueue, useMessageQueue} from './message-queue.jsx';
+import {suggestMcp} from './mcp-suggest.js';
+import {TerminalView} from './terminal-view.jsx';
+import {WorktreeParam, useChatWorktree} from './worktree-param.jsx';
 import {FileView} from './file-view.jsx';
 import {browserSummary} from './browser-mode.js';
 import {shortcutFor, withShortcut} from './shortcuts.js';
@@ -47,6 +54,9 @@ import {
   ArrowRight,
   PanelLeft,
   PanelRight,
+  GitCompare,
+  ListPlus,
+  SquareTerminal,
   ListChecks,
   Square,
   Bookmark,
@@ -79,6 +89,7 @@ import './style.css';
 import './workspace-ui.css';
 import './dialog-theme.css';
 import './cinematic.css';
+import './workspace-panels.css';
 import './ui-polish.css';
 import {
   ChatMarkdown,
@@ -780,7 +791,80 @@ function App() {
   }, [chatMessages]);
   const currentChatSending = chatSending && activeRunRef.current?.chatId === activeChat;
   // The side panel holds the chat browser and opened files; the browser streams only while its tab is shown.
-  const panelShown = browserPaneOpen && !!activeChat && (panelView === 'browser' || panelFiles.length > 0);
+  const [worktree, setWorktree] = useChatWorktree(activeChat);
+  const [toolDialog, setToolDialog] = useState(null);
+  useEffect(() => {
+    const open = e => setToolDialog(e.detail);
+    window.addEventListener('nexus-open-tool', open);
+    return () => window.removeEventListener('nexus-open-tool', open);
+  }, []);
+  // «Запомнить» on a fact an agent proposed in its answer.
+  useEffect(() => {
+    const remember = async e => {
+      const {text, scope, resolve} = e.detail || {};
+      try {
+        if (scope !== 'global' && !activeProject) throw new Error(loc('Сначала выберите проект'));
+        await invoke('save_memory', {
+          id: null,
+          scope: scope === 'global' ? 'global' : activeProject,
+          text,
+          source: 'agent',
+        });
+        notify(loc('Сохранено в память'), {tone: 'success'});
+        resolve?.(true);
+      } catch (err) {
+        notify(String(err?.message || err), {tone: 'error'});
+        resolve?.(false);
+      }
+    };
+    window.addEventListener('nexus-remember', remember);
+    return () => window.removeEventListener('nexus-remember', remember);
+  }, [activeProject]);
+  async function openChatAnywhere(projectId, chatId) {
+    setToolDialog(null);
+    if (projectId !== activeProject) return navigateChat(chatId, projectId);
+    try {
+      setChats(await invoke('list_project_chats', {projectId}));
+    } catch {}
+    setActiveChat(chatId);
+  }
+  const queue = useMessageQueue();
+  const queuedSendRef = useRef(null);
+  // A queued message is sent when its chat is open, loaded and idle (and no agent question is waiting).
+  useEffect(() => {
+    const next = queue.items(activeChat)[0];
+    if (!next || chatSending || sendingRef.current || !chatsReady || historyChat !== activeChat) return;
+    if (agentQuestion?.chatId === activeChat) return;
+    const timer = setTimeout(() => {
+      if (sendingRef.current) return;
+      queue.remove(activeChat, next.id);
+      queuedSendRef.current = next.text;
+      submitChat(next.text);
+    }, 700);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queue.queue, activeChat, chatSending, chatsReady, historyChat, agentQuestion]);
+  async function forkFrom(message, inclusive = true, followUp = '') {
+    try {
+      const c = await invoke('fork_chat', {
+        chatId: message.chatId || activeChat,
+        messageId: message.id,
+        inclusive,
+      });
+      setChats(v => [...v, c]);
+      if (followUp) queue.add(c.id, followUp, {front: true});
+      setActiveChat(c.id);
+      window.dispatchEvent(new Event('nexus-chat-lifecycle'));
+      notify(loc('Создан чат «{0}»', c.title), {tone: 'success'});
+    } catch (e) {
+      setProjectError(String(e));
+    }
+  }
+  const PANEL_TOOLS = ['changes', 'terminal'];
+  const panelShown =
+    browserPaneOpen &&
+    !!activeChat &&
+    (panelView === 'browser' || PANEL_TOOLS.includes(panelView) || panelFiles.length > 0);
   const browserPaneShown = panelShown && panelView === 'browser';
   function openPanelFile(input) {
     const file = panelFile(input);
@@ -1055,6 +1139,11 @@ function App() {
     sendChat(request.content, message.id, true);
   }
   async function saveEdit(message, text) {
+    if (message.id !== lastUserId) {
+      // An earlier request is edited in a new branch of the chat; this conversation stays as it was.
+      setEditing(null);
+      return forkFrom(message, false, text);
+    }
     try {
       const updated = await invoke('edit_last_user_message', {
         chatId: message.chatId || activeChat,
@@ -1147,6 +1236,22 @@ function App() {
   }, [routeOffer, activeProject, activeChat, chatDraft, modelChoice, draftFiles, replyTo, routingPriority]);
   async function submitChat(override, continueMessageId) {
     const input = typeof override === 'string' ? override : chatDraft;
+    // While an answer is being written, a typed message waits in the chat's queue instead of being lost.
+    if (
+      sendingRef.current &&
+      typeof override !== 'string' &&
+      !continueMessageId &&
+      activeChat &&
+      input.trim()
+    ) {
+      if (draftFiles.length) {
+        setProjectError(loc('Вложения нельзя поставить в очередь — дождитесь ответа или уберите файлы'));
+        return;
+      }
+      queue.add(activeChat, input);
+      setChatDraft('');
+      return;
+    }
     if (sendingRef.current || filesBusy || modelSaving || (!input.trim() && !draftFiles.length)) return;
     const mentioned =
       modelChoice === 'auto'
@@ -1205,6 +1310,10 @@ function App() {
 
   async function sendChat(override, continueMessageId, regenerateAnswer = false) {
     const input = typeof override === 'string' ? override : chatDraft;
+    // A message from the queue goes alone: the draft, its files and the quoted reply stay in the composer.
+    const queued = queuedSendRef.current !== null && queuedSendRef.current === input;
+    if (queued) queuedSendRef.current = null;
+    const quote = queued ? null : replyTo;
     if (modelSaving) return;
     if (!continueMessageId) offerMcp(routingText(input, chatMessages), activeChat);
     const resolved = routingAdvice(input, {
@@ -1219,9 +1328,8 @@ function App() {
     const team = continueMessageId
       ? null
       : teamPlan(
-          (replyTo
-            ? loc('Контекст цитаты: ') + replyTo.content.slice(0, 3000).replace(/\n/g, ' ') + '\n'
-            : '') + input,
+          (quote ? loc('Контекст цитаты: ') + quote.content.slice(0, 3000).replace(/\n/g, ' ') + '\n' : '') +
+            input,
           routeOptions,
           teamMode
         );
@@ -1251,17 +1359,17 @@ function App() {
     setStreamText('');
     setChatSending(true);
     const content =
-        (replyTo
+        (quote
           ? loc('Ответ на сообщение NEXUS:\n') +
-            replyTo.content
+            quote.content
               .slice(0, 3000)
               .split('\n')
               .map(l => '> ' + l)
               .join('\n') +
             '\n\n'
-          : '') + (input.trim() || (draftFiles.length ? loc('Посмотри приложенные файлы.') : '')),
+          : '') + (input.trim() || (!queued && draftFiles.length ? loc('Посмотри приложенные файлы.') : '')),
       project = activeProject;
-    const attachments = continueMessageId ? [] : draftFiles;
+    const attachments = continueMessageId || queued ? [] : draftFiles;
     let chatId = activeChat;
     setProjectError('');
     setChatTrace('Selecting an available agent…');
@@ -1293,8 +1401,10 @@ function App() {
         }
       }
       if (!continueMessageId) {
-        setReplyTo(null);
-        setChatDraft('');
+        if (!queued) {
+          setReplyTo(null);
+          setChatDraft('');
+        }
         setChatMessages(v => [...v, {id: 'pending-' + Date.now(), role: 'user', content, attachments}]);
       }
       activeRunRef.current.chatId = chatId;
@@ -1412,7 +1522,7 @@ function App() {
               })
             );
       if (viewRef.current.project === project && viewRef.current.chat === chatId) {
-        if (!continueMessageId) setDraftFiles([]);
+        if (!continueMessageId && !queued) setDraftFiles([]);
         setStreamText('');
         setChatTrace(`${reply.route} · ${reply.tier}`);
         setChatMessages(v =>
@@ -1970,15 +2080,16 @@ function App() {
         </div>
         <div className="topright">
           <span className="status">● LOCAL SYSTEM</span>
-          {activeChat && !panelShown && (chatBrowser.available || panelFiles.length > 0) && (
+          {activeChat && !panelShown && (
             <button
-              title={loc('Показать боковую панель')}
+              title={loc('Показать боковую панель: браузер, изменения, терминал и файлы')}
               onClick={() => {
-                if (!panelFiles.length) setPanelView('browser');
+                if (!panelFiles.length)
+                  setPanelView(chatBrowser.available ? 'browser' : worktree?.repo ? 'changes' : 'terminal');
                 toggleBrowserPane(true);
               }}
             >
-              <PanelRight size={14} aria-hidden="true" /> {panelFiles.length ? loc('Панель') : loc('Браузер')}
+              <PanelRight size={14} aria-hidden="true" /> {loc('Панель')}
             </button>
           )}
           <button
@@ -2379,6 +2490,7 @@ function App() {
                                 onBookmark={bookmark}
                                 canRegenerate={m.id === lastAnswerId}
                                 onRegenerate={regenerate}
+                                onFork={msg => forkFrom(msg, true)}
                                 onReply={m => {
                                   setReplyTo(m);
                                   document.querySelector('[aria-label="Message to NEXUS"]')?.focus();
@@ -2396,7 +2508,8 @@ function App() {
                                 <UserActions
                                   message={m}
                                   locked={chatSending}
-                                  canEdit={m.id === lastUserId}
+                                  canEdit
+                                  editInBranch={m.id !== lastUserId}
                                   onEdit={msg => setEditing(msg.id)}
                                   onToComposer={msg => {
                                     setChatDraft(
@@ -2571,6 +2684,12 @@ function App() {
                     hidden
                     onChange={e => attachFiles(e.target.files)}
                   />
+                  <MessageQueue
+                    chatId={activeChat}
+                    queue={queue}
+                    generating={currentChatSending}
+                    onSteer={stopChat}
+                  />
                   <ComposerInput
                     value={chatDraft}
                     onChange={setChatDraft}
@@ -2638,6 +2757,7 @@ function App() {
                           reasoningLabel: REASONING_LABELS[reasoningMode],
                           team: teamMode === 'team',
                           browser: browserSummary(browserMode),
+                          worktree: !!worktree?.worktree,
                         })}
                         fullSummary={loc(
                           'Приоритет: {0} · Глубина: {1} · {2} · Браузер: {3}',
@@ -2727,6 +2847,12 @@ function App() {
                           onCancel={() => invoke('cancel_browser_install').catch(() => {})}
                           onExtension={openBrowserExtension}
                         />
+                        <WorktreeParam
+                          chatId={activeChat}
+                          state={worktree}
+                          setState={setWorktree}
+                          disabled={chatSending || !activeChat}
+                        />
                         <div className="composer-param-toggles">
                           <label>
                             <input
@@ -2770,8 +2896,25 @@ function App() {
                         <option value="execute">{loc('Выполнение · с разрешениями')}</option>
                         <option value="auto">{loc('Выполнение · без разрешений')}</option>
                       </CustomSelect>
-                      <span>{filesBusy ? loc('Добавляю файлы…') : loc('Enter — отправить')}</span>
+                      <span>
+                        {filesBusy
+                          ? loc('Добавляю файлы…')
+                          : chatSending
+                            ? loc('Enter — в очередь')
+                            : loc('Enter — отправить')}
+                      </span>
                     </div>
+                    {currentChatSending && chatDraft.trim() && (
+                      <button
+                        type="button"
+                        className="queue-message"
+                        title={loc('Отправить после текущего ответа (Enter)')}
+                        onClick={() => submitChat()}
+                      >
+                        <ListPlus size={13} aria-hidden="true" />
+                        <span>{loc('В очередь')}</span>
+                      </button>
+                    )}
                     {currentChatSending ? (
                       <button
                         type="button"
@@ -2800,7 +2943,7 @@ function App() {
                                   : loc('Отправить сообщение (Enter)')
                         }
                         disabled={
-                          chatSending ||
+                          (chatSending && !chatDraft.trim()) ||
                           !activeProject ||
                           !chatsReady ||
                           filesBusy ||
@@ -2839,6 +2982,29 @@ function App() {
           </section>
         }
       </section>
+      {toolDialog === 'automations' && (
+        <AutomationsDialog
+          projects={projects.filter(p => !p.system)}
+          activeProject={activeProject}
+          activeChat={activeChat}
+          onClose={() => setToolDialog(null)}
+          onOpenChat={openChatAnywhere}
+        />
+      )}
+      {toolDialog === 'skills' && (
+        <SkillsDialog
+          projectId={projects.find(p => p.id === activeProject && !p.system)?.id}
+          projectName={projects.find(p => p.id === activeProject)?.name}
+          onClose={() => setToolDialog(null)}
+        />
+      )}
+      {toolDialog === 'memory' && (
+        <MemoryDialog
+          projectId={projects.find(p => p.id === activeProject && !p.system)?.id}
+          projectName={projects.find(p => p.id === activeProject)?.name}
+          onClose={() => setToolDialog(null)}
+        />
+      )}
       {panelShown && (
         <SidePanel
           width={browserPaneWidth}
@@ -2849,8 +3015,16 @@ function App() {
           files={panelFiles}
           onCloseFile={closePanelFile}
           browserTab={chatBrowser.available || !!chatBrowser.activity || panelView === 'browser'}
+          tools={[
+            ...(worktree?.repo ? [{key: 'changes', label: loc('Изменения'), icon: GitCompare}] : []),
+            {key: 'terminal', label: loc('Терминал'), icon: SquareTerminal},
+          ]}
         >
-          {panelView === 'browser' ? (
+          {panelView === 'changes' ? (
+            <ChangesView chatId={activeChat} busy={currentChatSending} />
+          ) : panelView === 'terminal' ? (
+            <TerminalView chatId={activeChat} />
+          ) : panelView === 'browser' ? (
             <BrowserView
               browser={chatBrowser}
               chatId={activeChat}

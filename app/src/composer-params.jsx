@@ -5,12 +5,21 @@ import {loc} from './i18n.js';
 // Secondary composer settings (routing priority, reasoning depth, team) behind one button.
 // The button shows only the values that differ from the defaults, so the common case stays short.
 // Model and Discussion/Execution remain separate, always visible controls.
-export function composerParamsSummary({priority, priorityLabel, reasoning, reasoningLabel, team, browser}) {
+export function composerParamsSummary({
+  priority,
+  priorityLabel,
+  reasoning,
+  reasoningLabel,
+  team,
+  browser,
+  worktree,
+}) {
   return [
     priority !== 'balanced' && priorityLabel,
     reasoning !== 'auto' && reasoningLabel,
     team && loc('Команда'),
     browser,
+    worktree && loc('Ветка'),
   ].filter(Boolean);
 }
 

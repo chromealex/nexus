@@ -44,6 +44,7 @@ function fixture({chat = '', fail = false} = {}) {
     reasoningMode: 'normal',
     activeRunRef: {current: null},
     stopRequestedRef: {current: false},
+    queuedSendRef: {current: null},
     setStopping: () => {},
     draftFiles: [],
     filesBusy: false,

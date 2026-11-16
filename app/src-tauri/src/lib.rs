@@ -1,8 +1,10 @@
 mod accounts;
 mod adaptive;
 mod agent_registry;
+mod api_control;
 mod api_server;
 mod attachments;
+mod automations;
 mod background;
 mod browser_host;
 mod browser_policy;
@@ -10,6 +12,7 @@ mod browser_tools;
 mod channel_adapters;
 mod channel_plugin;
 mod chat_continuation;
+mod chat_fork;
 mod chat_history;
 mod chat_import;
 mod chat_lifecycle;
@@ -21,6 +24,7 @@ mod chat_runs;
 mod chat_send;
 mod chat_stream;
 mod chat_variants;
+mod chat_worktree;
 mod claude_usage;
 mod custom_acp;
 mod custom_agents;
@@ -28,7 +32,9 @@ mod file_preview;
 mod gemini_auth;
 mod installer;
 mod mcp_servers;
+mod memory;
 mod native_install;
+mod nexus_cli;
 mod orchestration;
 mod path_picker;
 mod process_group;
@@ -42,8 +48,10 @@ mod push_notify;
 mod question_history;
 mod remote_channels;
 mod route_feedback;
+mod skills;
 use mcp_servers::{mcp_server_login, mcp_server_remove, mcp_server_save, mcp_server_toggle, mcp_servers};
 mod system_open;
+mod terminal;
 mod verification;
 mod window_state;
 use accounts::*;
@@ -258,6 +266,7 @@ pub fn run() {
         .setup(|app| {
             window_state::restore(app.handle());
             remote_channels::start_bridge(app.handle());
+            automations::start(app.handle());
             Ok(())
         })
         .on_window_event(|window, event| {
@@ -385,6 +394,33 @@ pub fn run() {
             adaptive_execute_with_context,
             unified_chat_send,
             regenerate_chat_answer,
+            automations::list_automations,
+            automations::save_automation,
+            automations::toggle_automation,
+            automations::remove_automation,
+            automations::run_automation_now,
+            automations::automation_preview,
+            nexus_cli::install_nexus_cli,
+            chat_fork::fork_chat,
+            skills::list_skills,
+            skills::read_skill,
+            skills::save_skill,
+            skills::remove_skill,
+            skills::reveal_skill,
+            memory::list_memory,
+            memory::save_memory,
+            memory::remove_memory,
+            terminal::terminal_run,
+            terminal::terminal_stop,
+            terminal::terminal_cwd,
+            chat_worktree::chat_worktree_enable,
+            chat_worktree::chat_worktree_remove,
+            chat_worktree::chat_worktree_status,
+            chat_worktree::chat_worktree_merge,
+            chat_worktree::chat_changes,
+            chat_worktree::chat_file_diff,
+            chat_worktree::chat_changes_commit,
+            chat_worktree::chat_changes_discard,
             chat_variants::edit_last_user_message,
             chat_variants::select_message_variant,
             chat_variants::save_chat_export,

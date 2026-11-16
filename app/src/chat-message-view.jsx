@@ -16,6 +16,8 @@ import {
   RotateCcw,
   Pencil,
   CornerDownLeft,
+  GitFork,
+  Brain,
 } from 'lucide-react';
 import {NexusWidget, MermaidBlock, Blockquote} from './answer-widgets.jsx';
 import {CodeBlock, TableBlock, VariantSwitcher} from './chat-tools.jsx';
@@ -27,6 +29,39 @@ import {invoke} from '@tauri-apps/api/core';
 import {loc} from './i18n.js';
 
 const ChatQuestionContext = createContext({allowQuestion: false});
+// A fact an agent proposes to remember. Nothing is saved until the user clicks; main.jsx stores it
+// for the open project (or for all projects) and answers through `detail.resolve`.
+function MemoryProposal({text}) {
+  const facts = text
+      .split('\n')
+      .map(l => l.replace(/^[-*•]\s*/, '').trim())
+      .filter(Boolean)
+      .slice(0, 10),
+    [saved, setSaved] = useState({});
+  const remember = (fact, scope) =>
+    new Promise(resolve =>
+      window.dispatchEvent(new CustomEvent('nexus-remember', {detail: {text: fact, scope, resolve}}))
+    ).then(ok => ok && setSaved(s => ({...s, [fact]: scope})));
+  return facts.map(fact => (
+    <div className="memory-card" key={fact}>
+      <Brain size={15} aria-hidden="true" />
+      <div>
+        {fact}
+        <small>{saved[fact] ? loc('Сохранено в память') : loc('Агент предлагает запомнить')}</small>
+      </div>
+      {!saved[fact] && (
+        <>
+          <button type="button" onClick={() => remember(fact, 'project')}>
+            {loc('Для проекта')}
+          </button>
+          <button type="button" onClick={() => remember(fact, 'global')}>
+            {loc('Для всех')}
+          </button>
+        </>
+      )}
+    </div>
+  ));
+}
 function MarkdownCode({className, children, ...props}) {
   const {allowQuestion, onQuestion, selections, legacyReply, agentContext} = useContext(ChatQuestionContext),
     lang = (className || '').replace('language-', '');
@@ -65,6 +100,7 @@ function MarkdownCode({className, children, ...props}) {
       return null;
     }
   }
+  if (lang === 'nexus-memory') return <MemoryProposal text={String(children)} />;
   if (lang === 'nexus-widget') {
     try {
       return <NexusWidget data={JSON.parse(String(children))} source={String(children)} />;
@@ -107,7 +143,7 @@ const markdownComponents = {
       lang = child?.props?.className || '';
     if (/language-mermaid\b/.test(lang))
       return <MermaidBlock code={String(child.props.children ?? '').replace(/\n$/, '')} />;
-    return /language-nexus-(question|widget|agent)/.test(lang) ? (
+    return /language-nexus-(question|widget|agent|memory)/.test(lang) ? (
       <>{children}</>
     ) : (
       <CodeBlock className={child?.props?.className}>{child?.props?.children}</CodeBlock>
@@ -187,6 +223,7 @@ export function MessageActions({
   onBookmark,
   canRegenerate,
   onRegenerate,
+  onFork,
   locked,
 }) {
   const [copied, setCopied] = useState(false),
@@ -308,6 +345,16 @@ export function MessageActions({
             <RotateCcw size={15} />
           </button>
         )}
+        {onFork && (
+          <button
+            type="button"
+            title={loc('Ответвить чат: новый чат с перепиской до этого ответа')}
+            aria-label={loc('Ответвить чат')}
+            onClick={() => onFork(message)}
+          >
+            <GitFork size={15} />
+          </button>
+        )}
         <VariantSwitcher message={message} disabled={busy || locked} onSelect={selectVariant} />
         {date && (
           <time dateTime={date.toISOString()} title={date.toLocaleString()}>
@@ -330,7 +377,16 @@ export function MessageActions({
   );
 }
 
-export function UserActions({message, canEdit, locked, onEdit, onToComposer, bookmarked, onBookmark}) {
+export function UserActions({
+  message,
+  canEdit,
+  editInBranch,
+  locked,
+  onEdit,
+  onToComposer,
+  bookmarked,
+  onBookmark,
+}) {
   const [copied, setCopied] = useState(false),
     timer = useRef();
   useEffect(() => () => clearTimeout(timer.current), []);
@@ -368,7 +424,11 @@ export function UserActions({message, canEdit, locked, onEdit, onToComposer, boo
           <button
             type="button"
             disabled={locked}
-            title={loc('Изменить запрос и получить новый ответ')}
+            title={
+              editInBranch
+                ? loc('Изменить запрос и продолжить в новой ветке чата (этот чат не меняется)')
+                : loc('Изменить запрос и получить новый ответ')
+            }
             aria-label={loc('Изменить запрос')}
             onClick={() => onEdit(message)}
           >

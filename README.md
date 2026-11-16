@@ -43,6 +43,14 @@ The source lives in [`app/`](app). Working rules for contributors and coding age
 - After execution NEXUS finds supported `npm` scripts (`lint`, `typecheck`, `check`, `test`, `test:visual`) and Cargo lib tests, shows the exact command, working directory and reason, and runs it only after a one-time approval (180 s limit). Codex and Claude get one attempt to fix failing checks. "Checks passed" is shown only after real successful checks.
 - An optional independent review by the local Qwen model is a second opinion, not a substitute for tests.
 
+**Parallel work and automation**
+- **Separate branch per chat**: a chat can work in its own `git worktree`, so several chats change one repository in parallel; `.worktreeinclude` copies local files such as `.env`. The **Changes** tab shows the diff and can commit, discard a file or merge the branch back.
+- **Terminal** tab in the chat's folder, for your own commands.
+- **Message queue**: write while an answer is generated; messages wait and are sent in order, or interrupt the answer with one of them. Branch a chat from any answer or edit an earlier request in a new branch.
+- **Automations**: prompts on a schedule (once, every N minutes, daily, weekdays) in a chat or a new chat each time.
+- **Skills** (`SKILL.md`, including Claude Code's) and **Memory** (durable facts) are given to every agent, whatever the provider.
+- **`nexus` command and MCP server**: start and follow tasks from a terminal, scripts or another agent (`nexus ask`, `nexus mcp`).
+
 **Look and feel**
 - Interface in English, Russian, Spanish, German, French, Portuguese, Simplified Chinese and Japanese. The macOS language is used by default (English if it is not one of these); the language picker at the bottom of the sidebar overrides it.
 - Calm dark theme with frosted-glass surfaces (`src/dialog-theme.css` holds the shared tokens for all dialogs and popups).
@@ -126,7 +134,8 @@ npx vite
 - API adapters (Grok, Gemini API, local Qwen) are text-only: no local files, images, terminal or tools, and no execution mode.
 - Manual reasoning depth is not implemented for ACP / API agents; NEXUS asks to use **Auto** instead of ignoring the choice.
 - The personal sign-in for the old Gemini CLI has been closed by Google; NEXUS offers Google Antigravity ACP or the Gemini API instead.
-- There is no built-in browser automation, database or MCP server UI. A Playwright screenshot is only produced if the project itself has a `test:visual` script.
+- A Playwright screenshot is only produced if the project itself has a `test:visual` script.
+- Automations run only while Nexus is open (with “Work with the window closed”, also when the window is hidden). The terminal tab runs one-off commands, not an interactive shell (no prompts or full-screen programs).
 - Unit tests and the UI preview do not replace visual inspection of the packaged app or live runs with real accounts.
 
 ## Third-party assets

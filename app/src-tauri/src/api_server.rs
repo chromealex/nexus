@@ -380,6 +380,9 @@ fn result(conv: &str, after: u64) -> Value {
     json!({"conversation":conv,"text":msgs.iter().map(|m|m.text.as_str()).collect::<Vec<_>>().join("\n\n"),"messages":msgs,"running":rc::is_busy("api",conv),"cursor":cursor})
 }
 fn route(app: &tauri::AppHandle, cfg: &rc::Config, req: &Request) -> (u16, Value) {
+    if let Some(answer) = super::api_control::route(app, cfg, req) {
+        return answer;
+    }
     match (req.method.as_str(), req.path.as_str()) {
         ("POST", "/v1/message") | ("POST", "/v1/tasks") => {
             let ctype = req.header("content-type").unwrap_or("");
@@ -458,7 +461,7 @@ fn route(app: &tauri::AppHandle, cfg: &rc::Config, req: &Request) -> (u16, Value
         }
         _ => (
             404,
-            json!({"error":"Неизвестный адрес. Доступно: POST /v1/message, GET /v1/messages, GET /v1/status"}),
+            json!({"error":"Неизвестный адрес. Доступно: POST /v1/message, GET /v1/messages, GET /v1/status, GET /v1/projects, GET|POST /v1/chats, GET|POST /v1/chats/<id>/messages, POST /v1/chats/<id>/stop, GET /v1/automations, POST /v1/automations/<id>/run"}),
         ),
     }
 }

@@ -39,6 +39,9 @@ import {
   Archive,
   Rows3,
   Rows4,
+  CalendarClock,
+  Sparkles,
+  Brain,
 } from 'lucide-react';
 import {loc} from './i18n.js';
 import {LanguageSelect} from './language-select.jsx';
@@ -706,6 +709,31 @@ export function ProjectNavigation({
         </div>
         <div className="nav-footer">
           <UndoToast key={toast?.id} toast={toast} onUndo={undoChange} onClose={() => setToast(null)} />
+          <div className="nav-saved-links nav-tool-links">
+            <button
+              title={loc('Задания по расписанию')}
+              onClick={() =>
+                window.dispatchEvent(new CustomEvent('nexus-open-tool', {detail: 'automations'}))
+              }
+            >
+              <CalendarClock size={14} />
+              {loc('Автоматизации')}
+            </button>
+            <button
+              title={loc('Инструкции для повторяющихся задач')}
+              onClick={() => window.dispatchEvent(new CustomEvent('nexus-open-tool', {detail: 'skills'}))}
+            >
+              <Sparkles size={14} />
+              {loc('Навыки')}
+            </button>
+            <button
+              title={loc('Факты, которые получают все агенты')}
+              onClick={() => window.dispatchEvent(new CustomEvent('nexus-open-tool', {detail: 'memory'}))}
+            >
+              <Brain size={14} />
+              {loc('Память')}
+            </button>
+          </div>
           <div className="nav-saved-links">
             <button onClick={() => setSavedKind('archive')}>
               <Archive size={14} />

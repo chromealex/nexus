@@ -352,3 +352,20 @@ pub fn auto_approved(chat: &str) -> bool {
         })
         .unwrap_or(false)
 }
+
+/// Stops every running generation of a chat (local API and CLI «stop»). Returns whether one was running.
+pub fn stop_chat(chat: &str) -> bool {
+    let list: Vec<Arc<Control>> = RUNS
+        .lock()
+        .map(|runs| {
+            runs.values()
+                .filter(|c| c.chat_id == chat && c.started.load(Ordering::SeqCst))
+                .cloned()
+                .collect()
+        })
+        .unwrap_or_default();
+    for c in &list {
+        c.stop();
+    }
+    !list.is_empty()
+}

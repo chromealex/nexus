@@ -16,8 +16,16 @@ fn roots(chat_id: &str) -> Result<(PathBuf, Vec<PathBuf>), String> {
         .iter()
         .find(|p| p.id == chat.project_id)
         .ok_or("Проект не найден")?;
-    let workspace = PathBuf::from(&project.workspace);
-    let mut list = vec![workspace.clone()];
+    // A chat on its own branch reads files from its worktree first, then from the main checkout.
+    let worktree = chat_worktree::for_chat(chat_id);
+    let workspace = worktree
+        .as_ref()
+        .map(|w| PathBuf::from(&w.path))
+        .unwrap_or_else(|| PathBuf::from(&project.workspace));
+    let mut list = vec![workspace.clone(), PathBuf::from(&project.workspace)];
+    if let Some(w) = &worktree {
+        list.push(PathBuf::from(&w.root));
+    }
     let sources = project.contexts.iter().chain(
         db.folders
             .iter()

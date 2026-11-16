@@ -6,6 +6,16 @@ Short history of NEXUS Desktop. The original per-version notes (in Russian) are 
 
 - Permission requests stand out: amber edge and glow while they wait.
 - Fix: “New chat” and the project “+” work while another chat is answering.
+- Separate branch per chat: «Parameters → Working copy → Separate branch (git worktree)» runs the chat's agents in its own `git worktree` (`NEXUS/worktrees/<chat>/<repo>`, branch `nexus/<title>-<id>`), so several chats can change one repository in parallel without touching the main checkout. Untracked local files listed in `.worktreeinclude` (`.env`, certificates…) are copied into each new worktree.
+- «Changes» tab in the side panel: changed files with +/− counts and a coloured diff, against the branch start (worktree) or HEAD (project folder); commit, discard a file's uncommitted changes (second click confirms) and merge the chat branch into the main checkout (`--no-ff`, aborted cleanly on a conflict).
+- «Terminal» tab: run commands in the chat's folder (its worktree when it has one) with streamed output, exit code, history (↑/↓) and Stop / Ctrl+C. Agents never use it.
+- Message queue: a message written while an answer is being generated waits above the composer (Enter or «Queue») and is sent when the chat is free; queued messages can be edited, removed, or sent at once with «Interrupt and send», which stops the current answer and keeps its text.
+- Branch a chat from any answer («Branch the chat»), and edit any earlier request: the edit continues in a new branch of the chat, the original stays as it was.
+- Automations: prompts on a schedule (once, every N minutes, daily, on weekdays) in a project — in one chat or a new chat each run (optionally on its own git branch), in Discussion or Execution with permissions. They run while Nexus is open, count as a task source for working with the window closed, and appear in push notifications like other tasks.
+- Skills: `SKILL.md` instructions offered to every agent, whatever the provider — Nexus's own, the project's (`.nexus/skills`, shared through git) and Claude Code's (`~/.claude/skills`). `/name` in a message passes the whole skill, so text-only models can follow it too.
+- Memory: durable facts for all projects or one, given to every agent. Agents can only propose a fact (a `nexus-memory` block shown as a card); you decide whether to save it.
+- `nexus` command and Nexus MCP server: `nexus ask / send / read / stop / automations` from a terminal or script, and `nexus mcp` for Claude Desktop, Claude Code, Codex and Cursor. Installed from «Channels → Local API»; uses the local API with the token from the Keychain. The local API gained `/v1/projects`, `/v1/chats`, `/v1/chats/<id>/messages`, `/v1/chats/<id>/stop` and `/v1/automations`.
+- Fix: suggesting an MCP server for a request that mentions Jira, Linear, Notion… never ran (`suggestMcp` was not imported).
 - Custom channels: connect any transport (WebRTC, Matrix, an internal messenger…) as a plugin — an executable that talks line-delimited JSON over stdin/stdout. Protocol: docs/CHANNEL_PLUGINS.md.
 - Fix: “Model” and “Parameters” work again in a new (draft) chat; the choice is applied when the first message creates the chat.
 - Fix: Claude now asks for permission in the chat (Jira and other MCP tools, file writes) instead of being refused silently.

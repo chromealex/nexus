@@ -383,6 +383,135 @@ window.__TAURI_INTERNALS__ = {
         data: btoa(bin),
       };
     }
+    // A slow answer, so the message queue above the composer can be seen while it is written.
+    if (cmd === 'unified_chat_send') {
+      await new Promise(r => setTimeout(r, 4000));
+      return {
+        message: {
+          id: 'answer-' + ++sequence,
+          chatId: args.chatId,
+          role: 'assistant',
+          content: 'Готово: ' + args.text,
+          createdAt: new Date().toISOString(),
+        },
+        route: 'Route: fixture',
+        tier: 'fast',
+      };
+    }
+    // Worktree, changes, terminal, automations, skills and memory (fixtures only).
+    if (cmd === 'chat_worktree_status')
+      return {
+        repo: true,
+        worktree: {
+          branch: 'nexus/report-export-3fa21c',
+          path: '/tmp/nexus-ui-fixture-wt',
+          root: '/tmp/nexus-ui-fixture-wt',
+        },
+      };
+    if (cmd === 'chat_changes')
+      return {
+        repo: true,
+        root: '/tmp/nexus-ui-fixture',
+        branch: 'nexus/report-export-3fa21c',
+        worktree: {branch: 'nexus/report-export-3fa21c'},
+        commits: 1,
+        uncommitted: true,
+        total: 3,
+        files: [
+          {path: 'docs/README.md', status: 'M', added: 4, removed: 1},
+          {path: 'src/report.rs', status: 'M', added: 12, removed: 3},
+          {path: 'src/report_pdf.rs', status: '?', added: 40, removed: 0},
+        ],
+      };
+    if (cmd === 'chat_file_diff')
+      return {
+        path: args.path,
+        truncated: false,
+        diff: 'diff --git a/src/report.rs b/src/report.rs\n--- a/src/report.rs\n+++ b/src/report.rs\n@@ -3,6 +3,9 @@ use std::fs;\n pub fn export_pdf(rows: &[Row]) -> Result<Vec<u8>, String> {\n-    let mut out = Vec::new();\n+    let mut out = Vec::with_capacity(rows.len() * 64);\n+    // Rows are rendered in order.\n     for row in rows {\n         out.extend(row.render());\n     }\n',
+      };
+    if (cmd === 'terminal_cwd') return '/tmp/nexus-ui-fixture-wt';
+    if (cmd === 'terminal_run') {
+      const runId = 't' + ++sequence;
+      setTimeout(
+        () =>
+          emit('terminal-output', {
+            chatId: args.chatId,
+            runId,
+            stream: 'stdout',
+            text: 'On branch nexus/report-export-3fa21c\nChanges not staged for commit:\n\tmodified:   src/report.rs\n',
+          }),
+        150
+      );
+      setTimeout(() => emit('terminal-exit', {chatId: args.chatId, runId, code: 0, ms: 240}), 300);
+      return runId;
+    }
+    if (cmd === 'terminal_stop') return;
+    if (cmd === 'list_automations')
+      return [
+        {
+          id: 'a1',
+          name: 'Утренний отчёт',
+          projectId: 'preview',
+          chatId: null,
+          prompt: 'Проверь вчерашние коммиты',
+          schedule: {kind: 'weekly', time: '09:00', days: [1, 2, 3, 4, 5]},
+          mode: 'discuss',
+          enabled: true,
+          nextRun: Math.floor(Date.now() / 1000) + 3600 * 17,
+          lastRun: Math.floor(Date.now() / 1000) - 3600 * 7,
+          lastStatus: 'ok',
+          lastChat: 'history',
+          runs: 12,
+        },
+        {
+          id: 'a2',
+          name: 'Проверка сборки',
+          projectId: 'preview',
+          chatId: 'history',
+          prompt: 'npm test',
+          schedule: {kind: 'interval', minutes: 60},
+          mode: 'execute',
+          enabled: false,
+          nextRun: null,
+          lastRun: null,
+          lastStatus: '',
+          lastError: '',
+          runs: 0,
+        },
+      ];
+    if (cmd === 'automation_preview')
+      return {next: [Math.floor(Date.now() / 1000) + 3600, Math.floor(Date.now() / 1000) + 90000]};
+    if (['save_automation', 'toggle_automation', 'remove_automation', 'run_automation_now'].includes(cmd))
+      return {};
+    if (cmd === 'list_skills')
+      return [
+        {
+          name: 'release-notes',
+          description: 'Заметки к релизу по коммитам с прошлого тега',
+          scope: 'project',
+          path: '/tmp/nexus-ui-fixture/.nexus/skills/release-notes/SKILL.md',
+        },
+        {
+          name: 'code-review',
+          description: 'Ревью изменений: безопасность, тесты, читаемость',
+          scope: 'nexus',
+          path: '/x/SKILL.md',
+        },
+        {name: 'pdf', description: 'Работа с PDF', scope: 'claude', path: '/y/SKILL.md'},
+      ];
+    if (cmd === 'list_memory')
+      return [
+        {
+          id: 'm1',
+          scope: 'preview',
+          text: 'Тесты запускаются командой npm test в папке app',
+          createdAt: '1',
+          source: 'user',
+        },
+        {id: 'm2', scope: 'global', text: 'Отвечать по-русски, коротко', createdAt: '2', source: 'agent'},
+      ];
+    if (['save_memory', 'remove_memory', 'save_skill', 'remove_skill', 'reveal_skill'].includes(cmd))
+      return {};
     if (cmd === 'reveal_project_file' || cmd === 'open_system_target') return;
     if (cmd === 'import_candidates')
       return [

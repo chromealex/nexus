@@ -387,6 +387,7 @@ export function ChannelsPanel({onBusy}) {
                 </button>
               )}
             </details>
+            <CliSetup onCopy={copy} />
           </>
         )}
         {edit === 'push' && (
@@ -726,5 +727,54 @@ export function ChannelsPanel({onBusy}) {
         )}
       </details>
     </div>
+  );
+}
+
+// `nexus` command and the Nexus MCP server: both use this local API with the token from the Keychain.
+function CliSetup({onCopy}) {
+  const [state, setState] = useState(null),
+    [busy, setBusy] = useState(false);
+  async function install() {
+    setBusy(true);
+    try {
+      setState(await invoke('install_nexus_cli'));
+    } catch (e) {
+      setState({error: String(e)});
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <details className="channel-commands" open={!!state}>
+      <summary>{loc('Команда nexus и MCP-сервер')}</summary>
+      <p>
+        {loc(
+          'Управляйте Nexus из терминала, скриптов и других агентов: nexus ask, nexus send, nexus read. «nexus mcp» — MCP-сервер для Claude Desktop, Claude Code, Codex и Cursor. Нужен включённый локальный API; токен берётся из связки ключей.'
+        )}
+      </p>
+      <button type="button" disabled={busy} onClick={install}>
+        {busy
+          ? loc('Устанавливаю…')
+          : state?.command
+            ? loc('Обновить команду')
+            : loc('Установить команду nexus')}
+      </button>
+      {state?.error && <p className="browser-hint is-error">{state.error}</p>}
+      {state?.command && (
+        <>
+          <p>
+            {loc('Установлено: {0}', state.command)}
+            {!state.onPath && ' · ' + loc('добавьте ~/.local/bin в PATH')}
+          </p>
+          <button
+            type="button"
+            onClick={() => onCopy(JSON.stringify(state.mcp, null, 2), loc('Настройки MCP'))}
+          >
+            <Copy size={13} />
+            {loc('Скопировать настройки MCP')}
+          </button>
+        </>
+      )}
+    </details>
   );
 }

@@ -48,6 +48,7 @@ fn active_channels() -> usize {
     super::remote_channels::load_configs()
         .map(|c| c.iter().filter(|c| c.enabled && c.kind != "push").count())
         .unwrap_or(0)
+        + super::automations::enabled_count()
 }
 /// The window is hidden instead of closed only when it is useful: the setting is on and a task source is enabled.
 pub fn keep_alive() -> bool {

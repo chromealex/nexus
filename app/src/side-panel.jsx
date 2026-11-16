@@ -2,8 +2,8 @@ import React from 'react';
 import {Globe, X, PanelRightClose, FileText} from 'lucide-react';
 import {loc} from './i18n.js';
 
-// Right-hand panel of the chat: the chat browser and opened files, each as a tab.
-// It appears when an agent starts using the browser or when a file is opened, never by default.
+// Right-hand panel of the chat: the chat browser, the chat's changes and terminal, and opened files, each as a tab.
+// It appears when an agent starts using the browser or when a file is opened; the tool tabs open from the header.
 export function SidePanel({
   width,
   onResize,
@@ -13,6 +13,7 @@ export function SidePanel({
   files,
   onCloseFile,
   browserTab,
+  tools = [],
   children,
 }) {
   const drag = e => {
@@ -54,6 +55,20 @@ export function SidePanel({
             {loc('Браузер')}
           </button>
         )}
+        {tools.map(tool => (
+          <button
+            key={tool.key}
+            type="button"
+            role="tab"
+            aria-selected={view === tool.key}
+            className={'side-panel-tab' + (view === tool.key ? ' is-active' : '')}
+            onClick={() => onView(tool.key)}
+          >
+            <tool.icon size={13} aria-hidden="true" />
+            {tool.label}
+            {tool.badge ? <span className="side-panel-badge">{tool.badge}</span> : null}
+          </button>
+        ))}
         {files.map(file => (
           <span key={file.key} className={'side-panel-tab is-file' + (view === file.key ? ' is-active' : '')}>
             <button
