@@ -510,6 +510,16 @@ export function ConnectionsDialog({
             >
               {loc('Каналы')}
             </button>
+            <button
+              className={tab === 'mcp' ? 'active' : ''}
+              onClick={() => {
+                setTab('mcp');
+                setForm(null);
+                setKey('');
+              }}
+            >
+              MCP
+            </button>
             <button onClick={() => edit({name: '', kind: 'custom'})}>
               <Plus size={15} />
               {loc('Свой агент')}
