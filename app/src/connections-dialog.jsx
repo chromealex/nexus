@@ -431,7 +431,13 @@ export function ConnectionsDialog({
           detail: channelBusy.label,
           back: tab !== 'channels' || form ? () => (setForm(null), setTab('channels')) : null,
         }
-      : null;
+      : mcpBusy
+        ? {
+            title: mcpBusy.name,
+            detail: mcpBusy.label,
+            back: tab !== 'mcp' || form ? () => (setForm(null), setTab('mcp')) : null,
+          }
+        : null;
   const percent = busy === 'pull' && /(\d+)%/.exec(localProgress)?.[1];
   if (!open && !working) return null;
   return (
@@ -547,6 +553,9 @@ export function ConnectionsDialog({
           <div className="connections-content">
             <div hidden={tab !== 'channels' || !!form}>
               <ChannelsPanel onBusy={setChannelBusy} />
+            </div>
+            <div hidden={tab !== 'mcp' || !!form}>
+              <McpPanel onBusy={setMcpBusy} focus={mcpFocus} onFocused={() => setMcpFocus('')} />
             </div>
             {form ? (
               <form className="connection-form" onSubmit={submit}>

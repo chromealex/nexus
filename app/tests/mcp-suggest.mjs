@@ -8,3 +8,11 @@ assert.deepEqual(suggestMcp('Jira', [{id: 'atlassian', signedIn: true, enabled: 
 assert.deepEqual(suggestMcp('Расскажи про проект'), []);
 console.log('mcp-suggest ok');
 assert.deepEqual(suggestMcp('Используй GPT-4 и UTF-8'), []);
+
+// The MCP tab must be both reachable and rendered.
+import {readFileSync} from 'node:fs';
+const dialog = readFileSync(new URL('../src/connections-dialog.jsx', import.meta.url), 'utf8');
+assert.match(dialog, /setTab\('mcp'\)[\s\S]*?>\s*MCP\s*</);
+assert.match(dialog, /<McpPanel\b/);
+assert.match(dialog, /const working = busy \|\| channelBusy \|\| mcpBusy/);
+assert.match(dialog, /: mcpBusy\s*\?/);
