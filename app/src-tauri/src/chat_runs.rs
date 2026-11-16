@@ -168,6 +168,9 @@ impl Control {
         if let Ok(mut saved) = self.text.lock() {
             *saved = format!("{prefix}{text}")
         }
+        if !self.specialist {
+            journal::save(&self.chat_id, &self.text());
+        }
     }
     pub fn metadata(&self, value: &str) {
         if let Ok(mut s) = self.metadata.lock() {
@@ -201,6 +204,74 @@ impl Drop for Run {
         if let Ok(mut runs) = RUNS.lock() {
             runs.remove(&self.0.request_id);
         }
+        journal::remove(&self.0.chat_id);
+    }
+}
+
+/// What an answer has written so far, on disk (`live-runs.json`, at most every 2 s), so that quitting or
+/// restarting Nexus mid-answer does not lose it: on the next start the text becomes a stopped answer in
+/// its chat, with “Continue”.
+pub mod journal {
+    use std::collections::HashMap;
+    use std::sync::{LazyLock, Mutex};
+    use std::time::Instant;
+
+    static LAST: LazyLock<Mutex<HashMap<String, Instant>>> = LazyLock::new(|| Mutex::new(HashMap::new()));
+    static FILE: Mutex<()> = Mutex::new(());
+
+    fn path() -> std::path::PathBuf {
+        super::super::home().join("Library/Application Support/NEXUS/live-runs.json")
+    }
+    fn read() -> HashMap<String, String> {
+        std::fs::read(path())
+            .ok()
+            .and_then(|b| serde_json::from_slice(&b).ok())
+            .unwrap_or_default()
+    }
+    fn write(map: &HashMap<String, String>) {
+        let tmp = path().with_extension("tmp");
+        if let Ok(bytes) = serde_json::to_vec(map) {
+            if std::fs::write(&tmp, bytes).is_ok() {
+                let _ = std::fs::rename(&tmp, path());
+            }
+        }
+    }
+    pub fn save(chat: &str, text: &str) {
+        if chat.is_empty() || text.trim().is_empty() {
+            return;
+        }
+        if let Ok(mut last) = LAST.lock() {
+            if last.get(chat).is_some_and(|t| t.elapsed().as_millis() < 2000) {
+                return;
+            }
+            last.insert(chat.to_string(), Instant::now());
+        }
+        let _guard = FILE.lock();
+        let mut map = read();
+        // Keep the latest part of very long answers.
+        let chars: Vec<char> = text.chars().collect();
+        let start = chars.len().saturating_sub(200_000);
+        map.insert(chat.to_string(), chars[start..].iter().collect());
+        write(&map);
+    }
+    pub fn remove(chat: &str) {
+        if let Ok(mut last) = LAST.lock() {
+            last.remove(chat);
+        }
+        let _guard = FILE.lock();
+        let mut map = read();
+        if map.remove(chat).is_some() {
+            write(&map);
+        }
+    }
+    /// Answers cut off by the previous quit, taken out of the journal.
+    pub fn take_all() -> HashMap<String, String> {
+        let _guard = FILE.lock();
+        let map = read();
+        if !map.is_empty() {
+            let _ = std::fs::remove_file(path());
+        }
+        map
     }
 }
 fn valid(id: &str) -> bool {

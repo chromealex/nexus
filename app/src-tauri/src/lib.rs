@@ -264,6 +264,7 @@ pub fn run() {
     }
     tauri::Builder::default()
         .setup(|app| {
+            project_store::recover_interrupted_answers();
             window_state::restore(app.handle());
             remote_channels::start_bridge(app.handle());
             automations::start(app.handle());

@@ -477,3 +477,45 @@ pub(crate) fn save_chat_team(
     save_project_store(&db)?;
     Ok(updated)
 }
+
+/// On start: answers interrupted by quitting Nexus become stopped answers in their chats (“Continue” works).
+pub(crate) fn recover_interrupted_answers() {
+    let cut = super::chat_runs::journal::take_all();
+    if cut.is_empty() {
+        return;
+    }
+    let Ok(_guard) = PROJECTS_LOCK.lock() else { return };
+    let Ok(mut db) = load_project_store() else { return };
+    let mut changed = false;
+    for (chat_id, text) in cut {
+        if !db.chats.iter().any(|c| c.id == chat_id) {
+            continue;
+        }
+        db.messages.push(NexusMessage {
+            id: project_id(),
+            chat_id: chat_id.clone(),
+            role: "assistant".into(),
+            content: format!(
+                "{}\n\n> Ответ прерван: Nexus был закрыт или перезапущен. Нажмите «Продолжить», чтобы агент дописал его.",
+                text.trim_end()
+            ),
+            created_at: now_string(),
+            details: None,
+            rating: None,
+            attachments: vec![],
+            question_selections: HashMap::new(),
+            stopped: true,
+            variants: vec![],
+            variant: 0,
+            edited: false,
+        });
+        if let Some(chat) = db.chats.iter_mut().find(|c| c.id == chat_id) {
+            chat.unread = true;
+            chat.running = false;
+        }
+        changed = true;
+    }
+    if changed {
+        let _ = save_project_store(&db);
+    }
+}
