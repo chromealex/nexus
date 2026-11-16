@@ -225,6 +225,26 @@ pub(crate) fn quota_reading_state(data: &serde_json::Value, age: i64, now: i64) 
         format!("Recent Status Line: {:?}% weekly, {:?}% 5-hour", weekly, five),
     )
 }
+static ACCOUNT_LIMITS: std::sync::OnceLock<std::sync::Mutex<std::collections::HashMap<String, f64>>> =
+    std::sync::OnceLock::new();
+fn account_limits() -> std::collections::HashMap<String, f64> {
+    ACCOUNT_LIMITS
+        .get_or_init(Default::default)
+        .lock()
+        .map(|m| m.clone())
+        .unwrap_or_default()
+}
+/// The interface reports, per account, the percent left in its tightest usage window.
+#[tauri::command]
+pub(crate) fn set_account_limits(limits: std::collections::HashMap<String, f64>) {
+    if let Ok(mut m) = ACCOUNT_LIMITS.get_or_init(Default::default).lock() {
+        *m = limits
+            .into_iter()
+            .filter(|(_, v)| v.is_finite())
+            .map(|(k, v)| (k, v.clamp(0.0, 100.0)))
+            .collect();
+    }
+}
 pub(crate) async fn routing_candidates() -> Vec<RoutingCandidate> {
     let mut eligible = Vec::new();
     for a in load_profiles().unwrap_or_default() {
@@ -256,9 +276,14 @@ pub(crate) async fn routing_candidates() -> Vec<RoutingCandidate> {
             })
         }
     }
+    let left = account_limits();
+    let left_of = |id: &str| left.get(id).copied().unwrap_or(50.0);
+    // Within a provider the account with the most limit left comes first (real usage windows
+    // reported by the interface; unknown counts as half), then the coarse backend rank.
     eligible.sort_by(|a, b| {
-        b.quota_rank
-            .cmp(&a.quota_rank)
+        left_of(&b.account.id)
+            .total_cmp(&left_of(&a.account.id))
+            .then_with(|| b.quota_rank.cmp(&a.quota_rank))
             .then_with(|| a.account.id.cmp(&b.account.id))
     });
     eligible

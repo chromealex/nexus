@@ -391,6 +391,7 @@ pub fn run() {
             route_feedback::record_route_feedback,
             route_feedback::route_feedback_stats,
             route_feedback::set_project_ratings_shared,
+            set_account_limits,
             route_feedback::project_ratings_sharing,
             chat_models::list_chat_models,
             save_chat_model,

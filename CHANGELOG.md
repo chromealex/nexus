@@ -4,6 +4,7 @@ Short history of NEXUS Desktop. The original per-version notes (in Russian) are 
 
 ## Unreleased
 
+- Within a provider, the account with the most usage limit left answers.
 - Model ratings can be shared with the team through the project folder (`.nexus/model-ratings/`, counts only); teammates' ratings feed Auto routing for that project.
 
 ## Unreleased

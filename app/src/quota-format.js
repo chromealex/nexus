@@ -123,6 +123,18 @@ export function quotaLeftByProvider(accounts = [], quotas = {}, statuslines = {}
   return out;
 }
 
+/** Per account: percent left in its tightest usage window (unlimited credits = 100). */
+export function quotaLeftByAccount(accounts = [], quotas = {}, statuslines = {}, now = Date.now()) {
+  const out = {};
+  for (const a of accounts) {
+    const view = quotaView(quotas[a.id], statuslines[a.id], now);
+    const used = view.windows.map(w => w.used).filter(Number.isFinite);
+    if (used.length) out[a.id] = Math.max(0, 100 - Math.max(...used));
+    else if (view.credits?.unlimited) out[a.id] = 100;
+  }
+  return out;
+}
+
 /** The signed-in account of these providers with the most limit left (for one cheap routing call). */
 export function roomiestAccount(
   accounts = [],

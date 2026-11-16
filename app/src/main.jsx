@@ -3,7 +3,7 @@ import {TeamPlanPreview} from './team-plan-preview.jsx';
 import {chatErrorMessage} from './chat-errors.js';
 import {ROUTING_PRIORITIES} from './model-benchmarks.js';
 import {RoutingPreview} from './routing-preview.jsx';
-import {quotaLeftByProvider, roomiestAccount} from './quota-format.js';
+import {quotaLeftByAccount, quotaLeftByProvider, roomiestAccount} from './quota-format.js';
 import {CustomSelect} from './custom-select.jsx';
 import {mergeLatestMessages, prependMessages} from './chat-history.js';
 import {ComposerPlan} from './composer-plan.jsx';
@@ -1317,30 +1317,36 @@ function App() {
             modelChoice: finalChoice,
             executionMode,
           })
-        : await invoke('unified_chat_send', {
-            chatId,
-            text: content,
-            strategy: 'balanced',
-            attachmentIds: attachments.map(f => f.id),
-            requestId: activeRunRef.current.requestId,
-            continueMessageId: continueMessageId || null,
-            reasoningMode,
-            modelChoice: finalChoice,
-            executionMode,
-            teamAutoPlan: !!team?.autoPlan,
-            teamSteps: team?.steps?.length
-              ? team.steps.map(({id, title, prompt, dependsOn, modelChoice, reason, effort, kind}) => ({
-                  id,
-                  title,
-                  prompt,
-                  dependsOn,
-                  modelChoice,
-                  reason,
-                  ...(effort ? {effort} : {}),
-                  ...(kind ? {kind} : {}),
-                }))
-              : null,
-          });
+        : await invoke('set_account_limits', {
+            limits: quotaLeftByAccount(accounts, quotaReports, statuslineReports),
+          })
+            .catch(() => {})
+            .then(() =>
+              invoke('unified_chat_send', {
+                chatId,
+                text: content,
+                strategy: 'balanced',
+                attachmentIds: attachments.map(f => f.id),
+                requestId: activeRunRef.current.requestId,
+                continueMessageId: continueMessageId || null,
+                reasoningMode,
+                modelChoice: finalChoice,
+                executionMode,
+                teamAutoPlan: !!team?.autoPlan,
+                teamSteps: team?.steps?.length
+                  ? team.steps.map(({id, title, prompt, dependsOn, modelChoice, reason, effort, kind}) => ({
+                      id,
+                      title,
+                      prompt,
+                      dependsOn,
+                      modelChoice,
+                      reason,
+                      ...(effort ? {effort} : {}),
+                      ...(kind ? {kind} : {}),
+                    }))
+                  : null,
+              })
+            );
       if (viewRef.current.project === project && viewRef.current.chat === chatId) {
         if (!continueMessageId) setDraftFiles([]);
         setStreamText('');

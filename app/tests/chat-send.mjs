@@ -60,6 +60,7 @@ function fixture({chat = '', fail = false} = {}) {
     Date,
     setStreamText: () => {},
     reactionSignals: () => [],
+    quotaLeftByAccount: () => ({}),
     chatMessages: [],
     loadRouteFeedback: () => {},
     setChatSending: v => (state.sending = v),
