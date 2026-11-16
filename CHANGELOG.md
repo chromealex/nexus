@@ -2,7 +2,7 @@
 
 Short history of NEXUS Desktop. The original per-version notes (in Russian) are in [docs/history](docs/history).
 
-## Unreleased
+## 0.24.1 — 2026-11-16
 
 - Account names (Personal, Work…) can be renamed: click the name on the account card.
 
