@@ -48,6 +48,7 @@
 | iMessage | чтение `~/Library/Messages/chat.db` (`sqlite3 -readonly`) раз в 3 с | AppleScript «Сообщения», префикс `Nexus · ` | Полный доступ к диску и Автоматизация → Сообщения для NEXUS; только диалоги 1:1 |
 | GitHub Issues | `GET /repos/{r}/issues?labels=` и `/issues/comments?since=` раз в 20 с | комментарий в issue с маркером `<!-- nexus -->` | fine-grained токен: Issues read/write; метка (по умолчанию `nexus`) |
 | Linear | GraphQL `issues`/`comments` по метке и времени раз в 20 с | `commentCreate` с префиксом `Nexus · ` | персональный API-ключ; разрешённые — email авторов |
+| Свой канал (плагин) | строки `message` из stdout плагина, опрос очереди раз в 1 с | строка `send` в stdin, ждёт `result` до 60 с | исполняемый файл по абсолютному пути; протокол — [docs/CHANNEL_PLUGINS.md](../docs/CHANNEL_PLUGINS.md) |
 | Siri / «Команды» | локальный HTTP API (`api_server.rs`) | ответ в теле запроса и буфер `/v1/messages` | токен генерирует Nexus |
 
 Discord без Gateway: используется опрос REST, поэтому нужен ID конкретного канала; личные сообщения боту пока не поддерживаются. iMessage «Чат с собой» принимает ваши собственные сообщения на номер из списка; ответы Nexus распознаются по префиксу, дубли в течение 90 с отбрасываются.

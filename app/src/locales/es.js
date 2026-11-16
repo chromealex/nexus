@@ -1551,4 +1551,23 @@ export default {
     '{0} aún no está conectado a los agentes, así que el agente no verá los datos del servicio. El servidor ya está añadido en «Agentes y conexiones → MCP»: solo falta iniciar sesión.',
   'Не сейчас': 'Ahora no',
   'Вход выполнен, агенты получат доступ': 'Sesión iniciada: los agentes tendrán acceso',
+  'Свой канал': 'Canal propio',
+  'Свои каналы': 'Canales propios',
+  'Секрет для плагина (необязательно)': 'Secreto del plugin (opcional)',
+  'Передаётся плагину только в первой строке hello через stdin.':
+    'Se pasa al plugin solo en la primera línea hello por stdin.',
+  'ID отправителей': 'ID de remitentes',
+  'Значение поля sender, которое присылает плагин.': 'Valor del campo sender que envía el plugin.',
+  'ID канала (необязательно)': 'ID del canal (opcional)',
+  'Передаётся плагину в hello как channelId.': 'Se pasa al plugin en hello como channelId.',
+  'Соберите исполняемый файл, который говорит с Nexus построчным JSON через stdin/stdout (протокол — в docs/CHANNEL_PLUGINS.md).':
+    'Cree un ejecutable que hable con Nexus en JSON por líneas a través de stdin/stdout (protocolo en docs/CHANNEL_PLUGINS.md).',
+  'Укажите абсолютный путь к файлу и аргументы, затем нажмите «Проверить подключение».':
+    'Indique la ruta absoluta del archivo y sus argumentos y pulse «Comprobar conexión».',
+  'Добавьте ID отправителей и включите канал — сообщения от плагина станут задачами.':
+    'Añada los ID de remitentes y active el canal: los mensajes del plugin se convertirán en tareas.',
+  Аргументы: 'Argumentos',
+  'Запускается без оболочки, с минимальным окружением. Вывод stderr не сохраняется.':
+    'Se inicia sin shell y con un entorno mínimo. La salida stderr no se guarda.',
+  'Укажите абсолютный путь к плагину': 'Indique la ruta absoluta del plugin',
 };

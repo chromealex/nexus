@@ -18,6 +18,7 @@ pub fn label(kind: &str) -> &'static str {
         "slack" => "Slack",
         "email" => "Email",
         "imessage" => "iMessage",
+        "plugin" => "Свой канал",
         _ => "Канал",
     }
 }
@@ -27,6 +28,7 @@ pub fn interval(kind: &str) -> u64 {
         "github" => 20,
         "linear" => 20,
         "telegram" => 1,
+        "plugin" => 1,
         "discord" => 3,
         "slack" => 4,
         "email" => 30,
@@ -1741,6 +1743,14 @@ pub async fn poll(cfg: &Config, secret: &str, cursor: Option<&str>) -> Result<Po
                 notes: vec![],
             }
         }
+        "plugin" => {
+            let (m, n) = super::channel_plugin::poll(cfg, secret).await?;
+            Polled {
+                messages: m,
+                cursor: "live".into(),
+                notes: n,
+            }
+        }
         _ => return Err("Неизвестный канал".into()),
     })
 }
@@ -1774,6 +1784,7 @@ pub async fn send(cfg: &Config, secret: &str, reply: &Reply, text: &str) -> Resu
         "email" => return email_send(cfg, secret, reply, text).await,
         "github" => return github_send(cfg, secret, reply, text).await,
         "linear" => return linear_send(secret, reply, text).await,
+        "plugin" => return super::channel_plugin::send(cfg, secret, reply, text).await,
         _ => {}
     }
     for (i, part) in split(text, chunk_limit(&cfg.kind)).iter().enumerate() {
@@ -1789,6 +1800,7 @@ pub async fn send(cfg: &Config, secret: &str, reply: &Reply, text: &str) -> Resu
 }
 pub async fn test(cfg: &Config, secret: &str) -> Result<String, String> {
     match cfg.kind.as_str() {
+        "plugin" => super::channel_plugin::test(cfg, secret).await,
         "telegram" => {
             if !safe_token(secret) {
                 return Err("Некорректный токен Telegram-бота".into());

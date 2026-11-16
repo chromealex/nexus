@@ -1549,4 +1549,23 @@ export default {
     '{0} ist noch nicht mit den Agenten verbunden, daher sieht der Agent die Daten des Dienstes nicht. Der Server ist bereits unter „Agenten und Verbindungen → MCP“ hinzugefügt – Sie müssen sich nur anmelden.',
   'Не сейчас': 'Nicht jetzt',
   'Вход выполнен, агенты получат доступ': 'Angemeldet – Agenten erhalten Zugriff',
+  'Свой канал': 'Eigener Kanal',
+  'Свои каналы': 'Eigene Kanäle',
+  'Секрет для плагина (необязательно)': 'Plugin-Geheimnis (optional)',
+  'Передаётся плагину только в первой строке hello через stdin.':
+    'Wird dem Plugin nur in der ersten hello-Zeile über stdin übergeben.',
+  'ID отправителей': 'Absender-IDs',
+  'Значение поля sender, которое присылает плагин.': 'Wert des Felds sender, den das Plugin meldet.',
+  'ID канала (необязательно)': 'Kanal-ID (optional)',
+  'Передаётся плагину в hello как channelId.': 'Wird dem Plugin in hello als channelId übergeben.',
+  'Соберите исполняемый файл, который говорит с Nexus построчным JSON через stdin/stdout (протокол — в docs/CHANNEL_PLUGINS.md).':
+    'Erstellen Sie eine ausführbare Datei, die mit Nexus zeilenweise JSON über stdin/stdout austauscht (Protokoll in docs/CHANNEL_PLUGINS.md).',
+  'Укажите абсолютный путь к файлу и аргументы, затем нажмите «Проверить подключение».':
+    'Geben Sie den absoluten Pfad und die Argumente an und klicken Sie auf „Verbindung prüfen“.',
+  'Добавьте ID отправителей и включите канал — сообщения от плагина станут задачами.':
+    'Fügen Sie Absender-IDs hinzu und aktivieren Sie den Kanal – Nachrichten des Plugins werden zu Aufgaben.',
+  Аргументы: 'Argumente',
+  'Запускается без оболочки, с минимальным окружением. Вывод stderr не сохраняется.':
+    'Startet ohne Shell mit minimaler Umgebung. stderr wird nicht gespeichert.',
+  'Укажите абсолютный путь к плагину': 'Geben Sie den absoluten Pfad zum Plugin an',
 };

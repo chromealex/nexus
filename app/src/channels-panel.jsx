@@ -1,7 +1,17 @@
 import React, {useEffect, useState} from 'react';
 import {invoke} from '@tauri-apps/api/core';
 import {listen} from '@tauri-apps/api/event';
-import {MessageCircle, ChevronLeft, Trash2, RefreshCw, GitBranch, Mic, Bell, Copy} from 'lucide-react';
+import {
+  MessageCircle,
+  ChevronLeft,
+  Trash2,
+  RefreshCw,
+  GitBranch,
+  Mic,
+  Bell,
+  Copy,
+  Puzzle,
+} from 'lucide-react';
 import {CustomSelect} from './custom-select.jsx';
 import {
   CHANNELS,
@@ -20,7 +30,7 @@ import './channels-panel.css';
 import {useToastOn} from './toaster.jsx';
 import {loc} from './i18n.js';
 
-const ICONS = {github: GitBranch, linear: GitBranch, api: Mic, push: Bell};
+const ICONS = {github: GitBranch, linear: GitBranch, plugin: Puzzle, api: Mic, push: Bell};
 // Remote tasks: messengers, email, iMessage, issue trackers and a local API feed regular Nexus chats; push reports back.
 const BUSY_LABEL = {
   save: () => loc('Сохраняю настройки…'),
@@ -213,7 +223,9 @@ export function ChannelsPanel({onBusy}) {
             <input
               value={draft.channelId}
               onChange={e => set('channelId', e.target.value.trim())}
-              placeholder={edit === 'slack' ? 'C0123ABCD' : '123456789012345678'}
+              placeholder={
+                edit === 'slack' ? 'C0123ABCD' : edit === 'plugin' ? 'room-1' : '123456789012345678'
+              }
             />
             <small>{meta.channelHint}</small>
           </label>
@@ -233,6 +245,32 @@ export function ChannelsPanel({onBusy}) {
               <input value={draft.label} onChange={e => set('label', e.target.value)} placeholder="nexus" />
             </label>
           </div>
+        )}
+        {edit === 'plugin' && (
+          <>
+            <label>
+              {loc('Исполняемый файл')}
+              <input
+                value={draft.pluginCommand || ''}
+                onChange={e => set('pluginCommand', e.target.value)}
+                placeholder="/usr/local/bin/nexus-webrtc-bridge"
+                spellCheck={false}
+              />
+              <small>
+                {loc('Запускается без оболочки, с минимальным окружением. Вывод stderr не сохраняется.')}
+              </small>
+            </label>
+            <label>
+              {loc('Аргументы')}
+              <textarea
+                rows={3}
+                value={(draft.pluginArgs || []).join('\n')}
+                onChange={e => set('pluginArgs', e.target.value.split('\n'))}
+                placeholder={loc('По одному в строке')}
+                spellCheck={false}
+              />
+            </label>
+          </>
         )}
         {edit === 'linear' && (
           <label>
@@ -635,6 +673,8 @@ export function ChannelsPanel({onBusy}) {
       {ORDER.filter(k => !['github', 'linear'].includes(k)).map(card)}
       <h4 className="channel-group">{loc('Трекеры задач')}</h4>
       {['github', 'linear'].map(card)}
+      <h4 className="channel-group">{loc('Свои каналы')}</h4>
+      {['plugin'].map(card)}
       <h4 className="channel-group">{loc('Голос и уведомления')}</h4>
       {['api', 'push'].map(card)}
       <details className="channel-commands">

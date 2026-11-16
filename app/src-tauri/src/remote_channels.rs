@@ -9,12 +9,12 @@ use std::sync::LazyLock;
 use std::time::Instant;
 use tauri::{Emitter, Listener};
 
-pub const KINDS: [&str; 9] = [
-    "telegram", "discord", "slack", "email", "imessage", "github", "linear", "api", "push",
+pub const KINDS: [&str; 10] = [
+    "telegram", "discord", "slack", "email", "imessage", "github", "linear", "plugin", "api", "push",
 ];
 /// Sources that are polled by `channel_loop`. `api` is served by `api_server`, `push` only sends.
-pub const POLLED: [&str; 7] = [
-    "telegram", "discord", "slack", "email", "imessage", "github", "linear",
+pub const POLLED: [&str; 8] = [
+    "telegram", "discord", "slack", "email", "imessage", "github", "linear", "plugin",
 ];
 
 #[derive(Clone, Serialize, Deserialize, Default, Debug, PartialEq)]
@@ -63,6 +63,9 @@ pub struct Config {
     pub push_server: String,
     pub push_scope: String,
     pub mac_notify: bool,
+    /// `plugin`: absolute path of the executable and its arguments (no shell).
+    pub plugin_command: String,
+    pub plugin_args: Vec<String>,
 }
 #[derive(Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase", default)]
@@ -268,6 +271,10 @@ pub(crate) fn secret(kind: &str) -> Result<String, String> {
     }
     if kind == "api" {
         return generated_secret(kind, false);
+    }
+    if kind == "plugin" {
+        // The plugin secret is optional: it is only handed to the plugin in its `hello` line.
+        return Ok(provider_connections::secrets::get(&secret_id(kind)).unwrap_or_default());
     }
     provider_connections::secrets::get(&secret_id(kind))
 }
@@ -1708,6 +1715,16 @@ fn validate(cfg: &mut Config) -> Result<(), String> {
     if cfg.kind != "email" {
         cfg.allow_unsigned = false
     }
+    if cfg.kind == "plugin" {
+        cfg.plugin_command = cfg.plugin_command.trim().into();
+        cfg.plugin_args.retain(|a| !a.trim().is_empty());
+        if cfg.enabled || !cfg.plugin_command.is_empty() {
+            super::channel_plugin::validate(cfg)?;
+        }
+    } else {
+        cfg.plugin_command.clear();
+        cfg.plugin_args.clear();
+    }
     Ok(())
 }
 fn view(cfg: Config) -> View {
@@ -1786,7 +1803,7 @@ pub fn channels_save(app: tauri::AppHandle, config: Config, secret: Option<Strin
         generated_secret(&cfg.kind, false)?;
     }
     if cfg.enabled
-        && cfg.kind != "imessage"
+        && !["imessage", "plugin"].contains(&cfg.kind.as_str())
         && provider_connections::secrets::get(&secret_id(&cfg.kind)).is_err()
     {
         return Err(if cfg.kind == "email" {
@@ -1817,6 +1834,9 @@ pub fn channels_save(app: tauri::AppHandle, config: Config, secret: Option<Strin
         with_store(|s| {
             s.cursors.remove(&cfg.kind);
         });
+    }
+    if cfg.kind == "plugin" && !cfg.enabled {
+        tauri::async_runtime::spawn(super::channel_plugin::stop());
     }
     start_bridge(&app);
     super::background::apply();
@@ -1887,7 +1907,10 @@ pub fn channels_remove(app: tauri::AppHandle, kind: String) -> Result<(), String
         all.retain(|c| c.kind != kind);
         write_json(&config_path(), &all)?;
     }
-    if kind != "imessage" {
+    if kind == "plugin" {
+        tauri::async_runtime::spawn(super::channel_plugin::stop());
+        let _ = provider_connections::secrets::delete(&secret_id(&kind));
+    } else if kind != "imessage" {
         provider_connections::secrets::delete(&secret_id(&kind))?;
     }
     if kind == "api" {

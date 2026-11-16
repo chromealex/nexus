@@ -4,6 +4,7 @@ Short history of NEXUS Desktop. The original per-version notes (in Russian) are 
 
 ## Unreleased
 
+- Custom channels: connect any transport (WebRTC, Matrix, an internal messenger…) as a plugin — an executable that talks line-delimited JSON over stdin/stdout. Protocol: docs/CHANNEL_PLUGINS.md.
 - Fix: Claude now asks for permission in the chat (Jira and other MCP tools, file writes) instead of being refused silently.
 - Cleaner question card; padding in the expanded “Preparing the answer” strip.
 

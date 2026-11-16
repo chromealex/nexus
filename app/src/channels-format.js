@@ -93,6 +93,23 @@ export const CHANNELS = {
       ),
     ],
   },
+  plugin: {
+    name: loc('Свой канал'),
+    secret: loc('Секрет для плагина (необязательно)'),
+    secretOptional: true,
+    secretHint: loc('Передаётся плагину только в первой строке hello через stdin.'),
+    allowed: loc('ID отправителей'),
+    allowedHint: loc('Значение поля sender, которое присылает плагин.'),
+    channel: loc('ID канала (необязательно)'),
+    channelHint: loc('Передаётся плагину в hello как channelId.'),
+    steps: [
+      loc(
+        'Соберите исполняемый файл, который говорит с Nexus построчным JSON через stdin/stdout (протокол — в docs/CHANNEL_PLUGINS.md).'
+      ),
+      loc('Укажите абсолютный путь к файлу и аргументы, затем нажмите «Проверить подключение».'),
+      loc('Добавьте ID отправителей и включите канал — сообщения от плагина станут задачами.'),
+    ],
+  },
   imessage: {
     name: 'iMessage',
     secret: '',
@@ -186,13 +203,20 @@ export function formProblems(kind, config, {hasSecret, secret} = {}) {
   if (kind === 'api') return p;
   if (!parseAllowed(allowedText(config.allowed)).length)
     p.push(loc('Добавьте хотя бы одного разрешённого отправителя'));
-  if (CHANNELS[kind]?.secret && !hasSecret && !String(secret || '').trim())
+  if (CHANNELS[kind]?.secret && !CHANNELS[kind].secretOptional && !hasSecret && !String(secret || '').trim())
     p.push(loc('Укажите: {0}', CHANNELS[kind].secret.toLowerCase()));
   if (kind === 'discord' && !/^\d+$/.test(config.channelId || '')) p.push(loc('ID канала Discord — число'));
   if (kind === 'slack' && !/^[A-Z0-9]+$/.test(config.channelId || ''))
     p.push(loc('ID канала Slack вида C0123ABC'));
   if (kind === 'github' && !/^[\w.-]+\/[\w.-]+$/.test(config.repo || ''))
     p.push(loc('Репозиторий в формате owner/name'));
+  if (
+    kind === 'plugin' &&
+    !String(config.pluginCommand || '')
+      .trim()
+      .startsWith('/')
+  )
+    p.push(loc('Укажите абсолютный путь к плагину'));
   if (kind === 'email' && (!config.imapHost || !config.smtpHost)) p.push(loc('Укажите серверы IMAP и SMTP'));
   return p;
 }

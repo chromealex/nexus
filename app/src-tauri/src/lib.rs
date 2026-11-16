@@ -8,6 +8,7 @@ mod browser_host;
 mod browser_policy;
 mod browser_tools;
 mod channel_adapters;
+mod channel_plugin;
 mod chat_continuation;
 mod chat_history;
 mod chat_import;
