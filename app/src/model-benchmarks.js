@@ -292,7 +292,19 @@ export function evidenceGap(model) {
   );
 }
 export const HARNESS = {claude: 'Claude Code', codex: 'Codex', 'grok-build': 'Grok Build'};
+/** Beta(a, b) for small integer-ish a, b via two Gamma draws (sum of exponentials); counts are capped. */
+export function sampleBeta(a, b, random = Math.random) {
+  const gamma = k => {
+    let sum = 0;
+    for (let i = 0; i < Math.min(Math.round(k), 60); i++) sum -= Math.log(1 - random());
+    return sum;
+  };
+  const x = gamma(a),
+    y = gamma(b);
+  return x + y > 0 ? x / (x + y) : 0.5;
+}
 export function evidenceText(r) {
+  if (r.peer) return loc('Нет в опубликованных тестах: участвует как равнозначный, решают ваши оценки');
   const unit = COHORTS[r.cohort].scale === 'percent' ? '%' : '';
   const score =
     r.score == null
@@ -363,6 +375,9 @@ export function benchmarkChoice(
     prices = {},
     quotaLeft = {},
     preferEffort = null,
+    feedback = {},
+    peers = [],
+    random = null,
   } = {}
 ) {
   if (!ROUTING_PRIORITIES[priority]) priority = 'balanced';
@@ -409,11 +424,42 @@ export function benchmarkChoice(
   const elo = COHORTS[cohort].scale === 'elo';
   candidates.sort((a, b) => b.evidence.score - a.evidence.score || a.model.id.localeCompare(b.model.id));
   const best = candidates[0].evidence;
-  const close = candidates.filter(c =>
+  let close = candidates.filter(c =>
     elo
       ? c.evidence.score + (c.evidence.interval || 0) >= best.score - (best.interval || 0)
       : c.evidence.score >= best.score - (priority === 'quality' ? 0 : priority === 'balanced' ? 5 : 3)
   );
+  // Verified agents from the catalog have no published scores. Outside “Quality” and deep reasoning they
+  // join the close group as equals (scored at its lower bound), and the user's ratings decide from there.
+  if (!elo && priority !== 'quality' && task.kind !== 'reasoning') {
+    const floor = best.score - (priority === 'balanced' ? 5 : 3);
+    for (const model of peers)
+      if (!candidates.some(c => c.model.id === model.id)) {
+        const peer = {model, evidence: {cohort, score: floor, peer: true}};
+        candidates.push(peer);
+        close.push(peer);
+      }
+  }
+  // User satisfaction per model and kind of task: explicit ratings and the reaction in the next message.
+  // (up + 1) / (up + down + 2): neutral 0.5 without data, so a few answers cannot swing it too far.
+  // With `random` (at send time) the value is drawn from Beta(up+1, down+1) — Thompson sampling: well-rated
+  // models win more often, poorly rated or barely tried ones still get a chance now and then. Without it
+  // (the live preview) the mean is used, so the forecast does not flicker.
+  const drawn = new Map();
+  const satisfaction = c => {
+    const f = feedback[`${c.model.id}|${task.kind}`] || feedback[`${c.model.id}|*`];
+    const up = f?.up || 0,
+      down = f?.down || 0;
+    if (!random) return f ? (up + 1) / (up + down + 2) : 0.5;
+    if (!drawn.has(c)) drawn.set(c, sampleBeta(up + 1, down + 1, random));
+    return drawn.get(c);
+  };
+  const rated =
+    close.some(c => {
+      const f = feedback[`${c.model.id}|${task.kind}`] || feedback[`${c.model.id}|*`];
+      return f && f.up + f.down > 0;
+    }) ||
+    (random && close.length > 1 && peers.length > 0);
   const api = c => c.model.provider.startsWith('api-');
   const tariff = c => {
     const p = prices[benchmarkModel(c.model)];
@@ -460,6 +506,13 @@ export function benchmarkChoice(
     metric = time;
     explanation = loc('Среди близких по качеству вариантов выбрано меньшее время задачи в тесте.');
   }
+  // Among equals the user's ratings shift the choice: a well-rated model counts up to half as costly,
+  // a poorly rated one up to half again as costly.
+  if (rated && pool === close && close.length > 1) {
+    const base = metric;
+    metric = c => (base ? base(c) : 1) * (1.5 - satisfaction(c));
+    explanation += ' ' + loc('Учтены ваши оценки ответов этих моделей для такого типа задач.');
+  }
   if (
     (priority === 'economy' && !complete(candidates, cost)) ||
     (priority === 'speed' && !complete(candidates, time))
@@ -474,6 +527,7 @@ export function benchmarkChoice(
     (a, b) =>
       (metric ? metric(a) - metric(b) : 0) ||
       b.evidence.score - a.evidence.score ||
+      satisfaction(b) - satisfaction(a) ||
       left(b) - left(a) ||
       a.model.id.localeCompare(b.model.id)
   );

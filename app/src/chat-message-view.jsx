@@ -232,6 +232,15 @@ export function MessageActions({
         rating: message.rating === value ? null : value,
       });
       onUpdate(updated);
+      // An explicit rating is the strongest routing signal for the model that answered.
+      invoke('record_route_feedback', {
+        messageId: message.id,
+        signal: message.rating === value ? 0 : value,
+        explicit: true,
+        regression: false,
+      })
+        .then(() => window.dispatchEvent(new Event('nexus-route-feedback')))
+        .catch(() => {});
     } catch {
       setActionError(loc('Не удалось сохранить оценку'));
     } finally {

@@ -39,6 +39,7 @@ mod provider_connections;
 mod push_notify;
 mod question_history;
 mod remote_channels;
+mod route_feedback;
 mod system_open;
 mod verification;
 mod window_state;
@@ -386,6 +387,9 @@ pub fn run() {
             question_history::save_question_selection,
             chat_runs::cancel_chat_generation,
             chat_runs::set_chat_route_note,
+            route_feedback::note_answer_route,
+            route_feedback::record_route_feedback,
+            route_feedback::route_feedback_stats,
             chat_models::list_chat_models,
             save_chat_model,
             save_chat_routing_priority,

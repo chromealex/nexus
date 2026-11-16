@@ -213,3 +213,46 @@ console.log('Fable 5.2: exact ID, CLI version gate, extra-credit guard in Auto a
   assert.equal(pick({claude: 1, codex: 90}), 'codex'); // exhausted Claude is skipped
   console.log('Balance: tariff × remaining limit, exhausted agents skipped.');
 }
+
+// User ratings: probabilistic among equals; a poorly rated model still gets a second chance.
+{
+  const {sampleBeta} = await import('../src/model-benchmarks.js');
+  let seed = 7;
+  const random = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+  const mean = Array.from({length: 4000}, () => sampleBeta(9, 3, random)).reduce((a, b) => a + b) / 4000;
+  assert.ok(Math.abs(mean - 0.75) < 0.02);
+  const sonnetR = {id: 'claude/sonnet', provider: 'claude', model: 'sonnet', resolved: 'claude-sonnet-5-5'};
+  const solR = {id: 'codex/gpt-6.1-sol', provider: 'codex', model: 'gpt-6.1-sol'};
+  const task = classifyTask('Спроектируй архитектуру полностью');
+  const feedback = {
+    [`claude/sonnet|${task.kind}`]: {up: 1, down: 8},
+    [`codex/gpt-6.1-sol|${task.kind}`]: {up: 8, down: 1},
+  };
+  const picks = {claude: 0, codex: 0};
+  for (let i = 0; i < 400; i++)
+    picks[
+      benchmarkChoice([sonnetR, solR], task, {
+        now,
+        prices: MODEL_PROFILES,
+        quotaLeft: {claude: 50, codex: 50},
+        feedback,
+        random,
+      }).model.provider
+    ]++;
+  assert.ok(picks.codex > picks.claude); // the well-rated one wins more often
+  assert.ok(picks.claude > 0); // but the other is not shut out
+  // Without sampling (the preview) the choice is stable.
+  const stable = benchmarkChoice([sonnetR, solR], task, {
+    now,
+    prices: MODEL_PROFILES,
+    quotaLeft: {claude: 50, codex: 50},
+    feedback,
+  });
+  assert.equal(stable.model.provider, 'codex');
+  // Catalog agents without published scores join as equals.
+  const kimi = {id: 'custom-kimi/default', provider: 'custom-kimi', model: 'default', label: 'Kimi'};
+  const codeTask = classifyTask('Исправь ошибку в функции парсинга', false, {executionMode: 'execute'});
+  const withPeer = benchmarkChoice([sonnetR, solR], codeTask, {now, prices: MODEL_PROFILES, peers: [kimi]});
+  assert.ok(withPeer.comparison.some(c => c.id === kimi.id) || withPeer.model.id === kimi.id);
+  console.log('Ratings: Thompson sampling among equals, second chances, catalog agents as peers.');
+}

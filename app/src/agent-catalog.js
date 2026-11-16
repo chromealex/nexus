@@ -348,6 +348,8 @@ export function routingAdvice(
     effort = null,
     quotaLeft = {},
     override = null,
+    feedback = {},
+    random = null,
   } = {}
 ) {
   const task = applyOverride(classifyTask(text, hasFiles, {hasImages, executionMode}), override);
@@ -361,6 +363,13 @@ export function routingAdvice(
       : loc('Выбранная модель недоступна');
     return {...task, choice: error ? null : manual.id, error, offer: false};
   }
+  // Verified catalog agents (custom-*) take part only as equals inside the benchmark tree (`peers`).
+  const peers =
+    selection === 'auto'
+      ? scoped.filter(
+          m => m.provider.startsWith('custom-') && !incompatibleReason(m, task, reasoningMode, connections)
+        )
+      : [];
   const eligible = scoped.filter(
     m =>
       automaticModelAllowed(m) &&
@@ -392,6 +401,9 @@ export function routingAdvice(
           priority,
           prices: MODEL_PROFILES,
           quotaLeft,
+          feedback,
+          peers,
+          random,
           preferEffort: reasoningMode === 'auto' ? effort || autoEffort(text) : null,
         });
   if (measured)

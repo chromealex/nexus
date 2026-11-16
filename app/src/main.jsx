@@ -17,6 +17,7 @@ import {WelcomeScreen} from './welcome-screen.jsx';
 import {ParticlePersona} from './particle-persona.jsx';
 import {ThinkingLightning} from './thinking-lightning.jsx';
 import {SceneBackdrop} from './scene-backdrop.jsx';
+import {reactionSignals} from './answer-reaction.js';
 import {routingAdvice, classifyTask, pendingRequestMatches, arbiterCandidates} from './agent-catalog.js';
 import {PermissionCard} from './permission-card.jsx';
 import {ProjectNavigation} from './project-navigation.jsx';
@@ -199,6 +200,7 @@ function App() {
     [axBusy, setAxBusy] = useState(false),
     [taskAccount, setTaskAccount] = useState('auto'),
     [quotaReports, setQuotaReports] = useState({}),
+    [routeFeedback, setRouteFeedback] = useState({}),
     [isolation, setIsolation] = useState({}),
     [removePending, setRemovePending] = useState(null),
     [agents, setAgents] = useState([]),
@@ -233,7 +235,17 @@ function App() {
     setProjectError('');
   }, [activeChat]);
   const routingPriority = chats.find(c => c.id === activeChat)?.routingPriority || 'balanced';
+  const loadRouteFeedback = () =>
+    invoke('route_feedback_stats')
+      .then(setRouteFeedback)
+      .catch(() => {});
+  useEffect(() => {
+    loadRouteFeedback();
+    window.addEventListener('nexus-route-feedback', loadRouteFeedback);
+    return () => window.removeEventListener('nexus-route-feedback', loadRouteFeedback);
+  }, []);
   const routeOptions = {
+    feedback: routeFeedback,
     priority: routingPriority,
     models: modelChoices,
     connections: providerRows,
@@ -1221,13 +1233,32 @@ function App() {
         setChatMessages(v => [...v, {id: 'pending-' + Date.now(), role: 'user', content, attachments}]);
       }
       activeRunRef.current.chatId = chatId;
-      let finalChoice = resolved.choice;
-      // Routing arbiter: its work is the first stages of the answer's progress (live and saved).
+      // Implicit feedback: how this message reacts to the previous answers (thanks / moving on, a
+      // correction, or “what you did earlier does not work”). Explicit ratings are never overridden.
+      if (!continueMessageId) {
+        const recent = chatMessages.filter(m => m.role === 'assistant' && m.chatId === chatId).slice(-8);
+        const signals = reactionSignals(input, recent);
+        if (signals.length)
+          Promise.all(
+            signals.map(s =>
+              invoke('record_route_feedback', {
+                messageId: s.messageId,
+                signal: s.signal,
+                explicit: false,
+                regression: !!s.regression,
+              }).catch(() => false)
+            )
+          ).then(loadRouteFeedback);
+      }
+      // In Auto the tree runs again at send time with sampling by the user's ratings (a second chance for
+      // agents low in the ranking); its shortlist goes to the arbiter.
       const automatic = modelChoice === 'auto' || modelChoice.startsWith('agent-auto:');
-      const candidates =
-        automatic && !continueMessageId && !resolved.trivial && !team?.steps?.length
-          ? arbiterCandidates(resolved, routeOptions.quotaLeft)
-          : [];
+      const auto =
+        automatic && !continueMessageId && !team?.steps?.length
+          ? routingAdvice(input, {...routeOptions, selection: modelChoice, random: Math.random})
+          : null;
+      let finalChoice = (auto && !auto.error && auto.choice) || resolved.choice;
+      const candidates = auto && !auto.trivial ? arbiterCandidates(auto, routeOptions.quotaLeft) : [];
       if (candidates.length >= 2) {
         setChatTrace(loc('Подбираю модель: уточняю тип задачи и сравниваю {0} варианта', candidates.length));
         const verdict = await invoke('route_arbiter', {
@@ -1241,7 +1272,7 @@ function App() {
             loc('Подбор модели'),
             loc('Дерево выбрало кандидатов: {0}.', candidates.map(c => label(c.id)).join(', ')) +
               ' ' +
-              resolved.reason,
+              auto.reason,
           ],
         ];
         if (verdict) {
@@ -1249,7 +1280,7 @@ function App() {
             ...routeOptions,
             override: {kind: verdict.kind, needsActions: verdict.needsActions},
           });
-          const same = refined.kind === resolved.kind && refined.needsTools === resolved.needsTools;
+          const same = refined.kind === auto.kind && refined.needsTools === auto.needsTools;
           const picked = candidates[verdict.pick]?.id;
           finalChoice = (same && picked) || refined.choice || finalChoice;
           steps.push([
@@ -1320,6 +1351,12 @@ function App() {
         );
       }
       notifyReady(reply.message);
+      if (finalChoice && reply?.message?.id)
+        invoke('note_answer_route', {
+          messageId: reply.message.id,
+          modelId: finalChoice,
+          kind: (auto || resolved).kind || '*',
+        }).catch(() => {});
     } catch (e) {
       if (viewRef.current.project === project && viewRef.current.chat === chatId) {
         setProjectError(chatErrorMessage(e));

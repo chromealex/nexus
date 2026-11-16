@@ -3,6 +3,9 @@
 Short history of NEXUS Desktop. The original per-version notes (in Russian) are in [docs/history](docs/history).
 
 ## Unreleased
+- Auto learns from you: answers you rate, thank for or move on from count for the model; corrections and later “this does not work” count against it. Among equal candidates the choice is probabilistic (Thompson sampling), so lower-ranked models still get second chances.
+- Verified catalog agents (Copilot, Kimi, Cline, Amp, OpenCode and others) take part in Auto as equals; your ratings decide how often they are used.
+- Fix: the routing arbiter now actually receives the tree's shortlist at send time.
 - Projects can be deleted from their menu (second click confirms); files in the project folder are not touched.
 - Frosted glass on messages, the composer and the projects panel (solid when the system asks for reduced transparency or more contrast).
 - The scene background is drawn in WebGL with sub-level smoothing: no more rings in the dark gradient; blurred mist and rays no longer show as a mosaic.

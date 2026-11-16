@@ -131,3 +131,17 @@ The arbiter never sees anything the tree did not compute: it gets the request (a
 to four candidates with score, relative tariff and limit left, answers in a fixed JSON schema, and any
 invalid answer, timeout (local 6 s, cloud 40 s) or missing model keeps the tree's choice. The live
 preview under the composer stays rule-based; the arbiter runs only at send time.
+
+## User feedback and catalog agents (2026-11-16)
+
+- Every answer is remembered with the model and the kind of task (`note_answer_route`).
+- Explicit rating (👍/👎) counts 2 and always wins. Without it, the next user message is judged
+  (`answer-reaction.js`): moving on or thanks → +1; a correction → −1; a clarifying question → nothing;
+  “what you did earlier does not work” → the success of one of the recent answers is taken back (−1).
+- Inside the close group the satisfaction s = (up+1)/(up+down+2) multiplies the Balance metric by
+  (1.5 − s) and breaks ties before the remaining limit. At send time s is sampled from Beta(up+1, down+1)
+  (Thompson sampling), so a poorly rated model still gets an occasional second chance and a barely tried
+  one is explored; the live preview uses the mean.
+- Verified catalog agents without published scores (Copilot, Kimi, Cline, Amp, OpenCode, Goose, Aider,
+  Qwen Code, …) join the close group as equals at its lower bound, except for the Quality priority and
+  deep reasoning; their ratings then decide how often they are used.
