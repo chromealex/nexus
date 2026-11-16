@@ -235,15 +235,16 @@ function App() {
     setProjectError('');
   }, [activeChat]);
   const routingPriority = chats.find(c => c.id === activeChat)?.routingPriority || 'balanced';
+  // Personal ratings plus, in a project shared with the team, the teammates' ratings from its folder.
   const loadRouteFeedback = () =>
-    invoke('route_feedback_stats')
+    invoke('route_feedback_stats', {projectId: viewRef.current?.project || activeProject || null})
       .then(setRouteFeedback)
       .catch(() => {});
   useEffect(() => {
     loadRouteFeedback();
     window.addEventListener('nexus-route-feedback', loadRouteFeedback);
     return () => window.removeEventListener('nexus-route-feedback', loadRouteFeedback);
-  }, []);
+  }, [activeProject]);
   const routeOptions = {
     feedback: routeFeedback,
     priority: routingPriority,
@@ -1356,6 +1357,7 @@ function App() {
           messageId: reply.message.id,
           modelId: finalChoice,
           kind: (auto || resolved).kind || '*',
+          projectId: project || null,
         }).catch(() => {});
     } catch (e) {
       if (viewRef.current.project === project && viewRef.current.chat === chatId) {

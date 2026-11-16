@@ -390,6 +390,8 @@ pub fn run() {
             route_feedback::note_answer_route,
             route_feedback::record_route_feedback,
             route_feedback::route_feedback_stats,
+            route_feedback::set_project_ratings_shared,
+            route_feedback::project_ratings_sharing,
             chat_models::list_chat_models,
             save_chat_model,
             save_chat_routing_priority,

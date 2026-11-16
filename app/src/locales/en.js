@@ -1498,4 +1498,12 @@ export default {
     'The project and its chats are removed from Nexus. Files in the project folder are not touched.',
   'Точно удалить проект и его чаты?': 'Delete the project and its chats?',
   'Удалить проект': 'Delete project',
+  'Оценки моделей': 'Model ratings',
+  'Ваши оценки ответов помогают «Авто» выбирать модель': 'Your answer ratings help Auto choose a model',
+  'Делиться оценками с командой через папку проекта':
+    'Share ratings with the team through the project folder',
+  'Счётчики сохраняются в {0} (без текстов сообщений и без имени). Закоммитьте папку, чтобы команда их получила. Оценок коллег: {1}.':
+    'Counts are saved in {0} (no message text, no name). Commit the folder so the team gets them. Teammates’ ratings: {1}.',
+  'Сейчас оценки хранятся только у вас. Ваших оценок в этом проекте: {0}.':
+    'Ratings are kept only on your computer. Your ratings in this project: {0}.',
 };

@@ -1515,4 +1515,13 @@ export default {
     'Le projet et ses discussions sont supprimés de Nexus. Les fichiers du dossier du projet ne sont pas touchés.',
   'Точно удалить проект и его чаты?': 'Supprimer le projet et ses discussions ?',
   'Удалить проект': 'Supprimer le projet',
+  'Оценки моделей': 'Évaluations des modèles',
+  'Ваши оценки ответов помогают «Авто» выбирать модель':
+    'Vos évaluations des réponses aident « Auto » à choisir le modèle',
+  'Делиться оценками с командой через папку проекта':
+    'Partager les évaluations avec l’équipe via le dossier du projet',
+  'Счётчики сохраняются в {0} (без текстов сообщений и без имени). Закоммитьте папку, чтобы команда их получила. Оценок коллег: {1}.':
+    'Les compteurs sont enregistrés dans {0} (sans texte des messages ni nom). Committez le dossier pour que l’équipe les reçoive. Évaluations des collègues : {1}.',
+  'Сейчас оценки хранятся только у вас. Ваших оценок в этом проекте: {0}.':
+    'Les évaluations restent sur votre ordinateur. Vos évaluations dans ce projet : {0}.',
 };

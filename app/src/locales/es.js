@@ -1512,4 +1512,13 @@ export default {
     'El proyecto y sus chats se eliminan de Nexus. Los archivos de la carpeta del proyecto no se tocan.',
   'Точно удалить проект и его чаты?': '¿Eliminar el proyecto y sus chats?',
   'Удалить проект': 'Eliminar proyecto',
+  'Оценки моделей': 'Valoraciones de modelos',
+  'Ваши оценки ответов помогают «Авто» выбирать модель':
+    'Tus valoraciones de respuestas ayudan a «Auto» a elegir modelo',
+  'Делиться оценками с командой через папку проекта':
+    'Compartir valoraciones con el equipo a través de la carpeta del proyecto',
+  'Счётчики сохраняются в {0} (без текстов сообщений и без имени). Закоммитьте папку, чтобы команда их получила. Оценок коллег: {1}.':
+    'Los contadores se guardan en {0} (sin texto de mensajes ni nombre). Haz commit de la carpeta para que el equipo los reciba. Valoraciones de compañeros: {1}.',
+  'Сейчас оценки хранятся только у вас. Ваших оценок в этом проекте: {0}.':
+    'Las valoraciones solo se guardan en tu equipo. Tus valoraciones en este proyecto: {0}.',
 };

@@ -145,3 +145,7 @@ preview under the composer stays rule-based; the arbiter runs only at send time.
 - Verified catalog agents without published scores (Copilot, Kimi, Cline, Amp, OpenCode, Goose, Aider,
   Qwen Code, …) join the close group as equals at its lower bound, except for the Quality priority and
   deep reasoning; their ratings then decide how often they are used.
+
+## Team ratings
+
+With “Share ratings with the team” on in project settings, each user's counts for the project go to `.nexus/model-ratings/<install id>.json` in the working folder. Commit it; Nexus merges the other files found there into the feedback stats for that project (own file excluded, files over 512 KB and beyond 200 files ignored).

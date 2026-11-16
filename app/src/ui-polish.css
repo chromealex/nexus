@@ -4880,3 +4880,13 @@ details[open] > .activity-list {
 .app-toast .app-toast-close svg {
   display: block;
 }
+
+.project-ratings-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 2px;
+  font-size: 12px;
+  color: var(--text-body, #c9d4da);
+  cursor: pointer;
+}

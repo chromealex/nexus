@@ -4,6 +4,7 @@ import {ProjectIcon, ProjectIconSettings, useProjectIcons} from './project-icons
 import {useToastOn} from './toaster.jsx';
 import {PathPick} from './path-pick.jsx';
 import {ProjectPermissions} from './project-permissions.jsx';
+import {ProjectRatings} from './project-ratings.jsx';
 import {folderChatCount, projectChatCount} from './navigation-counts.js';
 import {countLabel} from './locale-format.js';
 import {SavedChats} from './saved-chats.jsx';
@@ -1076,6 +1077,7 @@ function ProjectEditor({editor, project, folders, chats, onClose, onSaved}) {
             )}
             {type === 'project' && <ProjectIconSettings projectId={item.id} />}
             {type === 'project' && <ProjectPermissions projectId={item.id} />}
+            {type === 'project' && <ProjectRatings projectId={item.id} />}
           </div>
           <div className="settings-actions">
             <button type="button" disabled={busy} onClick={onClose}>
