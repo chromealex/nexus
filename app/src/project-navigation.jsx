@@ -91,11 +91,17 @@ export function ProjectNavigation({
     try {
       const rows = await Promise.all(
         projects.map(async p => {
-          const [c, f] = await Promise.all([
-            invoke('list_project_chats', {projectId: p.id}),
-            invoke('list_project_folders', {projectId: p.id}),
-          ]);
-          return {c, f};
+          try {
+            const [c, f] = await Promise.all([
+              invoke('list_project_chats', {projectId: p.id}),
+              invoke('list_project_folders', {projectId: p.id}),
+            ]);
+            return {c, f};
+          } catch (e) {
+            // The list may still hold a project that was just removed; it simply has nothing to show.
+            if (/not found|не найден/i.test(String(e))) return {c: [], f: []};
+            throw e;
+          }
         })
       );
       if (live.current && id === loadId.current) {
@@ -205,7 +211,6 @@ export function ProjectNavigation({
       await invoke('remove_project', {projectId: project.id});
       if (activeProject === project.id) onProject?.('');
       await onProjects();
-      await refresh();
     } catch (e) {
       setError(String(e));
     }
