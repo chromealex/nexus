@@ -181,7 +181,7 @@ export function classifyTask(
   const executing = executionMode === 'execute' || executionMode === 'auto';
   const asksAction =
     code ||
-    /(сделай|сделать|исправ|запуст|выполн|создай|создать|измени|поменяй|удали|добавь|обнови|установ|проверь|прогони|собери|почини|перепиши файл|сохрани|открой|перенеси|переименуй|настрой|отправь|скачай|найди в|посмотри в|прочитай|run|fix|create|change|update|delete|remove|add |install|build|check|open|rename|move|save|deploy|commit|push)/i.test(
+    /(сделай|пофикс|фикс|jira|джир|тикет|issue|сделать|исправ|запуст|выполн|создай|создать|измени|поменяй|удали|добавь|обнови|установ|проверь|прогони|собери|почини|перепиши файл|сохрани|открой|перенеси|переименуй|настрой|отправь|скачай|найди в|посмотри в|прочитай|run|fix|create|change|update|delete|remove|add |install|build|check|open|rename|move|save|deploy|commit|push)/i.test(
       text
     );
   const complex =
@@ -334,6 +334,17 @@ export function preferredModel(models) {
       a.id.localeCompare(b.id)
   )[0];
 }
+/**
+ * A short reply (“1”, “yes”, “go on”, an option pick) means nothing by itself: the task is what the
+ * conversation was about. Such replies are classified together with the previous user request.
+ */
+export function routingText(text, history = []) {
+  const t = String(text || '').trim();
+  if (t.length > 60 || !history?.length) return t;
+  const previous = [...history].reverse().find(m => m.role === 'user' && m.content?.trim() !== t);
+  return previous ? `${previous.content.trim().slice(0, 4000)}\n\n${t}` : t;
+}
+
 export function routingAdvice(
   text,
   {
@@ -350,9 +361,13 @@ export function routingAdvice(
     override = null,
     feedback = {},
     random = null,
+    history = [],
   } = {}
 ) {
-  const task = applyOverride(classifyTask(text, hasFiles, {hasImages, executionMode}), override);
+  const task = applyOverride(
+    classifyTask(routingText(text, history), hasFiles, {hasImages, executionMode}),
+    override
+  );
   const scoped = selection.startsWith('agent-auto:')
     ? models.filter(m => m.provider === selection.slice(11))
     : models;

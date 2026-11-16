@@ -25,3 +25,15 @@ assert.deepEqual(reactionSignals('То, что ты сделал раньше, �
   {messageId: 'a2', signal: -1, regression: true},
 ]);
 console.log('Answer reactions: moving on is success, corrections and later regressions take points away.');
+
+import {routingText} from '../src/agent-catalog.js';
+{
+  const history = [
+    {role: 'user', content: 'Посмотри задачи в Jira и давай их пофиксим'},
+    {role: 'assistant', content: 'Выберите вариант: 1 или 2'},
+  ];
+  assert.equal(routingText('1', history), 'Посмотри задачи в Jira и давай их пофиксим\n\n1');
+  assert.equal(routingText('1', []), '1');
+  const long = 'x'.repeat(80);
+  assert.equal(routingText(long, history), long);
+}

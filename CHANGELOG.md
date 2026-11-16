@@ -4,6 +4,7 @@ Short history of NEXUS Desktop. The original per-version notes (in Russian) are 
 
 ## Unreleased
 
+- Fix: short replies like “1” or “yes” are routed by the task they answer, so Auto no longer hands a tool task (Jira, fixing code) to local Qwen.
 - Fix: Codex requests to use MCP tools (Atlassian/Jira and others) now show a permission card instead of being refused silently.
 - Chat import no longer brings in Nexus's own agent runs (“You are NEXUS…”, “Original user task:”, Codex context blocks); such chats imported earlier are cleaned up when the import dialog opens.
 

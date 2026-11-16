@@ -18,7 +18,13 @@ import {ParticlePersona} from './particle-persona.jsx';
 import {ThinkingLightning} from './thinking-lightning.jsx';
 import {SceneBackdrop} from './scene-backdrop.jsx';
 import {reactionSignals} from './answer-reaction.js';
-import {routingAdvice, classifyTask, pendingRequestMatches, arbiterCandidates} from './agent-catalog.js';
+import {
+  routingAdvice,
+  routingText,
+  classifyTask,
+  pendingRequestMatches,
+  arbiterCandidates,
+} from './agent-catalog.js';
 import {PermissionCard} from './permission-card.jsx';
 import {ProjectNavigation} from './project-navigation.jsx';
 import {useChatScroll} from './use-chat-scroll.js';
@@ -256,6 +262,7 @@ function App() {
     reasoningMode,
     selection: modelChoice,
     quotaLeft: quotaLeftByProvider(accounts, quotaReports, statuslineReports),
+    history: chatMessages,
   };
   const routePreview = routingAdvice(chatDraft, routeOptions);
   const activeChatRow = chats.find(c => c.id === activeChat);
@@ -1263,7 +1270,7 @@ function App() {
       if (candidates.length >= 2) {
         setChatTrace(loc('Подбираю модель: уточняю тип задачи и сравниваю {0} варианта', candidates.length));
         const verdict = await invoke('route_arbiter', {
-          text: input,
+          text: routingText(input, chatMessages),
           candidates: candidates.map(c => ({summary: c.summary})),
           accountId: roomiestAccount(accounts, quotaReports, statuslineReports),
         }).catch(() => null);
