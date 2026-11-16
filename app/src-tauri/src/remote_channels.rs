@@ -34,6 +34,8 @@ pub struct Incoming {
     pub display: String,
     pub dedupe: Option<String>,
     pub follow_up: bool,
+    /// Telegram callback query ID when the message is a tap on an inline button.
+    pub callback: String,
 }
 
 #[derive(Clone, Serialize, Deserialize, Default, Debug)]
@@ -110,6 +112,10 @@ struct Active {
     stage: String,
     last_sent: Option<Instant>,
     sent: u32,
+    /// Telegram private chats: the live draft of the answer (Bot API sendMessageDraft).
+    draft_id: i64,
+    draft_at: Option<Instant>,
+    draft_len: usize,
 }
 struct PendingPermission {
     chat: String,
@@ -340,6 +346,17 @@ pub fn parse(text: &str) -> Cmd {
     if ["нет", "no", "/нет", "/no"].contains(&lower.as_str()) {
         return Cmd::Deny(String::new());
     }
+    match t {
+        "📊 Статус" => return Cmd::Status,
+        "📁 Проекты" => return Cmd::Projects,
+        "🤖 Агент" => return Cmd::Agent(String::new()),
+        "⚙️ Режим" => return Cmd::Mode("?".into()),
+        "🆕 Новый чат" => return Cmd::New,
+        "❓ Помощь" => return Cmd::Help,
+        "⏹ Стоп" => return Cmd::Stop,
+        "▶️ Продолжить" => return Cmd::Continue,
+        _ => {}
+    }
     if !t.starts_with('/') {
         return Cmd::Task(t.into());
     }
@@ -350,7 +367,7 @@ pub fn parse(text: &str) -> Cmd {
     let head = head.split('@').next().unwrap_or(head).to_lowercase();
     let arg = rest.to_string();
     match head.as_str() {
-        "/help" | "/start" | "/помощь" | "/команды" => Cmd::Help,
+        "/help" | "/start" | "/menu" | "/меню" | "/помощь" | "/команды" => Cmd::Help,
         "/status" | "/статус" | "/tasks" | "/задачи" => Cmd::Status,
         "/projects" | "/проекты" => Cmd::Projects,
         "/project" | "/проект" => {
@@ -361,7 +378,11 @@ pub fn parse(text: &str) -> Cmd {
             }
         }
         "/agent" | "/model" | "/агент" | "/модель" => Cmd::Agent(arg),
-        "/mode" | "/режим" => Cmd::Mode(arg.to_lowercase()),
+        "/mode" | "/режим" => Cmd::Mode(if arg.is_empty() {
+            "?".into()
+        } else {
+            arg.to_lowercase()
+        }),
         "/discuss" | "/обсуждение" => Cmd::Mode("discuss".into()),
         "/execute" | "/run" | "/выполнение" | "/выполнить" => Cmd::Mode("execute".into()),
         "/new" | "/новый" | "/reset" => Cmd::New,
@@ -380,7 +401,7 @@ pub fn parse(text: &str) -> Cmd {
     }
 }
 pub fn help(cfg: &Config) -> String {
-    let mut s=String::from("Nexus принимает задачи из этого чата.\n\nПросто напишите задачу — агент ответит здесь, а чат появится в Nexus.\n\n/status — задачи проекта и текущий этап\n/stop — остановить текущую задачу\n/continue — дописать остановленный ответ\n/projects, /project <номер|имя> — выбрать проект\n/agent [auto|модель] — выбрать агента\n/mode discuss|execute — обсуждение или выполнение\n/new — следующая задача в новом чате\n/allow КОД, /deny КОД — ответ на запрос разрешения агента");
+    let mut s=String::from("Nexus принимает задачи из этого чата.\n\nПросто напишите задачу — агент ответит здесь, а чат появится в Nexus. В Telegram действия доступны кнопками под полем ввода и в меню «/».\n\n/status — задачи проекта и текущий этап\n/stop — остановить текущую задачу\n/continue — дописать остановленный ответ\n/projects, /project <номер|имя> — выбрать проект\n/agent [auto|модель] — выбрать агента\n/mode discuss|execute — обсуждение или выполнение\n/new — следующая задача в новом чате\n/allow КОД, /deny КОД — ответ на запрос разрешения агента");
     if !cfg.allow_execute {
         s.push_str("\n\nРежим «Выполнение» для этого канала выключен в настройках Nexus.")
     }
@@ -506,6 +527,32 @@ async fn say(app: &tauri::AppHandle, cfg: &Config, reply: &Reply, text: &str) {
         }
     }
 }
+async fn say_buttons(
+    app: &tauri::AppHandle,
+    cfg: &Config,
+    reply: &Reply,
+    text: &str,
+    buttons: adapters::Buttons,
+    menu: bool,
+) {
+    if cfg.kind != "telegram" {
+        return say(app, cfg, reply, text).await;
+    }
+    let secret = match secret(&cfg.kind) {
+        Ok(s) => s,
+        Err(e) => return set_status(app, &cfg.kind, "error", &e),
+    };
+    match adapters::send_buttons(cfg, &secret, reply, text, &buttons, menu).await {
+        Ok(()) => log(app, &cfg.kind, "out", text.lines().next().unwrap_or("")),
+        Err(e) => {
+            log(app, &cfg.kind, "error", &format!("Не отправлено: {e}"));
+            set_status(app, &cfg.kind, "error", &e)
+        }
+    }
+}
+fn button(label: impl Into<String>, data: impl Into<String>) -> (String, String) {
+    (label.into(), data.into())
+}
 fn active_for(key: &str) -> Option<(String, String, String, String)> {
     ACTIVE
         .lock()
@@ -629,8 +676,24 @@ pub(crate) async fn handle(app: tauri::AppHandle, cfg: Config, m: Incoming) {
         cmd = Cmd::Task(m.text.trim().into())
     }
     match cmd {
-        Cmd::Help => say(&app, &cfg, &reply, &help(&cfg)).await,
+        Cmd::Help => say_buttons(&app, &cfg, &reply, &help(&cfg), vec![], true).await,
         Cmd::Projects => {
+            let current = resolve_project(&db, &conv, &cfg).map(|x| x.0);
+            let buttons: adapters::Buttons = db
+                .projects
+                .iter()
+                .filter(|p| p.id != "nexus-system")
+                .take(30)
+                .enumerate()
+                .map(|(i, p)| {
+                    let mark = if Some(&p.id) == current.as_ref() {
+                        "✓ "
+                    } else {
+                        ""
+                    };
+                    vec![button(format!("{mark}{}", p.name), format!("/project {}", i + 1))]
+                })
+                .collect();
             let rows: Vec<String> = db
                 .projects
                 .iter()
@@ -649,7 +712,7 @@ pub(crate) async fn handle(app: tauri::AppHandle, cfg: Config, m: Incoming) {
                     )
                 })
                 .collect();
-            say(
+            say_buttons(
                 &app,
                 &cfg,
                 &reply,
@@ -658,6 +721,8 @@ pub(crate) async fn handle(app: tauri::AppHandle, cfg: Config, m: Incoming) {
                 } else {
                     format!("Проекты:\n{}\n\n/project <номер или имя>", rows.join("\n"))
                 },
+                buttons,
+                false,
             )
             .await
         }
@@ -716,7 +781,23 @@ pub(crate) async fn handle(app: tauri::AppHandle, cfg: Config, m: Incoming) {
                     .take(25)
                     .map(|c| format!("• {} — /agent {}", c.label, c.id))
                     .collect();
-                say(
+                let current = conv.model.clone();
+                let mut buttons: adapters::Buttons = vec![vec![button(
+                    if current == "auto" || current.is_empty() {
+                        "✓ Авто"
+                    } else {
+                        "Авто"
+                    },
+                    "/agent auto",
+                )]];
+                // Callback data is limited to 64 bytes; longer model IDs keep their text command.
+                buttons.extend(models.iter().take(25).filter(|c| c.id.len() <= 56).map(|c| {
+                    vec![button(
+                        format!("{}{}", if c.id == current { "✓ " } else { "" }, c.label),
+                        format!("/agent {}", c.id),
+                    )]
+                }));
+                say_buttons(
                     &app,
                     &cfg,
                     &reply,
@@ -733,6 +814,8 @@ pub(crate) async fn handle(app: tauri::AppHandle, cfg: Config, m: Incoming) {
                             rows.join("\n")
                         }
                     ),
+                    buttons,
+                    false,
                 )
                 .await;
                 return;
@@ -774,6 +857,49 @@ pub(crate) async fn handle(app: tauri::AppHandle, cfg: Config, m: Incoming) {
             }
         }
         Cmd::Mode(arg) => {
+            if arg == "?" {
+                let now = if conv.mode == "execute" {
+                    "execute"
+                } else {
+                    "discuss"
+                };
+                let mut buttons = vec![vec![button(
+                    if now == "discuss" {
+                        "✓ Обсуждение"
+                    } else {
+                        "Обсуждение"
+                    },
+                    "/mode discuss",
+                )]];
+                if cfg.allow_execute {
+                    buttons.push(vec![button(
+                        if now == "execute" {
+                            "✓ Выполнение"
+                        } else {
+                            "Выполнение"
+                        },
+                        "/mode execute",
+                    )]);
+                }
+                say_buttons(
+                    &app,
+                    &cfg,
+                    &reply,
+                    &format!(
+                        "Режим сейчас: {}.\n\n/mode discuss — обсуждение\n/mode execute — выполнение{}",
+                        mode_label(now),
+                        if cfg.allow_execute {
+                            ""
+                        } else {
+                            " (выключено в настройках канала)"
+                        }
+                    ),
+                    buttons,
+                    false,
+                )
+                .await;
+                return;
+            }
             let mode = match arg.as_str() {
                 "execute" | "выполнение" | "run" => "execute",
                 "discuss" | "обсуждение" | "" => "discuss",
@@ -1074,6 +1200,15 @@ async fn start(
                 stage: String::new(),
                 last_sent: None,
                 sent: 0,
+                draft_id: if cfg.kind == "telegram"
+                    && conv.reply.to.parse::<i64>().map(|c| c > 0).unwrap_or(false)
+                {
+                    (now_secs() as i64 % 1_000_000_000).max(1)
+                } else {
+                    0
+                },
+                draft_at: None,
+                draft_len: 0,
             },
         );
     }
@@ -1150,6 +1285,65 @@ async fn start(
     });
 }
 
+/// Streams the answer into a Telegram draft bubble (private chats), at most every 0.8 s.
+fn on_text(app: &tauri::AppHandle, payload: &str) {
+    let Ok(v) = serde_json::from_str::<serde_json::Value>(payload) else {
+        return;
+    };
+    let (Some(chat), Some(text)) = (v["chatId"].as_str(), v["text"].as_str()) else {
+        return;
+    };
+    let job = {
+        let mut a = ACTIVE.lock().unwrap_or_else(|e| e.into_inner());
+        let Some(run) = a.get_mut(chat) else { return };
+        let len = text.chars().count();
+        if run.draft_id == 0 || len == run.draft_len || text.trim().is_empty() {
+            return;
+        }
+        if run.draft_at.is_some_and(|t| t.elapsed().as_millis() < 800) {
+            return;
+        }
+        run.draft_at = Some(Instant::now());
+        run.draft_len = len;
+        Some((run.key.clone(), run.draft_id))
+    };
+    let Some((key, draft_id)) = job else { return };
+    // A draft holds up to 4096 characters: show the latest part of a long answer.
+    let shown: String = if text.chars().count() > 3900 {
+        let tail: String = text
+            .chars()
+            .rev()
+            .take(3890)
+            .collect::<Vec<_>>()
+            .into_iter()
+            .rev()
+            .collect();
+        format!("…{tail}")
+    } else {
+        text.to_string()
+    };
+    let app = app.clone();
+    tauri::async_runtime::spawn(async move {
+        let Ok(token) = secret("telegram") else { return };
+        let Some(reply) = load_store().convs.get(&key).map(|c| c.reply.clone()) else {
+            return;
+        };
+        if let Err(e) = adapters::telegram_draft(&token, &reply.to, draft_id, &shown).await {
+            // Older clients or API errors: stop drafting for this run, the final message still comes.
+            if let Ok(mut a) = ACTIVE.lock() {
+                if let Some(run) = a.values_mut().find(|r| r.draft_id == draft_id) {
+                    run.draft_id = 0;
+                }
+            }
+            log(
+                &app,
+                "telegram",
+                "error",
+                &format!("Черновик ответа не обновлён: {e}"),
+            );
+        }
+    });
+}
 fn on_progress(app: &tauri::AppHandle, payload: &str) {
     let Ok(v) = serde_json::from_str::<serde_json::Value>(payload) else {
         return;
@@ -1232,7 +1426,18 @@ fn on_permission(app: &tauri::AppHandle, payload: &str) {
         let Some(reply) = load_store().convs.get(&key).map(|c| c.reply.clone()) else {
             return;
         };
-        say(&app, &cfg, &reply, &text).await;
+        say_buttons(
+            &app,
+            &cfg,
+            &reply,
+            &text,
+            vec![vec![
+                button("✅ Разрешить", format!("/allow {code}")),
+                button("⛔ Запретить", format!("/deny {code}")),
+            ]],
+            false,
+        )
+        .await;
     });
 }
 fn on_question(app: &tauri::AppHandle, payload: &str) {
@@ -1368,6 +1573,8 @@ pub fn start_bridge(app: &tauri::AppHandle) {
             }
         }
     });
+    let a = app.clone();
+    app.listen_any("chat-text", move |e| on_text(&a, e.payload()));
     let a = app.clone();
     app.listen_any("chat-question", move |e| on_question(&a, e.payload()));
     for kind in POLLED {
@@ -1718,6 +1925,10 @@ mod tests {
         assert_eq!(parse("/project 2"), Cmd::Project("2".into()));
         assert_eq!(parse("/project"), Cmd::Projects);
         assert_eq!(parse("/mode Execute"), Cmd::Mode("execute".into()));
+        assert_eq!(parse("/mode"), Cmd::Mode("?".into()));
+        assert_eq!(parse("⚙️ Режим"), Cmd::Mode("?".into()));
+        assert_eq!(parse("📊 Статус"), Cmd::Status);
+        assert_eq!(parse("/menu"), Cmd::Help);
         assert_eq!(
             parse("Почини тест\nв модуле"),
             Cmd::Task("Почини тест\nв модуле".into())

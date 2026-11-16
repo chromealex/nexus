@@ -4,6 +4,7 @@ Short history of NEXUS Desktop. The original per-version notes (in Russian) are 
 
 ## Unreleased
 
+- Telegram: answers appear live while being written (private chats), and the bot has a button menu — keyboard for the main actions, buttons to pick a project, agent and mode and to allow or deny agent requests.
 - The projects sidebar slides in and out; tree branches unfold smoothly.
 - Downloads and checks in “Agents and connections” stay visible after leaving their page or closing the dialog, with progress and a way back.
 

@@ -98,6 +98,7 @@ A short list of the rules in force. The full history of decisions and earlier wo
 - A channel cannot be turned on without a list of allowed senders. When it is turned on, old messages are skipped.
 - A remote `/allow` is always one-time. Codes are random (`random_code`). An answer without a code is accepted only where the sender cannot be forged (`bare_answer_allowed`).
 - Email: `dmarc=pass`, or `dkim=pass` with a signing domain matching the sender's domain (`mail_authenticated`).
+- Telegram: the bot sets its “/” menu (`setMyCommands`) and `/start`/`/menu`/`/help` attach a persistent keyboard (`TELEGRAM_MENU`, labels mapped back to commands in `parse`); project, agent and mode lists and permission requests carry inline buttons whose callback data is the same text command (callback queries go through the same allow-list as messages). In private chats the answer streams into a draft bubble (Bot API 9.5 `sendMessageDraft`, from `chat-text`, at most every 0.8 s, tail of long answers); the final message is sent as before, and any draft error turns drafting off for that run.
 - Local API: off by default, 127.0.0.1; from the network only “Discussion”. No unauthenticated routes except `/health`.
 
 ## Motion

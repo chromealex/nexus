@@ -226,6 +226,33 @@ pub fn parse_telegram(v: &Value) -> (Vec<Incoming>, Option<i64>) {
             continue;
         };
         max = Some(max.map_or(id, |m: i64| m.max(id)));
+        // A tap on an inline button arrives as a callback query; its data is the command it stands for.
+        let q = &u["callback_query"];
+        if let (Some(data), Some(from), Some(chat)) = (
+            q["data"].as_str(),
+            q["from"]["id"].as_i64(),
+            q["message"]["chat"]["id"].as_i64(),
+        ) {
+            if q["from"]["is_bot"] != true {
+                rows.push(Incoming {
+                    conv: chat.to_string(),
+                    sender: from.to_string(),
+                    text: data.into(),
+                    reply: Reply {
+                        to: chat.to_string(),
+                        thread: String::new(),
+                        subject: String::new(),
+                    },
+                    display: q["from"]["username"]
+                        .as_str()
+                        .map(|s| format!("@{s}"))
+                        .unwrap_or_default(),
+                    callback: q["id"].as_str().unwrap_or_default().into(),
+                    ..Default::default()
+                });
+            }
+            continue;
+        }
         let m = &u["message"];
         let (Some(text), Some(from), Some(chat)) = (
             m["text"].as_str(),
@@ -260,7 +287,7 @@ async fn telegram_poll(token: &str, cursor: Option<&str>) -> Result<(Vec<Incomin
         return Err("Некорректный токен Telegram-бота".into());
     }
     let init = cursor.is_none();
-    let url=format!("https://api.telegram.org/bot{token}/getUpdates?timeout={}&offset={}&allowed_updates=%5B%22message%22%5D",if init{0}else{25},cursor.unwrap_or("-1"));
+    let url=format!("https://api.telegram.org/bot{token}/getUpdates?timeout={}&offset={}&allowed_updates=%5B%22message%22%2C%22callback_query%22%5D",if init{0}else{25},cursor.unwrap_or("-1"));
     let v = http("GET", &url, None, None, 40).await?;
     if v["ok"] != true {
         return Err(format!(
@@ -269,20 +296,118 @@ async fn telegram_poll(token: &str, cursor: Option<&str>) -> Result<(Vec<Incomin
         ));
     }
     let (rows, max) = parse_telegram(&v);
+    for r in rows.iter().filter(|r| !r.callback.is_empty()) {
+        let (token, id) = (token.to_string(), r.callback.clone());
+        tauri::async_runtime::spawn(async move {
+            let _ = http(
+                "POST",
+                &format!("https://api.telegram.org/bot{token}/answerCallbackQuery"),
+                None,
+                Some(&json!({"callback_query_id": id})),
+                15,
+            )
+            .await;
+        });
+    }
+    if init {
+        // The bot's “/” menu and the menu button list the same commands as the keyboard.
+        let _ = http(
+            "POST",
+            &format!("https://api.telegram.org/bot{token}/setMyCommands"),
+            None,
+            Some(&json!({"commands": TELEGRAM_COMMANDS
+                .iter()
+                .map(|(c, d)| json!({"command": c, "description": d}))
+                .collect::<Vec<_>>()})),
+            15,
+        )
+        .await;
+    }
     let next = max
         .map(|m| (m + 1).to_string())
         .unwrap_or_else(|| cursor.unwrap_or("0").to_string());
     Ok((if init { vec![] } else { rows }, next))
 }
+pub const TELEGRAM_COMMANDS: &[(&str, &str)] = &[
+    ("menu", "Меню с кнопками"),
+    ("status", "Задачи проекта и текущий этап"),
+    ("projects", "Выбрать проект"),
+    ("agent", "Выбрать агента"),
+    ("mode", "Обсуждение или выполнение"),
+    ("new", "Следующая задача в новом чате"),
+    ("stop", "Остановить текущую задачу"),
+    ("continue", "Дописать остановленный ответ"),
+    ("help", "Как работать с ботом"),
+];
+/// The persistent keyboard under the input field: its labels are mapped back to commands by `parse`.
+pub const TELEGRAM_MENU: &[&[&str]] = &[
+    &["📊 Статус", "📁 Проекты", "🤖 Агент"],
+    &["⚙️ Режим", "🆕 Новый чат", "❓ Помощь"],
+    &["⏹ Стоп", "▶️ Продолжить"],
+];
+/// Buttons on a message: rows of (label, command sent back when tapped).
+pub type Buttons = Vec<Vec<(String, String)>>;
+fn telegram_markup(buttons: &Buttons, menu: bool) -> Option<Value> {
+    if !buttons.is_empty() {
+        Some(json!({"inline_keyboard": buttons
+            .iter()
+            .map(|row| row
+                .iter()
+                .map(|(label, data)| json!({"text": label, "callback_data": data.chars().take(60).collect::<String>()}))
+                .collect::<Vec<_>>())
+            .collect::<Vec<_>>()}))
+    } else if menu {
+        Some(json!({"keyboard": TELEGRAM_MENU
+            .iter()
+            .map(|row| row.iter().map(|l| json!({"text": l})).collect::<Vec<_>>())
+            .collect::<Vec<_>>(),
+            "resize_keyboard": true, "is_persistent": true,
+            "input_field_placeholder": "Опишите задачу или выберите действие"}))
+    } else {
+        None
+    }
+}
+/// Bot API 9.5: shows a live draft bubble in a private chat while the answer is being written.
+/// The same `draft_id` updates the same bubble; it disappears when the final message is sent.
+pub async fn telegram_draft(token: &str, chat: &str, draft_id: i64, text: &str) -> Result<(), String> {
+    if !safe_token(token) || !chat.parse::<i64>().map(|c| c > 0).unwrap_or(false) || draft_id == 0 {
+        return Err("Черновик доступен только в личном чате".into());
+    }
+    let v = http(
+        "POST",
+        &format!("https://api.telegram.org/bot{token}/sendMessageDraft"),
+        None,
+        Some(&json!({"chat_id": chat, "draft_id": draft_id, "text": text})),
+        15,
+    )
+    .await?;
+    if v["ok"] == true {
+        Ok(())
+    } else {
+        Err(v["description"].as_str().unwrap_or("черновик не обновлён").into())
+    }
+}
 async fn telegram_send(token: &str, reply: &Reply, text: &str) -> Result<(), String> {
+    telegram_send_with(token, reply, text, None).await
+}
+async fn telegram_send_with(
+    token: &str,
+    reply: &Reply,
+    text: &str,
+    markup: Option<Value>,
+) -> Result<(), String> {
     if !safe_token(token) {
         return Err("Некорректный токен Telegram-бота".into());
+    }
+    let mut body = json!({"chat_id":reply.to,"text":text,"disable_web_page_preview":true});
+    if let Some(m) = markup {
+        body["reply_markup"] = m;
     }
     let v = http(
         "POST",
         &format!("https://api.telegram.org/bot{token}/sendMessage"),
         None,
-        Some(&json!({"chat_id":reply.to,"text":text,"disable_web_page_preview":true})),
+        Some(&body),
         30,
     )
     .await?;
@@ -1295,6 +1420,7 @@ pub fn parse_github_issues(v: &Value, since: &str) -> Vec<Incoming> {
                     display: format!("#{n}"),
                     dedupe: Some(format!("issue-{n}")),
                     follow_up: false,
+                    callback: String::new(),
                 },
             ))
         })
@@ -1337,6 +1463,7 @@ pub fn parse_github_comments(v: &Value, after: u64) -> (Vec<Incoming>, u64) {
                 display: format!("#{n}"),
                 dedupe: None,
                 follow_up: true,
+                callback: String::new(),
             },
         ));
     }
@@ -1453,6 +1580,7 @@ pub fn parse_linear(d: &Value, cur: &mut IssueCursor) -> Vec<Incoming> {
                 display: ident.into(),
                 dedupe: Some(format!("issue-{id}")),
                 follow_up: false,
+                callback: String::new(),
             },
         ));
     }
@@ -1491,6 +1619,7 @@ pub fn parse_linear(d: &Value, cur: &mut IssueCursor) -> Vec<Incoming> {
                 display: ident.into(),
                 dedupe: None,
                 follow_up: true,
+                callback: String::new(),
             },
         ));
     }
@@ -1614,6 +1743,31 @@ pub async fn poll(cfg: &Config, secret: &str, cursor: Option<&str>) -> Result<Po
         }
         _ => return Err("Неизвестный канал".into()),
     })
+}
+/// Like `send`, but in Telegram the last part carries inline buttons (or, with `menu`, the persistent
+/// keyboard). Other channels get the plain text, which always names the matching commands.
+pub async fn send_buttons(
+    cfg: &Config,
+    secret: &str,
+    reply: &Reply,
+    text: &str,
+    buttons: &Buttons,
+    menu: bool,
+) -> Result<(), String> {
+    if cfg.kind != "telegram" {
+        return send(cfg, secret, reply, text).await;
+    }
+    let parts = split(text, chunk_limit("telegram"));
+    let last = parts.len().saturating_sub(1);
+    for (i, part) in parts.iter().enumerate() {
+        let markup = if i == last {
+            telegram_markup(buttons, menu)
+        } else {
+            None
+        };
+        telegram_send_with(secret, reply, part, markup).await?;
+    }
+    Ok(())
 }
 pub async fn send(cfg: &Config, secret: &str, reply: &Reply, text: &str) -> Result<(), String> {
     match cfg.kind.as_str() {
