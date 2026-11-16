@@ -3,6 +3,7 @@
 Short history of NEXUS Desktop. The original per-version notes (in Russian) are in [docs/history](docs/history).
 
 ## Unreleased
+- Projects can be deleted from their menu (second click confirms); files in the project folder are not touched.
 - Frosted glass on messages, the composer and the projects panel (solid when the system asks for reduced transparency or more contrast).
 - The scene background is drawn in WebGL with sub-level smoothing: no more rings in the dark gradient; blurred mist and rays no longer show as a mosaic.
 - New answering effect: a smooth arc of light with travelling pulses from the persona to the message, and a turning aurora rim with a soft glow around the message being written (replaces the jagged lightning).

@@ -193,6 +193,23 @@ export function ProjectNavigation({
     setFolderName('');
     setExpanded(v => ({...v, ['p' + projectId]: true, ...(parentId ? {['f' + parentId]: true} : {})}));
   }
+  // Removing a project deletes it and its chats from Nexus; files in its working folder stay untouched.
+  async function removeProject(project) {
+    if (confirmRemove !== project.id) {
+      setConfirmRemove(project.id);
+      return;
+    }
+    setMenu(null);
+    setConfirmRemove(null);
+    try {
+      await invoke('remove_project', {projectId: project.id});
+      if (activeProject === project.id) onProject?.('');
+      await onProjects();
+      await refresh();
+    } catch (e) {
+      setError(String(e));
+    }
+  }
   // A folder is only a grouping: removing it moves its chats and subfolders one level up.
   async function removeFolder(folder) {
     if (confirmRemove !== folder.id) {
@@ -421,6 +438,23 @@ export function ProjectNavigation({
               <Settings size={14} />
               {type === 'chat' ? loc('Название и расположение') : loc('Настройки и контекст')}
             </button>
+            {type === 'project' && item.id !== 'nexus-system' && (
+              <>
+                <hr />
+                <button
+                  role="menuitem"
+                  className={confirmRemove === item.id ? 'danger' : undefined}
+                  disabled={busy}
+                  title={loc('Проект и его чаты удалятся из Nexus. Файлы в папке проекта не трогаются.')}
+                  onClick={() => removeProject(item)}
+                >
+                  <Trash2 size={14} />
+                  {confirmRemove === item.id
+                    ? loc('Точно удалить проект и его чаты?')
+                    : loc('Удалить проект')}
+                </button>
+              </>
+            )}
             {type === 'folder' && (
               <>
                 <hr />

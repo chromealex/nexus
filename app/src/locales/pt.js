@@ -1500,4 +1500,8 @@ export default {
   'В ответе указан путь {0} — такого файла нет. Открыт файл с тем же именем.':
     'A resposta cita {0}, que não existe. Foi aberto um arquivo com o mesmo nome.',
   'Ещё с таким именем:': 'Também com este nome:',
+  'Проект и его чаты удалятся из Nexus. Файлы в папке проекта не трогаются.':
+    'O projeto e seus chats são removidos do Nexus. Os arquivos da pasta do projeto não são alterados.',
+  'Точно удалить проект и его чаты?': 'Excluir o projeto e seus chats?',
+  'Удалить проект': 'Excluir projeto',
 };
