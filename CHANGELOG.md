@@ -4,6 +4,7 @@ Short history of NEXUS Desktop. The original per-version notes (in Russian) are 
 
 ## Unreleased
 
+- Answers and the team summary are split into paragraphs: each separate agent message starts a new block instead of running into one wall of text.
 - Permission requests stand out: amber edge and glow while they wait.
 - Fix: “New chat” and the project “+” work while another chat is answering.
 - Separate branch per chat: «Parameters → Working copy → Separate branch (git worktree)» runs the chat's agents in its own `git worktree` (`NEXUS/worktrees/<chat>/<repo>`, branch `nexus/<title>-<id>`), so several chats can change one repository in parallel without touching the main checkout. Untracked local files listed in `.worktreeinclude` (`.env`, certificates…) are copied into each new worktree.

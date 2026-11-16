@@ -62,6 +62,7 @@ pub async fn run(
     });
     let operation = async {
         let mut answer = String::new();
+        let mut last_item = String::new();
         let mut diagnostics = String::new();
         let mut completed = false;
         if provider == "codex" {
@@ -115,6 +116,16 @@ pub async fn run(
                 match v.get("method").and_then(Value::as_str).unwrap_or("") {
                     "item/agentMessage/delta" => {
                         if let Some(delta) = v.pointer("/params/delta").and_then(Value::as_str) {
+                            // Codex sends its progress notes and the answer as separate messages; each
+                            // starts a new paragraph instead of running into one wall of text.
+                            let item = v.pointer("/params/itemId").and_then(Value::as_str).unwrap_or("");
+                            if item != last_item {
+                                if !answer.trim_end().is_empty() && !answer.ends_with("\n\n") {
+                                    answer.truncate(answer.trim_end().len());
+                                    answer.push_str("\n\n");
+                                }
+                                last_item = item.to_string();
+                            }
                             answer.push_str(delta);
                             control.update(&answer);
                             publish(app, chat, &control.text());
@@ -243,6 +254,16 @@ pub async fn run(
                     if super::record_claude_rate_limit(&control.account(), &v["rate_limit_info"]) {
                         let _ = app.emit("claude-limits", json!({"accountId":control.account()}));
                     }
+                }
+                // A new text block (Claude writes between tool calls) starts a new paragraph.
+                if v["type"] == "stream_event"
+                    && v.pointer("/event/type").and_then(Value::as_str) == Some("content_block_start")
+                    && v.pointer("/event/content_block/type").and_then(Value::as_str) == Some("text")
+                    && !answer.trim_end().is_empty()
+                    && !answer.ends_with("\n\n")
+                {
+                    answer.truncate(answer.trim_end().len());
+                    answer.push_str("\n\n");
                 }
                 if v["type"] == "stream_event"
                     && v.pointer("/event/delta/type").and_then(Value::as_str) == Some("text_delta")

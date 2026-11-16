@@ -31,7 +31,7 @@ A short list of the rules in force. The full history of decisions and earlier wo
 - Calm dark style. Shared tokens for dialogs and popups are in `src/dialog-theme.css`; readability and text sizes in `src/ui-polish.css` (loaded last). New dialogs use the shared tokens, no theme of their own.
 - Minimum text size 11px, regular 12px; message text 16px by default (`--chat-font-size`, 13–20). Text colours: `--text-strong/body/muted/faint`.
 - User messages on the right, agent answers on the left; both share one quiet surface (1px border, background ~.9). Message actions appear on hover and focus (always on touch screens) and take no space inside the bubble.
-- One send button, which turns into “Stop” while generating. Received text is never lost; “Continue” appends to the same message. The answer is shown as it streams; details are collapsed.
+- One send button, which turns into “Stop” while generating. Separate agent messages (Codex items, Claude text blocks between tool calls) are joined as separate paragraphs, never run together. Received text is never lost; “Continue” appends to the same message. The answer is shown as it streams; details are collapsed.
 - Scrolling: if the user scrolled up, generation does not pull the view down; a “Jump to latest” button appears.
 - Every dropdown is a `CustomSelect`. Scrollbars are thin, on the right, with a transparent track. No focus ring while typing text, but buttons keep a keyboard focus ring.
 - The navigation tree uses `FadeLabel` instead of `text-overflow: ellipsis`. Chat rows have no chat icon (only a chevron when the chat has sub-chats), so titles get the width. The number next to a project/folder is its active chats (`navigation-counts.js`).
