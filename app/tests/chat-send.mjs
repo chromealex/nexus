@@ -62,6 +62,7 @@ function fixture({chat = '', fail = false} = {}) {
     reactionSignals: () => [],
     quotaLeftByAccount: () => ({}),
     offerMcp: () => {},
+    draftPrefs: {},
     routingText: t => t,
     accounts: [],
     quotaReports: {},

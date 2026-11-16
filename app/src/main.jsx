@@ -237,11 +237,21 @@ function App() {
     invoke('agents')
       .then(setAgents)
       .catch(e => setError(String(e)));
-  const modelChoice = chats.find(c => c.id === activeChat)?.modelChoice || 'auto';
+  // A new chat is a draft until its first message: its model, priority and executors are kept here and
+  // saved to the chat when the message creates it.
+  const [draftPrefs, setDraftPrefs] = useState({});
+  useEffect(() => {
+    if (activeChat) setDraftPrefs({});
+  }, [activeChat]);
+  const modelChoice = activeChat
+    ? chats.find(c => c.id === activeChat)?.modelChoice || 'auto'
+    : draftPrefs.modelChoice || 'auto';
   useEffect(() => {
     setProjectError('');
   }, [activeChat]);
-  const routingPriority = chats.find(c => c.id === activeChat)?.routingPriority || 'balanced';
+  const routingPriority = activeChat
+    ? chats.find(c => c.id === activeChat)?.routingPriority || 'balanced'
+    : draftPrefs.priority || 'balanced';
   // Personal ratings plus, in a project shared with the team, the teammates' ratings from its folder.
   const loadRouteFeedback = () =>
     invoke('route_feedback_stats', {projectId: viewRef.current?.project || activeProject || null})
@@ -267,7 +277,9 @@ function App() {
   };
   const routePreview = routingAdvice(chatDraft, routeOptions);
   const activeChatRow = chats.find(c => c.id === activeChat);
-  const teamMode = activeChatRow?.teamMode || (activeChatRow?.teamEnabled ? 'team' : 'auto');
+  const teamMode = activeChat
+    ? activeChatRow?.teamMode || (activeChatRow?.teamEnabled ? 'team' : 'auto')
+    : draftPrefs.team || 'auto';
   const teamPreview = teamPlan(chatDraft, routeOptions, teamMode);
   const [browserState, setBrowserState] = useState(null),
     [browserBusy, setBrowserBusy] = useState(false),
@@ -350,7 +362,8 @@ function App() {
     }
   }
   async function saveTeamMode(mode) {
-    if (!activeChat || modelSaving || chatSending) return;
+    if (!activeChat) return setDraftPrefs(p => ({...p, team: mode}));
+    if (modelSaving || chatSending) return;
     const chatId = activeChat;
     setModelSaving(true);
     try {
@@ -363,7 +376,8 @@ function App() {
     }
   }
   async function saveModelChoice(value) {
-    if (!activeChat || modelSaving) return;
+    if (!activeChat) return setDraftPrefs(p => ({...p, modelChoice: value}));
+    if (modelSaving) return;
     const chatId = activeChat;
     setModelSaving(true);
     try {
@@ -376,7 +390,8 @@ function App() {
     }
   }
   async function saveRoutingPriority(value) {
-    if (!activeChat || modelSaving || chatSending) return;
+    if (!activeChat) return setDraftPrefs(p => ({...p, priority: value}));
+    if (modelSaving || chatSending) return;
     const chatId = activeChat;
     setModelSaving(true);
     try {
@@ -1262,6 +1277,20 @@ function App() {
         setActiveChat(chatId);
         window.dispatchEvent(new Event('nexus-chat-lifecycle'));
         viewRef.current = {project, chat: chatId};
+        // Settings picked in the draft go to the new chat before the message is sent.
+        const prefs = draftPrefs;
+        try {
+          let row = c;
+          if (prefs.modelChoice)
+            row = await invoke('save_chat_model', {chatId, modelChoice: prefs.modelChoice});
+          if (prefs.priority)
+            row = await invoke('save_chat_routing_priority', {chatId, priority: prefs.priority});
+          if (prefs.team)
+            row = await invoke('save_chat_team', {chatId, enabled: prefs.team === 'team', mode: prefs.team});
+          if (row !== c) setChats(v => v.map(x => (x.id === chatId ? row : x)));
+        } catch (e) {
+          setProjectError(String(e));
+        }
       }
       if (!continueMessageId) {
         setReplyTo(null);
@@ -2595,13 +2624,13 @@ function App() {
                         connections={providerRows}
                         task={classifyTask(chatDraft, draftFiles.length > 0, routeOptions)}
                         reasoningMode={reasoningMode}
-                        disabled={chatSending || modelSaving || !activeChat}
+                        disabled={chatSending || modelSaving || !activeProject}
                         busy={modelsBusy}
                         onRefresh={loadChatModels}
                         onChange={e => saveModelChoice(e.target.value)}
                       />
                       <ComposerParams
-                        disabled={chatSending || !activeChat}
+                        disabled={chatSending || !activeProject}
                         summary={composerParamsSummary({
                           priority: routingPriority,
                           priorityLabel: ROUTING_PRIORITIES[routingPriority],
