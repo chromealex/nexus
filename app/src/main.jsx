@@ -804,7 +804,14 @@ function App() {
     if (!currentChatSending) browserDismissed.current = false;
   }, [currentChatSending]);
   useEffect(() => {
-    if (chatBrowser.activity && currentChatSending && !browserDismissed.current) {
+    // Only when the agent acts on a page (opens a site, clicks, types…). A look at an empty tab or the
+    // tab list is not a reason to slide the panel in over the conversation.
+    const acting =
+      chatBrowser.activity?.asks ||
+      /navigate|click|type|fill|select|press|drag|hover|upload|evaluate/.test(
+        chatBrowser.activity?.tool || ''
+      );
+    if (acting && currentChatSending && !browserDismissed.current) {
       setPanelView('browser');
       setBrowserPaneOpen(true);
     }

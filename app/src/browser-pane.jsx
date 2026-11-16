@@ -56,7 +56,7 @@ export function useChatBrowser({chatId, paneOpen, status, agentBusy}) {
       setFrame(value);
     });
     on('browser-tabs', p => setTabs({...p, saved: true}));
-    on('browser-activity', p => setActivity({text: p.text, asks: p.asks, at: Date.now()}));
+    on('browser-activity', p => setActivity({text: p.text, asks: p.asks, tool: p.tool, at: Date.now()}));
     on('browser-notice', p => notify(String(p.message || ''), {tone: 'warn'}));
     return () => {
       live = false;
