@@ -2,6 +2,11 @@
 
 Short history of NEXUS Desktop. The original per-version notes (in Russian) are in [docs/history](docs/history).
 
+## 0.25.1 — 2026-11-16
+- Fix: the MCP tab was empty; its progress now shows in the activity strip.
+- The browser panel opens only when the agent acts on a page, not when it just looks at an empty tab.
+- Spacing between MCP preset buttons.
+
 ## 0.25.0 — 2026-11-16
 
 - MCP presets for Linear, Notion, Sentry, Supabase, Vercel, Asana and Airtable; when a request mentions a service (or a Jira issue key) that is not connected, Nexus adds its server and offers to connect it in one click.
