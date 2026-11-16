@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   Download,
   ExternalLink,
+  Pencil,
 } from 'lucide-react';
 import {AgentIcon} from './agent-icon.jsx';
 import {useToastOn} from './toaster.jsx';
@@ -87,7 +88,20 @@ export function ConnectionsDialog({
     [confirmRemove, setConfirmRemove] = useState(null),
     [apiLimits, setApiLimits] = useState({}),
     [busyForm, setBusyForm] = useState(null),
-    [channelBusy, setChannelBusy] = useState(null);
+    [channelBusy, setChannelBusy] = useState(null),
+    [renaming, setRenaming] = useState(null);
+  async function renameAccount(id, value) {
+    const next = value.trim();
+    setRenaming(null);
+    if (!next || next === accounts.find(a => a.id === id)?.name) return;
+    try {
+      await invoke('rename_account', {id, name: next});
+      await onRefreshAccounts();
+      await changed();
+    } catch (e) {
+      setError(String(e));
+    }
+  }
   useToastOn(error, () => setError(''), 'error');
   useToastOn(notice, () => setNotice(''), 'info');
   async function loadApiLimits(rows) {
@@ -916,8 +930,36 @@ export function ConnectionsDialog({
                       <div className="catalog-agent-top">
                         <AgentIcon provider={a.provider} />
                         <div>
-                          <h3>
-                            {CATALOG.find(c => c.id === a.provider)?.name || a.provider} · {a.name}
+                          <h3 className="account-title">
+                            {CATALOG.find(c => c.id === a.provider)?.name || a.provider} ·{' '}
+                            {renaming?.id === a.id ? (
+                              <input
+                                className="account-rename"
+                                autoFocus
+                                maxLength={60}
+                                value={renaming.value}
+                                aria-label={loc('Название аккаунта')}
+                                onChange={e => setRenaming({id: a.id, value: e.target.value})}
+                                onBlur={() => renameAccount(a.id, renaming.value)}
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter') renameAccount(a.id, renaming.value);
+                                  if (e.key === 'Escape') {
+                                    e.stopPropagation();
+                                    setRenaming(null);
+                                  }
+                                }}
+                              />
+                            ) : (
+                              <button
+                                type="button"
+                                className="account-name"
+                                title={loc('Переименовать')}
+                                onClick={() => setRenaming({id: a.id, value: a.name})}
+                              >
+                                {a.name}
+                                <Pencil size={12} aria-hidden="true" />
+                              </button>
+                            )}
                           </h3>
                           <span className={ready ? 'connection-ready' : ''}>
                             {

@@ -1528,4 +1528,6 @@ export default {
   'Проверяю подключение…': 'Comprobando la conexión…',
   'Отключаю…': 'Desconectando…',
   'Меняю фоновый режим…': 'Cambiando el modo en segundo plano…',
+  'Название аккаунта': 'Nombre de la cuenta',
+  Переименовать: 'Renombrar',
 };

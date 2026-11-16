@@ -1526,4 +1526,6 @@ export default {
   'Проверяю подключение…': 'Verbindung wird geprüft…',
   'Отключаю…': 'Wird getrennt…',
   'Меняю фоновый режим…': 'Hintergrundmodus wird geändert…',
+  'Название аккаунта': 'Kontoname',
+  Переименовать: 'Umbenennen',
 };

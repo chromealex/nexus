@@ -1531,4 +1531,6 @@ export default {
   'Проверяю подключение…': 'Vérification de la connexion…',
   'Отключаю…': 'Déconnexion…',
   'Меняю фоновый режим…': 'Modification du mode arrière-plan…',
+  'Название аккаунта': 'Nom du compte',
+  Переименовать: 'Renommer',
 };

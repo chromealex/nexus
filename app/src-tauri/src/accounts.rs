@@ -36,6 +36,20 @@ pub(crate) fn save_profiles(items: &[AccountProfile]) -> Result<(), String> {
 pub(crate) fn list_accounts() -> Result<Vec<AccountProfile>, String> {
     load_profiles()
 }
+/// Renames an account profile (the label like “Personal” or “Work”); its ID, sign-in and folder stay.
+#[tauri::command]
+pub(crate) fn rename_account(id: String, name: String) -> Result<AccountProfile, String> {
+    let name = name.trim();
+    if name.is_empty() || name.chars().count() > 60 {
+        return Err("Название должно быть от 1 до 60 символов".into());
+    }
+    let mut items = load_profiles()?;
+    let item = items.iter_mut().find(|a| a.id == id).ok_or("Аккаунт не найден")?;
+    item.name = name.to_string();
+    let out = item.clone();
+    save_profiles(&items)?;
+    Ok(out)
+}
 #[tauri::command]
 pub(crate) fn add_account(provider: String, name: String) -> Result<AccountProfile, String> {
     if !["claude", "codex", "gemini"].contains(&provider.as_str()) {

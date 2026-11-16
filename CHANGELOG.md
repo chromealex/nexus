@@ -2,6 +2,10 @@
 
 Short history of NEXUS Desktop. The original per-version notes (in Russian) are in [docs/history](docs/history).
 
+## Unreleased
+
+- Account names (Personal, Work…) can be renamed: click the name on the account card.
+
 ## 0.24.0 — 2026-11-16
 
 - Telegram: answers appear live while being written (private chats), and the bot has a button menu — keyboard for the main actions, buttons to pick a project, agent and mode and to allow or deny agent requests.

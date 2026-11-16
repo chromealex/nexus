@@ -1520,4 +1520,6 @@ export default {
   'Проверяю подключение…': 'Verificando a conexão…',
   'Отключаю…': 'Desconectando…',
   'Меняю фоновый режим…': 'Alterando o modo em segundo plano…',
+  'Название аккаунта': 'Nome da conta',
+  Переименовать: 'Renomear',
 };

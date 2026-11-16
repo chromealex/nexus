@@ -343,6 +343,7 @@ pub fn run() {
             auto_pick,
             list_accounts,
             add_account,
+            rename_account,
             remove_account,
             account_login,
             auth_status,

@@ -5043,3 +5043,46 @@ details[open] > .activity-list {
     animation: none;
   }
 }
+
+/* Account labels (Personal, Work…) are renamed in place. */
+.account-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.account-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 5px;
+  margin: -1px -5px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: text;
+}
+.account-name > svg {
+  opacity: 0;
+  color: var(--text-muted, #9fb0bd);
+  transition: opacity 0.18s ease;
+}
+.account-name:hover,
+.account-name:focus-visible {
+  background: var(--btn-quiet-bg, rgba(140, 170, 200, 0.12));
+}
+.account-name:hover > svg,
+.account-name:focus-visible > svg {
+  opacity: 1;
+}
+.account-rename {
+  font: inherit;
+  width: 14ch;
+  padding: 1px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--card-edge, rgba(140, 170, 200, 0.3));
+  background: rgba(10, 16, 24, 0.6);
+  color: var(--text-strong, #eef4f8);
+}
