@@ -4,6 +4,8 @@ Short history of NEXUS Desktop. The original per-version notes (in Russian) are 
 
 ## Unreleased
 
+- Permission requests stand out: amber edge and glow while they wait.
+- Fix: “New chat” and the project “+” work while another chat is answering.
 - Custom channels: connect any transport (WebRTC, Matrix, an internal messenger…) as a plugin — an executable that talks line-delimited JSON over stdin/stdout. Protocol: docs/CHANNEL_PLUGINS.md.
 - Fix: “Model” and “Parameters” work again in a new (draft) chat; the choice is applied when the first message creates the chat.
 - Fix: Claude now asks for permission in the chat (Jira and other MCP tools, file writes) instead of being refused silently.
