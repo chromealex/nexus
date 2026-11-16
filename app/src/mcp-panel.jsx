@@ -7,7 +7,7 @@ import {useToastOn} from './toaster.jsx';
 
 // «Агенты и подключения → MCP»: servers like Atlassian (Jira, Confluence) connected once in Nexus and
 // given to every agent. Sign-in opens the provider's own page; tool calls are confirmed in the chat.
-export function McpPanel({onBusy}) {
+export function McpPanel({onBusy, focus = '', onFocused}) {
   const [state, setState] = useState({servers: [], presets: []}),
     [busy, setBusy] = useState(''),
     [stage, setStage] = useState(''),
@@ -31,6 +31,12 @@ export function McpPanel({onBusy}) {
       off?.();
     };
   }, []);
+  // Opened from the chat's “Connect” card: refresh the list (the server was just added) and sign in.
+  useEffect(() => {
+    if (!focus || busy) return;
+    onFocused?.();
+    run(focus, () => invoke('mcp_server_login', {id: focus}), loc('Вход выполнен, агенты получат доступ'));
+  }, [focus]);
   useEffect(() => {
     const server = state.servers.find(s => s.id === busy);
     onBusy?.(busy ? {name: server?.name || 'MCP', label: stage || loc('Выполняется…')} : null);

@@ -4,6 +4,7 @@ Short history of NEXUS Desktop. The original per-version notes (in Russian) are 
 
 ## Unreleased
 
+- MCP presets for Linear, Notion, Sentry, Supabase, Vercel, Asana and Airtable; when a request mentions a service (or a Jira issue key) that is not connected, Nexus adds its server and offers to connect it in one click.
 - MCP servers in “Agents and connections”: connect Atlassian (Jira, Confluence) or any remote MCP server once, sign in through the provider's page, and every agent gets its tools (each call confirmed in the chat).
 - Answer details show what tools returned and when a tool was refused or failed.
 - Fix: short replies like “1” or “yes” are routed by the task they answer, so Auto no longer hands a tool task (Jira, fixing code) to local Qwen.

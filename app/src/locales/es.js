@@ -1545,4 +1545,10 @@ export default {
   'Адрес сервера': 'URL del servidor',
   'Инструмент отклонён или вернул ошибку': 'Herramienta rechazada o con error',
   'Результат инструмента': 'Resultado de la herramienta',
+  'Подключение для задачи': 'Conexión para la tarea',
+  'Для этой задачи может понадобиться подключение': 'Esta tarea puede necesitar una conexión',
+  '{0} пока не подключён к агентам. Без него агент не увидит данные сервиса. Сервер уже добавлен в «Агенты и подключения → MCP» — осталось войти.':
+    '{0} aún no está conectado a los agentes, así que el agente no verá los datos del servicio. El servidor ya está añadido en «Agentes y conexiones → MCP»: solo falta iniciar sesión.',
+  'Не сейчас': 'Ahora no',
+  'Вход выполнен, агенты получат доступ': 'Sesión iniciada: los agentes tendrán acceso',
 };

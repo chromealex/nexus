@@ -91,7 +91,8 @@ export function ConnectionsDialog({
     [busyForm, setBusyForm] = useState(null),
     [channelBusy, setChannelBusy] = useState(null),
     [renaming, setRenaming] = useState(null),
-    [mcpBusy, setMcpBusy] = useState(null);
+    [mcpBusy, setMcpBusy] = useState(null),
+    [mcpFocus, setMcpFocus] = useState('');
   async function renameAccount(id, value) {
     const next = value.trim();
     setRenaming(null);
@@ -193,6 +194,11 @@ export function ConnectionsDialog({
   useEffect(() => {
     if (open && initialProvider && initial.current !== initialProvider) {
       initial.current = initialProvider;
+      if (initialProvider.startsWith('mcp:')) {
+        setForm(null);
+        setTab('mcp');
+        setMcpFocus(initialProvider.slice(4));
+      }
       const item = CATALOG.find(a => a.id === initialProvider);
       if (item) {
         setTab('catalog');

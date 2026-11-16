@@ -142,6 +142,7 @@ function App() {
     [providerRows, setProviderRows] = useState([]),
     [connectionTarget, setConnectionTarget] = useState(null),
     [routeOffer, setRouteOffer] = useState(null),
+    [mcpOffer, setMcpOffer] = useState(null),
     [executionMode, setExecutionMode] = useState('execute');
   const routeApproval = useRef(null);
   const [planOpen, setPlanOpen] = useState(false),
@@ -1161,9 +1162,29 @@ function App() {
     }
     return sendChat(override, continueMessageId);
   }
+  // A request that mentions Jira, Linear, Notion… whose MCP server is not connected yet: the server is
+  // added to “Agents and connections → MCP” (not signed in) and a card offers to connect it.
+  async function offerMcp(text, chatId) {
+    const ids = suggestMcp(text, []);
+    if (!ids.length) return;
+    try {
+      const state = await invoke('mcp_servers');
+      const missing = suggestMcp(text, state.servers);
+      if (!missing.length) return;
+      for (const id of missing)
+        if (!state.servers.some(s => s.id === id)) {
+          const preset = state.presets.find(p => p.id === id);
+          if (preset) await invoke('mcp_server_save', {id, name: preset.name, url: preset.url});
+        }
+      const names = missing.map(id => state.presets.find(p => p.id === id)?.name || id);
+      setMcpOffer({chatId, ids: missing, names});
+    } catch {}
+  }
+
   async function sendChat(override, continueMessageId, regenerateAnswer = false) {
     const input = typeof override === 'string' ? override : chatDraft;
     if (modelSaving) return;
+    if (!continueMessageId) offerMcp(routingText(input, chatMessages), activeChat);
     const resolved = routingAdvice(input, {
       ...routeOptions,
       selection: routeApproval.current?.text === input ? routeApproval.current.choice : modelChoice,
@@ -2413,6 +2434,29 @@ function App() {
                     onSubmit={answerQuestion}
                     onCancel={() => answerQuestion({})}
                   />
+                )}
+                {mcpOffer?.chatId === activeChat && (
+                  <section className="routing-offer" aria-label={loc('Подключение для задачи')}>
+                    <strong>{loc('Для этой задачи может понадобиться подключение')}</strong>
+                    <p>
+                      {loc(
+                        '{0} пока не подключён к агентам. Без него агент не увидит данные сервиса. Сервер уже добавлен в «Агенты и подключения → MCP» — осталось войти.',
+                        mcpOffer.names.join(', ')
+                      )}
+                    </p>
+                    <div>
+                      <button
+                        onClick={() => {
+                          setConnectionTarget('mcp:' + mcpOffer.ids[0]);
+                          setOpen(true);
+                          setMcpOffer(null);
+                        }}
+                      >
+                        {loc('Подключить')}
+                      </button>
+                      <button onClick={() => setMcpOffer(null)}>{loc('Не сейчас')}</button>
+                    </div>
+                  </section>
                 )}
                 {routeOffer?.projectId === activeProject && routeOffer?.chatId === activeChat && (
                   <section className="routing-offer" aria-label={loc('Выбор агента для задачи')}>

@@ -1537,4 +1537,10 @@ export default {
   'Адрес сервера': 'URL do servidor',
   'Инструмент отклонён или вернул ошибку': 'Ferramenta recusada ou com erro',
   'Результат инструмента': 'Resultado da ferramenta',
+  'Подключение для задачи': 'Conexão para a tarefa',
+  'Для этой задачи может понадобиться подключение': 'Esta tarefa pode precisar de uma conexão',
+  '{0} пока не подключён к агентам. Без него агент не увидит данные сервиса. Сервер уже добавлен в «Агенты и подключения → MCP» — осталось войти.':
+    '{0} ainda não está conectado aos agentes, então o agente não verá os dados do serviço. O servidor já foi adicionado em «Agentes e conexões → MCP» — falta só entrar.',
+  'Не сейчас': 'Agora não',
+  'Вход выполнен, агенты получат доступ': 'Login feito — os agentes terão acesso',
 };

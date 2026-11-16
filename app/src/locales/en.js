@@ -1530,4 +1530,10 @@ export default {
   'Адрес сервера': 'Server URL',
   'Инструмент отклонён или вернул ошибку': 'Tool refused or returned an error',
   'Результат инструмента': 'Tool result',
+  'Подключение для задачи': 'Connection for the task',
+  'Для этой задачи может понадобиться подключение': 'This task may need a connection',
+  '{0} пока не подключён к агентам. Без него агент не увидит данные сервиса. Сервер уже добавлен в «Агенты и подключения → MCP» — осталось войти.':
+    '{0} is not connected to agents yet, so the agent cannot see that service’s data. The server is already added in “Agents and connections → MCP” — just sign in.',
+  'Не сейчас': 'Not now',
+  'Вход выполнен, агенты получат доступ': 'Signed in — agents now get access',
 };

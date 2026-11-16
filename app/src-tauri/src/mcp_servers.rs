@@ -35,11 +35,22 @@ impl Default for McpServer {
 }
 
 /// Ready-made official servers offered with one click.
-pub const PRESETS: &[(&str, &str, &str)] = &[(
-    "atlassian",
-    "Atlassian (Jira, Confluence)",
-    "https://mcp.atlassian.com/v1/mcp/authv2",
-)];
+/// Ready-made official servers (vendor-hosted, OAuth sign-in). Nexus also suggests them when a request
+/// mentions the service (`mcp-suggest.js`).
+pub const PRESETS: &[(&str, &str, &str)] = &[
+    (
+        "atlassian",
+        "Atlassian (Jira, Confluence)",
+        "https://mcp.atlassian.com/v1/mcp/authv2",
+    ),
+    ("linear", "Linear", "https://mcp.linear.app/mcp"),
+    ("notion", "Notion", "https://mcp.notion.com/mcp"),
+    ("sentry", "Sentry", "https://mcp.sentry.dev/mcp"),
+    ("supabase", "Supabase", "https://mcp.supabase.com/mcp"),
+    ("vercel", "Vercel", "https://mcp.vercel.com"),
+    ("asana", "Asana", "https://mcp.asana.com/sse"),
+    ("airtable", "Airtable", "https://mcp.airtable.com/mcp"),
+];
 
 fn data() -> PathBuf {
     home().join("Library/Application Support/NEXUS")
@@ -353,6 +364,7 @@ mod tests {
         assert!(!valid_url("https://user:pw@example.com/mcp"));
         assert!(!valid_url("https://example.com/a b"));
         assert!(valid_id("atlassian"));
+        assert!(PRESETS.iter().all(|(id, _, url)| valid_id(id) && valid_url(url)));
         assert!(!valid_id("Atlassian"));
         assert!(!valid_id("a/b"));
         assert!(!valid_id(super::super::browser_tools::SERVER));
