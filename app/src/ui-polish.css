@@ -5148,3 +5148,11 @@ details[open] > .activity-list {
 .mcp-form {
   max-width: 520px;
 }
+.mcp-panel .connection-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.mcp-panel .channel-group {
+  margin: 8px 0 0;
+}
