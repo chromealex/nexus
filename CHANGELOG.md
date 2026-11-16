@@ -2,7 +2,7 @@
 
 Short history of NEXUS Desktop. The original per-version notes (in Russian) are in [docs/history](docs/history).
 
-## Unreleased
+## 0.25.0 — 2026-11-16
 
 - MCP presets for Linear, Notion, Sentry, Supabase, Vercel, Asana and Airtable; when a request mentions a service (or a Jira issue key) that is not connected, Nexus adds its server and offers to connect it in one click.
 - MCP servers in “Agents and connections”: connect Atlassian (Jira, Confluence) or any remote MCP server once, sign in through the provider's page, and every agent gets its tools (each call confirmed in the chat).
