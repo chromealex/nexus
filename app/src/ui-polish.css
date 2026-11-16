@@ -5086,3 +5086,10 @@ details[open] > .activity-list {
   background: rgba(10, 16, 24, 0.6);
   color: var(--text-strong, #eef4f8);
 }
+
+/* Buttons that sit on their own line in an account card keep a gap from the action row above. */
+.connection-account > button,
+.connection-account > .quota-view + button {
+  margin-top: 8px;
+  justify-self: start;
+}
