@@ -2363,165 +2363,175 @@ function App() {
                                 <span>{dayLabel(m.createdAt)}</span>
                               </div>
                             )}
-                          <article
-                            className={
-                              'chat-bubble ' +
-                              m.role +
-                              (m.id === continuingId &&
-                              currentChatSending &&
-                              continuingMode === 'regenerate' &&
-                              !streamText
-                                ? ' is-regenerating'
-                                : '')
-                            }
-                            data-message-id={m.id}
-                            data-thinking-target={
-                              currentChatSending && m.id === continuingId ? 'true' : undefined
-                            }
-                          >
-                            <div className="chat-role">
-                              {m.role === 'user' ? 'You' : m.role === 'assistant' ? 'NEXUS' : 'System'}
-                            </div>
-                            {m.role === 'system' ? (
-                              <details className="response-details">
-                                <summary>{loc('Технические детали')}</summary>
-                                <pre>{m.content}</pre>
-                              </details>
-                            ) : editing === m.id ? (
-                              <MessageEditor
-                                message={m}
-                                busy={chatSending}
-                                onCancel={() => setEditing(null)}
-                                onSave={text => saveEdit(m, text)}
-                              />
-                            ) : (
-                              <CollapsibleMessage long={m.role === 'user' && isLongMessage(m.content)}>
-                                <div className="chat-markdown">
-                                  <ChatMarkdown
-                                    agentContext={{
-                                      enabled: activeProject === 'nexus-system' && !chatSending,
-                                      chatId: m.chatId,
-                                      messageId: m.id,
-                                      onConnected: async () => {
-                                        await loadChatModels();
-                                        refresh();
-                                        const page = await invoke('chat_message_page', {
-                                          chatId: activeChat,
-                                          beforeId: null,
-                                          limit: 40,
-                                        });
-                                        setChatMessages(rows => mergeLatestMessages(rows, page.messages));
-                                      },
+                          {(content =>
+                            m.role === 'assistant' ? (
+                              // Actions sit outside the bubble: an edge-fade mask on a long bubble would clip them.
+                              <div className="chat-turn assistant">
+                                {content}
+                                {
+                                  <MessageActions
+                                    message={m}
+                                    locked={chatSending}
+                                    bookmarked={bookmarks.some(b => b.id === m.id)}
+                                    onBookmark={bookmark}
+                                    canRegenerate={m.id === lastAnswerId}
+                                    onRegenerate={regenerate}
+                                    onFork={msg => forkFrom(msg, true)}
+                                    onReply={m => {
+                                      setReplyTo(m);
+                                      document.querySelector('[aria-label="Message to NEXUS"]')?.focus();
                                     }}
-                                    content={
-                                      m.id === continuingId &&
-                                      currentChatSending &&
-                                      continuingMode === 'regenerate'
-                                        ? streamText || m.content
-                                        : m.id === continuingId && currentChatSending
-                                          ? mergeContinuation(
-                                              m.content === 'Генерация остановлена.' ? '' : m.content,
-                                              streamText
-                                            )
-                                          : m.content
-                                    }
-                                    allowQuestion={
-                                      !currentChatSending &&
-                                      !chatMessages.slice(index + 1).some(x => x.role === 'user')
-                                    }
-                                    selections={m.questionSelections}
-                                    legacyReply={
-                                      chatMessages[index + 1]?.role === 'user'
-                                        ? chatMessages[index + 1].content
-                                        : null
-                                    }
-                                    onQuestion={async (text, selection) => {
-                                      const updated = await invoke('save_question_selection', {
-                                        chatId: m.chatId,
-                                        messageId: m.id,
-                                        block: selection.block,
-                                        answers: selection.answers,
-                                      });
+                                    onUpdate={updated =>
                                       setChatMessages(rows =>
                                         rows.map(row => (row.id === updated.id ? updated : row))
-                                      );
-                                      await sendChat(text);
-                                    }}
+                                      )
+                                    }
                                   />
-                                  {m.attachments?.length > 0 && (
-                                    <div className="message-files">
-                                      {m.attachments.map(file => (
-                                        <FileTile
-                                          key={file.id}
-                                          file={file}
-                                          onOpen={file => openPanelFile({source: 'attachment', ...file})}
-                                        />
-                                      ))}
-                                    </div>
+                                }
+                              </div>
+                            ) : (
+                              content
+                            ))(
+                            <article
+                              className={
+                                'chat-bubble ' +
+                                m.role +
+                                (m.id === continuingId &&
+                                currentChatSending &&
+                                continuingMode === 'regenerate' &&
+                                !streamText
+                                  ? ' is-regenerating'
+                                  : '')
+                              }
+                              data-message-id={m.id}
+                              data-thinking-target={
+                                currentChatSending && m.id === continuingId ? 'true' : undefined
+                              }
+                            >
+                              <div className="chat-role">
+                                {m.role === 'user' ? 'You' : m.role === 'assistant' ? 'NEXUS' : 'System'}
+                              </div>
+                              {m.role === 'system' ? (
+                                <details className="response-details">
+                                  <summary>{loc('Технические детали')}</summary>
+                                  <pre>{m.content}</pre>
+                                </details>
+                              ) : editing === m.id ? (
+                                <MessageEditor
+                                  message={m}
+                                  busy={chatSending}
+                                  onCancel={() => setEditing(null)}
+                                  onSave={text => saveEdit(m, text)}
+                                />
+                              ) : (
+                                <CollapsibleMessage long={m.role === 'user' && isLongMessage(m.content)}>
+                                  <div className="chat-markdown">
+                                    <ChatMarkdown
+                                      agentContext={{
+                                        enabled: activeProject === 'nexus-system' && !chatSending,
+                                        chatId: m.chatId,
+                                        messageId: m.id,
+                                        onConnected: async () => {
+                                          await loadChatModels();
+                                          refresh();
+                                          const page = await invoke('chat_message_page', {
+                                            chatId: activeChat,
+                                            beforeId: null,
+                                            limit: 40,
+                                          });
+                                          setChatMessages(rows => mergeLatestMessages(rows, page.messages));
+                                        },
+                                      }}
+                                      content={
+                                        m.id === continuingId &&
+                                        currentChatSending &&
+                                        continuingMode === 'regenerate'
+                                          ? streamText || m.content
+                                          : m.id === continuingId && currentChatSending
+                                            ? mergeContinuation(
+                                                m.content === 'Генерация остановлена.' ? '' : m.content,
+                                                streamText
+                                              )
+                                            : m.content
+                                      }
+                                      allowQuestion={
+                                        !currentChatSending &&
+                                        !chatMessages.slice(index + 1).some(x => x.role === 'user')
+                                      }
+                                      selections={m.questionSelections}
+                                      legacyReply={
+                                        chatMessages[index + 1]?.role === 'user'
+                                          ? chatMessages[index + 1].content
+                                          : null
+                                      }
+                                      onQuestion={async (text, selection) => {
+                                        const updated = await invoke('save_question_selection', {
+                                          chatId: m.chatId,
+                                          messageId: m.id,
+                                          block: selection.block,
+                                          answers: selection.answers,
+                                        });
+                                        setChatMessages(rows =>
+                                          rows.map(row => (row.id === updated.id ? updated : row))
+                                        );
+                                        await sendChat(text);
+                                      }}
+                                    />
+                                    {m.attachments?.length > 0 && (
+                                      <div className="message-files">
+                                        {m.attachments.map(file => (
+                                          <FileTile
+                                            key={file.id}
+                                            file={file}
+                                            onOpen={file => openPanelFile({source: 'attachment', ...file})}
+                                          />
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </CollapsibleMessage>
+                              )}
+                              {m.stopped && (
+                                <div className="generation-stopped">
+                                  {continuingId === m.id && currentChatSending ? (
+                                    loc('Продолжаю ответ…')
+                                  ) : (
+                                    <>
+                                      {loc('Ответ остановлен')}{' '}
+                                      <button
+                                        type="button"
+                                        className="continue-generation"
+                                        disabled={chatSending || filesBusy}
+                                        onClick={() => sendChat(loc('Продолжить'), m.id)}
+                                      >
+                                        {loc('Продолжить')}
+                                      </button>
+                                    </>
                                   )}
                                 </div>
-                              </CollapsibleMessage>
-                            )}
-                            {m.stopped && (
-                              <div className="generation-stopped">
-                                {continuingId === m.id && currentChatSending ? (
-                                  loc('Продолжаю ответ…')
-                                ) : (
-                                  <>
-                                    {loc('Ответ остановлен')}{' '}
-                                    <button
-                                      type="button"
-                                      className="continue-generation"
-                                      disabled={chatSending || filesBusy}
-                                      onClick={() => sendChat(loc('Продолжить'), m.id)}
-                                    >
-                                      {loc('Продолжить')}
-                                    </button>
-                                  </>
-                                )}
-                              </div>
-                            )}
-                            {m.details && <ResponseDetails raw={m.details} />}{' '}
-                            {m.role === 'assistant' && (
-                              <MessageActions
-                                message={m}
-                                locked={chatSending}
-                                bookmarked={bookmarks.some(b => b.id === m.id)}
-                                onBookmark={bookmark}
-                                canRegenerate={m.id === lastAnswerId}
-                                onRegenerate={regenerate}
-                                onFork={msg => forkFrom(msg, true)}
-                                onReply={m => {
-                                  setReplyTo(m);
-                                  document.querySelector('[aria-label="Message to NEXUS"]')?.focus();
-                                }}
-                                onUpdate={updated =>
-                                  setChatMessages(rows =>
-                                    rows.map(row => (row.id === updated.id ? updated : row))
-                                  )
-                                }
-                              />
-                            )}
-                            {m.role === 'user' &&
-                              editing !== m.id &&
-                              !String(m.id).startsWith('pending-') && (
-                                <UserActions
-                                  message={m}
-                                  locked={chatSending}
-                                  canEdit
-                                  editInBranch={m.id !== lastUserId}
-                                  onEdit={msg => setEditing(msg.id)}
-                                  onToComposer={msg => {
-                                    setChatDraft(
-                                      msg.content.replace(/^Ответ на сообщение NEXUS:\n(?:> .*\n)*\n/, '')
-                                    );
-                                    document.querySelector('[aria-label="Message to NEXUS"]')?.focus();
-                                  }}
-                                  bookmarked={bookmarks.some(b => b.id === m.id)}
-                                  onBookmark={bookmark}
-                                />
                               )}
-                          </article>
+                              {m.details && <ResponseDetails raw={m.details} />}{' '}
+                              {m.role === 'user' &&
+                                editing !== m.id &&
+                                !String(m.id).startsWith('pending-') && (
+                                  <UserActions
+                                    message={m}
+                                    locked={chatSending}
+                                    canEdit
+                                    editInBranch={m.id !== lastUserId}
+                                    onEdit={msg => setEditing(msg.id)}
+                                    onToComposer={msg => {
+                                      setChatDraft(
+                                        msg.content.replace(/^Ответ на сообщение NEXUS:\n(?:> .*\n)*\n/, '')
+                                      );
+                                      document.querySelector('[aria-label="Message to NEXUS"]')?.focus();
+                                    }}
+                                    bookmarked={bookmarks.some(b => b.id === m.id)}
+                                    onBookmark={bookmark}
+                                  />
+                                )}
+                            </article>
+                          )}
                         </React.Fragment>
                       ))}
                       {currentChatSending && !continuingId && streamText && (

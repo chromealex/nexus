@@ -4,6 +4,7 @@ Short history of NEXUS Desktop. The original per-version notes (in Russian) are 
 
 ## Unreleased
 
+- Fix: actions under long answers are visible again (the edge fade no longer clips them).
 - An answer interrupted by quitting or restarting Nexus is no longer lost: on the next start it appears in its chat as a stopped answer with “Continue”.
 - Answers and the team summary are split into paragraphs: each separate agent message starts a new block instead of running into one wall of text.
 - Permission requests stand out: amber edge and glow while they wait.
