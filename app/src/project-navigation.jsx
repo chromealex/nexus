@@ -160,14 +160,15 @@ export function ProjectNavigation({
   }, []);
   const toggle = key => setExpanded(v => ({...v, [key]: v[key] === false ? true : false}));
   async function newChat(projectId = activeProject, folderId = null, parentChatId = null) {
-    if (createBusy.current || busy) return;
-    // A plain new chat opens as a draft; it is created when the first message is sent.
+    // A plain new chat opens as a draft; it is created when the first message is sent. An answer
+    // running in another chat must not block it.
     if (!folderId && !parentChatId && onDraftChat && projectId) {
       setMenu(null);
       setExpanded(v => ({...v, ['p' + projectId]: true}));
       onDraftChat(projectId);
       return;
     }
+    if (createBusy.current || busy) return;
     createBusy.current = true;
     setMenu(null);
     try {
@@ -396,7 +397,7 @@ export function ProjectNavigation({
               <>
                 <button
                   role="menuitem"
-                  disabled={busy}
+                  disabled={busy && type === 'folder'}
                   onClick={() =>
                     newChat(type === 'project' ? item.id : item.projectId, type === 'folder' ? item.id : null)
                   }
@@ -596,7 +597,7 @@ export function ProjectNavigation({
         <button
           className="new-chat-nav"
           title={withShortcut(loc('Новый чат в текущем проекте'), 'newChat')}
-          disabled={!activeProject || disabled || busy}
+          disabled={!activeProject || disabled}
           onClick={() => newChat()}
         >
           <SquarePen size={17} />
@@ -679,7 +680,7 @@ export function ProjectNavigation({
                       className="nav-action nav-new-chat"
                       title={loc('Новый чат в проекте')}
                       aria-label={loc('Новый чат в проекте ') + p.name}
-                      disabled={busy || disabled}
+                      disabled={disabled}
                       onClick={() => newChat(p.id)}
                     >
                       <Plus size={14} />
