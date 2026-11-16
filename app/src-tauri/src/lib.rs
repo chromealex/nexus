@@ -26,6 +26,7 @@ mod custom_agents;
 mod file_preview;
 mod gemini_auth;
 mod installer;
+mod mcp_servers;
 mod native_install;
 mod orchestration;
 mod path_picker;
@@ -40,6 +41,7 @@ mod push_notify;
 mod question_history;
 mod remote_channels;
 mod route_feedback;
+use mcp_servers::{mcp_server_login, mcp_server_remove, mcp_server_save, mcp_server_toggle, mcp_servers};
 mod system_open;
 mod verification;
 mod window_state;
@@ -344,6 +346,11 @@ pub fn run() {
             list_accounts,
             add_account,
             rename_account,
+            mcp_servers,
+            mcp_server_save,
+            mcp_server_toggle,
+            mcp_server_remove,
+            mcp_server_login,
             remove_account,
             account_login,
             auth_status,

@@ -84,6 +84,27 @@ export function responseDetails(raw = '') {
         if (c.type === 'tool_use')
           add(loc('Вызван инструмент: ') + c.name, JSON.stringify(c.input, null, 2), c.id);
       }
+    // What a tool returned, and refusals or errors — so a missing integration is visible, not guessed.
+    if (v.type === 'user')
+      for (const c of v.message?.content || []) {
+        if (c.type !== 'tool_result') continue;
+        const text = (
+          Array.isArray(c.content) ? c.content.map(x => x.text || '').join('\n') : String(c.content || '')
+        )
+          .trim()
+          .slice(0, 1500);
+        add(
+          c.is_error ? loc('Инструмент отклонён или вернул ошибку') : loc('Результат инструмента'),
+          text,
+          c.tool_use_id && c.tool_use_id + ':r'
+        );
+      }
+    if (item?.type === 'mcpToolCall' && (item.error || item.status === 'failed'))
+      add(
+        loc('Инструмент отклонён или вернул ошибку'),
+        JSON.stringify(item.error || item.status),
+        item.id + ':r'
+      );
     if (v.method === 'turn/completed') add(loc('Ответ сформирован'));
   }
   if (route) rows.unshift({title: loc('Маршрут ответа'), body: route});

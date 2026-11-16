@@ -1,4 +1,5 @@
 import {ChannelsPanel} from './channels-panel.jsx';
+import {McpPanel} from './mcp-panel.jsx';
 import {Quota, ApiLimits} from './quota-view.jsx';
 import {CustomSelect} from './custom-select.jsx';
 import React, {useEffect, useRef, useState} from 'react';
@@ -89,7 +90,8 @@ export function ConnectionsDialog({
     [apiLimits, setApiLimits] = useState({}),
     [busyForm, setBusyForm] = useState(null),
     [channelBusy, setChannelBusy] = useState(null),
-    [renaming, setRenaming] = useState(null);
+    [renaming, setRenaming] = useState(null),
+    [mcpBusy, setMcpBusy] = useState(null);
   async function renameAccount(id, value) {
     const next = value.trim();
     setRenaming(null);
@@ -410,7 +412,7 @@ export function ConnectionsDialog({
   }
   // Long work (a Qwen download, an agent install, a channel check) keeps running when the user leaves
   // its page or closes the dialog: the dialog stays mounted and shows where the work is and how far.
-  const working = busy || channelBusy;
+  const working = busy || channelBusy || mcpBusy;
   const activity = busy
     ? {
         title: busyForm?.name || loc('Подключение'),
@@ -711,7 +713,7 @@ export function ConnectionsDialog({
                       : loc('Проверить и подключить')}
                 </button>
               </form>
-            ) : tab === 'channels' ? null : tab === 'catalog' ? (
+            ) : tab === 'channels' || tab === 'mcp' ? null : tab === 'catalog' ? (
               <>
                 <div className="catalog-toolbar">
                   <label>

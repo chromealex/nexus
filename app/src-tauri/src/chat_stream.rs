@@ -310,6 +310,11 @@ fn codex_config(control: &super::chat_runs::Control) -> Value {
     if let Some(browser) = control.browser() {
         config[format!("mcp_servers.{}", super::browser_tools::SERVER)] = browser.codex_config();
     }
+    if !control.is_specialist() {
+        for (key, value) in super::mcp_servers::codex_entries() {
+            config[key] = value;
+        }
+    }
     config
 }
 #[cfg(test)]

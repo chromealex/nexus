@@ -59,6 +59,11 @@ A short list of the rules in force. The full history of decisions and earlier wo
 - Quotas show only real data with a source and a time. Signed in ≠ available quota ≠ supported by routing.
 - Installers verify the signature or the SHA-256 of the official release. Never download executable code from a link in a model's answer.
 
+## MCP servers
+
+- “Agents and connections → MCP” (`mcp-panel.jsx`, `mcp_servers.rs`, `mcp-servers.json`): remote HTTPS MCP servers connected once and given to every agent (preset: Atlassian `https://mcp.atlassian.com/v1/mcp/authv2`; custom URL with an ID `[a-z0-9-]`). Reached through the pinned `mcp-remote@0.16.6` bridge, installed on first use into `NEXUS/tools/mcp-remote` with `--ignore-scripts --save-exact`. Sign-in runs the bridge's client, which opens the provider's own page; tokens stay in `NEXUS/mcp-auth` (`MCP_REMOTE_CONFIG_DIR`), never in Nexus files or model context. Only enabled, signed-in servers are passed: Claude through one private per-run `--mcp-config` merged with the browser gateway (removed after the run), Codex through `mcp_servers.<id>` thread config. Tool calls are never pre-approved — Claude's `can_use_tool` and Codex's elicitation become permission cards. Team specialists do not get them.
+- “Answer progress and details” shows tool results and refusals/errors (`tool_result`, failed `mcpToolCall`), so a missing or refused integration is visible.
+
 ## Chat browser
 
 - Each chat has its own built-in browser (available to agents by default): an invisible Google Chrome started by `browser_host.mjs` through a pinned Playwright, with the profile `NEXUS/browsers/<chatId>/profile`. Site sign-ins and tabs (`tabs.json`, up to 20) are kept and restored. Browsers of different chats run in parallel; a browser nobody is watching and no agent is using closes after 15 minutes (the tabs stay).

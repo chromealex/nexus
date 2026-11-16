@@ -5124,3 +5124,23 @@ details[open] > .activity-list {
 .chat-thread .streaming-answer[data-thinking-target='true'] {
   border-radius: 12px;
 }
+
+/* MCP servers in “Agents and connections”. */
+.mcp-panel {
+  display: grid;
+  gap: 10px;
+}
+.mcp-server code {
+  font-size: 11px;
+  color: var(--text-faint, #7f8f9c);
+}
+.mcp-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-body, #c9d4da);
+}
+.mcp-form {
+  max-width: 520px;
+}

@@ -679,7 +679,19 @@ pub(crate) async fn execute_routed_step(
             if control.is_specialist() && account.provider == "claude" {
                 cmd.args(["--tools", "Read,Glob,Grep"]);
             }
-            if let Some(browser) = control.browser().filter(|_| account.provider == "claude") {
+            // The user's MCP servers (Jira…) join the browser gateway in one private config for this run.
+            let mcp_file = (account.provider == "claude" && !control.is_specialist())
+                .then(|| {
+                    let base = control.browser().map(|b| b.claude_config.clone());
+                    super::mcp_servers::claude_config_file(base.as_deref())
+                })
+                .flatten();
+            let _mcp_cleanup = mcp_file.clone().map(RemoveOnDrop);
+            if let Some(file) = &mcp_file {
+                cmd.arg("--mcp-config")
+                    .arg(file)
+                    .env("MCP_TOOL_TIMEOUT", "660000");
+            } else if let Some(browser) = control.browser().filter(|_| account.provider == "claude") {
                 cmd.args(["--mcp-config", &browser.claude_config])
                     .env("MCP_TOOL_TIMEOUT", "660000");
             }
@@ -921,4 +933,12 @@ pub(crate) fn auto_pick() -> Result<String, String> {
         }
     }
     Err("No supported CLI is installed".into())
+}
+
+/// Removes a per-run file (such as the merged MCP config) when the run ends.
+pub(crate) struct RemoveOnDrop(pub PathBuf);
+impl Drop for RemoveOnDrop {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_file(&self.0);
+    }
 }
