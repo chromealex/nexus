@@ -665,6 +665,10 @@ pub(crate) async fn execute_routed_step(
                     "manual",
                     "--permission-prompts",
                     "host",
+                    // Without a named host, print mode denies anything that needs approval before Nexus
+                    // ever sees it; `stdio` sends each request to Nexus as a can_use_tool control request.
+                    "--permission-prompt-tool",
+                    "stdio",
                     "--input-format",
                     "stream-json",
                     "--output-format",

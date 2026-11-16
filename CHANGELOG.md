@@ -2,6 +2,11 @@
 
 Short history of NEXUS Desktop. The original per-version notes (in Russian) are in [docs/history](docs/history).
 
+## Unreleased
+
+- Fix: Claude now asks for permission in the chat (Jira and other MCP tools, file writes) instead of being refused silently.
+- Cleaner question card; padding in the expanded “Preparing the answer” strip.
+
 ## 0.25.1 — 2026-11-16
 - Fix: the MCP tab was empty; its progress now shows in the activity strip.
 - The browser panel opens only when the agent acts on a page, not when it just looks at an empty tab.

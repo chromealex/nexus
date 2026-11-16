@@ -5156,3 +5156,79 @@ details[open] > .activity-list {
 .mcp-panel .channel-group {
   margin: 8px 0 0;
 }
+
+/* Question card (16 Nov 2026): calm rows, one rhythm for options and “Own answer”. */
+.chat-thread .agent-question.compact-question {
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--card-edge, rgba(140, 170, 200, 0.18));
+  background: var(--card-fill, rgba(18, 26, 36, 0.6));
+}
+.chat-thread .agent-question.compact-question fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.chat-thread .agent-question.compact-question legend {
+  padding: 0;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: var(--text-strong, #eef4f8);
+}
+.chat-thread .agent-question.compact-question .question-options {
+  display: grid;
+  gap: 4px;
+}
+.chat-thread .agent-question.compact-question .question-option,
+.chat-thread .agent-question.compact-question .own-choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-body, #c9d4da);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease;
+}
+.chat-thread .agent-question.compact-question .question-option:hover,
+.chat-thread .agent-question.compact-question .own-choice:hover {
+  background: rgba(140, 180, 220, 0.07);
+}
+.chat-thread .agent-question.compact-question .question-option.selected {
+  background: rgba(108, 200, 255, 0.1);
+  border-color: rgba(108, 200, 255, 0.35);
+  color: var(--text-strong, #eef4f8);
+}
+.chat-thread .agent-question.compact-question .question-option input {
+  margin: 0;
+  flex: none;
+  accent-color: #6cc8ff;
+}
+.chat-thread .agent-question.compact-question .own-choice {
+  color: var(--text-muted, #9fb0bd);
+  padding-left: 35px; /* lines up with option text after the radio */
+}
+.chat-thread .agent-question.compact-question input[type='text'],
+.chat-thread .agent-question.compact-question input[type='password'] {
+  margin-top: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Expanded “Preparing the answer” strip: its lines keep the strip's inner padding. */
+.chat-thread .pending-details[open] > :not(summary) {
+  padding-inline: 16px;
+  padding-bottom: 10px;
+}
+.chat-thread .agent-question.compact-question .question-option {
+  border-width: 1px !important; /* an older rule marked the choice with a thick left bar */
+  box-shadow: none;
+}
