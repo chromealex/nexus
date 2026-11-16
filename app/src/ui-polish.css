@@ -5104,3 +5104,13 @@ details[open] > .activity-list {
   margin-top: 8px;
   justify-self: start;
 }
+
+/* “+ Own agent”: the icon is centred on the label, not set on its baseline. */
+.connections-nav > button:last-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.connections-nav > button:last-child > svg {
+  flex: none;
+}
