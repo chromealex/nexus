@@ -2,12 +2,9 @@
 
 Short history of NEXUS Desktop. The original per-version notes (in Russian) are in [docs/history](docs/history).
 
-## Unreleased
-
+## 0.23.0 — 2026-11-16
 - Within a provider, the account with the most usage limit left answers.
 - Model ratings can be shared with the team through the project folder (`.nexus/model-ratings/`, counts only); teammates' ratings feed Auto routing for that project.
-
-## Unreleased
 - Auto learns from you: answers you rate, thank for or move on from count for the model; corrections and later “this does not work” count against it. Among equal candidates the choice is probabilistic (Thompson sampling), so lower-ranked models still get second chances.
 - Verified catalog agents (Copilot, Kimi, Cline, Amp, OpenCode and others) take part in Auto as equals; your ratings decide how often they are used.
 - Fix: the routing arbiter now actually receives the tree's shortlist at send time.
