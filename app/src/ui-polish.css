@@ -5114,3 +5114,13 @@ details[open] > .activity-list {
 .connections-nav > button:last-child > svg {
   flex: none;
 }
+
+/* The beam was hidden by an older rule (visibility: hidden); the script controls its opacity. */
+.thinking-lightning {
+  visibility: visible;
+}
+/* The aurora rim follows the card's corners: the pending “Preparing the answer” strip is a card too. */
+.chat-thread .pending-details[data-thinking-target='true'],
+.chat-thread .streaming-answer[data-thinking-target='true'] {
+  border-radius: 12px;
+}
